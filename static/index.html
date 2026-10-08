@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIDE EFFECTS</title>
+<meta name="description" content="The side-effects leaflet every credit product should have shipped with.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></div>
+  <div class="tag">Pharmacovigilance for money</div>
+</header>
+
+<main>
+  <section class="intro" id="intro">
+    <h1>Every medicine tells you what can go wrong.<br>Your credit card never did.</h1>
+    <p>Show us an offer. We check real complaint data the way drug regulators check adverse-event reports, find the contract clause behind each problem, and print the leaflet it should have come with.</p>
+  </section>
+
+  <section class="card" id="input">
+    <h2>1. Show us the offer</h2>
+    <div class="grid2">
+      <label class="drop" id="photoDrop">
+        <input type="file" id="images" accept="image/*" capture="environment" multiple hidden>
+        <span class="drop-icon" aria-hidden="true">📷</span>
+        <strong>Photo of the flyer or app screen</strong>
+        <span class="muted" id="imagesName">Tap to take or choose a photo</span>
+      </label>
+      <label class="drop" id="pdfDrop">
+        <input type="file" id="contract" accept="application/pdf,.txt" hidden>
+        <span class="drop-icon" aria-hidden="true">📄</span>
+        <strong>The contract or terms (PDF)</strong>
+        <span class="muted" id="contractName">Optional, but needed to find clauses</span>
+      </label>
+    </div>
+    <details class="paste">
+      <summary>Or paste text</summary>
+      <label>Advert or offer text<textarea id="flyerText" rows="3" placeholder="e.g. 0% interest for 12 months! Pay in 4 with ..."></textarea></label>
+      <label>Contract text<textarea id="contractText" rows="5" placeholder="Paste the terms and conditions"></textarea></label>
+    </details>
+    <div class="row">
+      <button class="ghost" id="sampleBtn" type="button">Try a sample (fictional BNPL plan)</button>
+    </div>
+    <details class="paste">
+      <summary>Lender and product (we usually work these out)</summary>
+      <div class="grid2">
+        <label>Lender<input id="issuer" list="companies" placeholder="e.g. Apple Card, Affirm, Chase"></label>
+        <label>Product type
+          <select id="productType">
+            <option value="">Work it out</option>
+            <option value="credit_card">Credit card</option>
+            <option value="bnpl">Buy Now Pay Later</option>
+            <option value="personal_loan">Personal loan</option>
+          </select>
+        </label>
+      </div>
+      <datalist id="companies"></datalist>
+    </details>
+
+    <h2>2. About you <span class="muted small">(optional, never stored)</span></h2>
+    <div class="chips" id="profileChips" role="group" aria-label="Your situation"></div>
+    <label class="note">Anything else?<input id="note" maxlength="300" placeholder="e.g. I'm a freelancer saving for a wedding"></label>
+
+    <button class="primary" id="goBtn" type="button">Write my leaflet</button>
+    <p class="error" id="formError" role="alert" hidden></p>
+  </section>
+
+  <section class="card progress" id="progress" hidden aria-live="polite">
+    <h2>Working on it</h2>
+    <ol id="steps"></ol>
+  </section>
+
+  <article class="leaflet" id="leaflet" hidden></article>
+</main>
+
+<button class="pharm-fab" id="pharmFab" hidden>💬 Ask the pharmacist</button>
+<aside class="pharm" id="pharm" hidden aria-label="Pharmacist">
+  <header><strong>Pharmacist</strong><span class="muted small">Answers from this leaflet, the contract and real complaints</span><button class="x" id="pharmClose" aria-label="Close">×</button></header>
+  <div class="chat" id="chat"></div>
+  <div class="suggest" id="suggest"></div>
+  <form id="askForm">
+    <button type="button" class="mic" id="micBtn" aria-label="Ask by voice" title="Ask by voice">🎤</button>
+    <input id="askInput" placeholder="Is this OK for a freelancer?" autocomplete="off">
+    <button class="primary small" type="submit">Ask</button>
+  </form>
+</aside>
+
+<footer class="foot">
+  SIDE EFFECTS reports what people complain about; it does not prove what a product will do to you, and it is not financial advice.
+  Built with Gemini on Google Cloud. <a href="/.well-known/side-effects.json">For AI agents</a>
+</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>

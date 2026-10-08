@@ -1,0 +1,252 @@
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const STEPS = {
+  read: ["Intake agent", "Gemini reads the offer"],
+  match: ["Matcher", "Finds the lender in complaint records"],
+  signal: ["Signal engine", "Drug-safety statistics on complaints"],
+  clauses: ["Mechanism agent", "Gemini pins each problem to a clause"],
+  compose: ["Leaflet writer", "Gemini writes it for you"],
+};
+const STATUS_LABEL = {
+  persisting: "Still reported in 2026",
+  emerging: "New in 2026",
+  fading: "Weaker in 2026",
+  not_seen_recently: "Not seen in 2026 data",
+  single_period: "",
+};
+
+let profileKeys = new Set();
+let leaflet = null;
+let history = [];
+
+async function init() {
+  const meta = await fetch("/api/meta").then((r) => r.json());
+  $("companies").innerHTML = meta.companies.map((c) => `<option value="${esc(c)}">`).join("");
+  $("profileChips").innerHTML = meta.profiles
+    .map((p) => `<button type="button" class="chip" aria-pressed="false" data-key="${p.key}">${esc(p.label)}</button>`).join("");
+  $("profileChips").addEventListener("click", (e) => {
+    const b = e.target.closest(".chip"); if (!b) return;
+    const on = b.getAttribute("aria-pressed") !== "true";
+    b.setAttribute("aria-pressed", on); on ? profileKeys.add(b.dataset.key) : profileKeys.delete(b.dataset.key);
+  });
+}
+
+function showFile(input, label, drop) {
+  input.addEventListener("change", () => {
+    const names = [...input.files].map((f) => f.name).join(", ");
+    if (names) { $(label).textContent = names; $(drop).classList.add("has"); }
+  });
+}
+showFile($("images"), "imagesName", "photoDrop");
+showFile($("contract"), "contractName", "pdfDrop");
+
+$("sampleBtn").addEventListener("click", async () => {
+  const [flyer, contract] = await Promise.all([
+    fetch("/api/samples/fictional-bnpl-flyer").then((r) => r.json()),
+    fetch("/api/samples/fictional-bnpl-agreement").then((r) => r.json()),
+  ]);
+  $("flyerText").value = flyer.text; $("contractText").value = contract.text;
+  $("productType").value = "bnpl";
+  document.querySelectorAll(".paste")[0].open = true;
+});
+
+$("goBtn").addEventListener("click", run);
+
+async function run() {
+  const fd = new FormData();
+  [...$("images").files].forEach((f) => fd.append("images", f));
+  if ($("contract").files[0]) fd.append("contract", $("contract").files[0]);
+  fd.append("flyer_text", $("flyerText").value);
+  fd.append("contract_text", $("contractText").value);
+  fd.append("issuer", $("issuer").value);
+  fd.append("product_type", $("productType").value);
+  fd.append("profile", [...profileKeys].join(","));
+  fd.append("note", $("note").value);
+  const hasInput = $("images").files.length || $("contract").files.length || $("flyerText").value.trim() || $("contractText").value.trim();
+  if (!hasInput) return showError("Add a photo of the offer, its contract, or paste some text first.");
+  showError("");
+
+  $("goBtn").disabled = true;
+  $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
+  $("progress").hidden = false;
+  $("steps").innerHTML = Object.entries(STEPS).map(([k, [who, what]]) =>
+    `<li id="st-${k}"><span class="ic">○</span><div><div class="who">${who}</div><div class="what">${what}</div></div></li>`).join("");
+  $("progress").scrollIntoView({ behavior: "smooth", block: "start" });
+
+  try {
+    const resp = await fetch("/api/leaflet", { method: "POST", body: fd });
+    if (!resp.ok) throw new Error(await resp.text());
+    const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) { handle(JSON.parse(buf.slice(0, i))); buf = buf.slice(i + 1); }
+    }
+  } catch (err) {
+    showError("The leaflet could not be made. " + (err.message || ""));
+  } finally { $("goBtn").disabled = false; }
+}
+
+function handle(ev) {
+  if (ev.step === "leaflet") { render(ev.leaflet); return; }
+  if (ev.status === "error") { showError(ev.detail); return; }
+  const li = $("st-" + ev.step); if (!li) return;
+  li.querySelector(".ic").innerHTML = ev.status === "running" ? '<span class="spin"></span>' : ev.status === "skipped" ? "–" : "✓";
+  li.querySelector(".what").textContent = ev.detail;
+}
+
+function showError(msg) { $("formError").textContent = msg; $("formError").hidden = !msg; }
+
+function scale(l) {
+  const max = Math.max(6, Math.ceil((l.ci95[1] || l.reported_x) + 0.5));
+  const pct = (v) => Math.min(100, (v / max) * 100);
+  return `<div class="scale" aria-hidden="true"><div class="axis"></div>
+    <div class="peer" style="left:${pct(1)}%"></div>
+    <div class="ci" style="left:${pct(l.ci95[0])}%;width:${pct(l.ci95[1]) - pct(l.ci95[0])}%"></div>
+    <div class="pt" style="left:${pct(l.reported_x)}%"></div></div>
+    <div class="scale-legend"><span>0</span><span>similar lenders = 1×</span><span>${max}×</span></div>`;
+}
+
+function clauseHtml(c) {
+  if (!c) return "";
+  return `<div class="clause"><span class="ref">In this contract: page ${c.page}${c.section ? ", " + esc(c.section) : ""}</span>“${esc(c.quote)}”
+    ${c.how_it_causes ? `<div class="small muted" style="font-family:var(--sans);margin-top:6px">${esc(c.how_it_causes)}</div>` : ""}</div>`;
+}
+
+function sideEffect(l) {
+  const level = l.scope === "bank"
+    ? `<span class="t bank">Bank-level complaint signal: ${esc(short(l.company))}</span>`
+    : `<span class="t class">Whole product category (all BNPL lenders)</span>`;
+  const status = STATUS_LABEL[l.status] ? `<span class="t ${l.status === "emerging" ? "new" : ""}">${STATUS_LABEL[l.status]}</span>` : "";
+  const why = l.scope === "bank"
+    ? `${(l.share_company * 100).toFixed(1)}% of complaints about ${esc(short(l.company))} are about this, vs ${(l.share_peers * 100).toFixed(1)}% at similar lenders (${l.n.toLocaleString()} reports, ${esc(l.period)}).`
+    : `${(l.share_company * 100).toFixed(1)}% of complaints about BNPL lenders are about this, vs ${(l.share_peers * 100).toFixed(1)}% at other lenders (${l.n.toLocaleString()} reports).`;
+  const recent = l.recent ? ` In ${esc(l.recent.period)} it was ${l.recent.reported_x}× (${l.recent.n} reports).` : "";
+  const stories = (l.stories || []).map((s) =>
+    `<div class="story">“${esc(s.text)}”<div class="meta">Real complaint to the US CFPB, ${esc(s.date)}, #${esc(s.complaint_id)}</div></div>`).join("");
+  return `<div class="se ${l.relevant_to_you ? "you" : ""}">
+    <button aria-expanded="false"><div class="se-head"><span class="se-name">${esc(l.label)}</span>
+      <span class="se-x">${l.reported_x}× <small>more often than similar lenders</small></span></div>
+      <div class="tags">${level}${l.clause ? '<span class="t clause">Clause in this contract</span>' : ""}${status}${l.relevant_to_you ? '<span class="t you">Matters for you</span>' : ""}</div>
+      ${scale(l)}</button>
+    <div class="se-body">
+      ${l.plain_explanation ? `<p>${esc(l.plain_explanation)}</p>` : ""}
+      <p class="small muted">${why}${recent} 95% interval ${l.ci95[0]}–${l.ci95[1]}×.</p>
+      ${l.clause ? clauseHtml(l.clause) : '<p class="noclause">No contract clause causes this one; it comes from how the company handles customers in practice.</p>'}
+      ${stories}
+      ${l.how_to_reduce_risk ? `<p class="tip">${esc(l.how_to_reduce_risk)}</p>` : ""}
+    </div></div>`;
+}
+
+function contractOnly(c) {
+  return `<div class="se ${c.relevant_to_you ? "you" : ""}">
+    <button aria-expanded="false"><div class="se-head"><span class="se-name">${esc(c.label)}</span><span class="se-x"><small>no complaint statistics</small></span></div>
+      <div class="tags"><span class="t clause">Clause in this contract</span>${c.relevant_to_you ? '<span class="t you">Matters for you</span>' : ""}</div></button>
+    <div class="se-body">${c.plain_explanation ? `<p>${esc(c.plain_explanation)}</p>` : ""}${clauseHtml(c)}
+      ${c.how_to_reduce_risk ? `<p class="tip">${esc(c.how_to_reduce_risk)}</p>` : ""}</div></div>`;
+}
+
+function short(name) {
+  return String(name || "").replace(/,? (INC\.?|N\.A\.|NATIONAL ASSOCIATION|FINANCIAL CORPORATION|COMPANY|& CO\.|Holdings, Inc|Inc\.|LLC|AB)$/i, "").trim();
+}
+
+function render(lf) {
+  leaflet = lf; history = [];
+  const p = lf.product;
+  const bank = lf.side_effects.filter((l) => l.scope === "bank");
+  const klass = lf.side_effects.filter((l) => l.scope !== "bank");
+  const byId = Object.fromEntries([...lf.side_effects, ...lf.contract_only].map((l) => [l.id, l.label]));
+  const cite = (ids) => ids.length ? ` <span class="small muted">(${ids.map((i) => esc(byId[i] || "")).join("; ")})</span>` : "";
+
+  $("leaflet").innerHTML = `
+    <div class="lf-kicker">Package leaflet: information for the borrower</div>
+    <div class="lf-title">${esc(p.brand_name || p.product_name)}</div>
+    <div class="lf-sub">${esc(p.product_name)}${p.matched_company ? " · Lender in complaint records: " + esc(p.matched_company) : ""}</div>
+    <div class="lf-box"><strong>Read all of this leaflet carefully before you sign.</strong>
+      <ul><li>Keep this leaflet. You may need to read it again.</li>
+      <li>The numbers compare how often people report a problem here versus at similar lenders. They are not the chance it will happen to you.</li>
+      <li>If you have questions, ask the pharmacist.</li></ul></div>
+
+    <h3><span class="num">1.</span>What ${esc(p.brand_name || "this product")} is</h3>
+    <p>${esc(lf.what_it_is)}</p>
+    ${p.headline_claims?.length ? `<p class="small">The advert promises: ${p.headline_claims.map((c) => `“${esc(c)}”`).join(", ")}.</p>` : ""}
+    ${p.left_unsaid?.length ? `<p class="small"><strong>Not mentioned in the advert:</strong> ${p.left_unsaid.map(esc).join("; ")}.</p>` : ""}
+
+    <h3><span class="num">2.</span>Before you sign</h3>
+    <div class="foryou"><strong>For you</strong> <span class="small muted">(${esc(lf.profile)})</span><br>${esc(lf.for_you)}</div>
+    ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
+
+    <h3><span class="num">3.</span>Possible side effects</h3>
+    ${bank.length ? `<p class="small muted">Found in real complaints about this lender, compared with similar lenders. Tap one for the clause and real stories.</p>${bank.map(sideEffect).join("")}` : ""}
+    ${klass.length ? `<p class="small muted" style="margin-top:16px">Reported across Buy Now Pay Later lenders as a group, compared with other lenders:</p>${klass.map(sideEffect).join("")}` : ""}
+    ${!bank.length && !klass.length ? `<p>${lf.product.matched_company ? "No side effect is reported disproportionately often for this lender compared with its peers." : "We have no complaint statistics for this lender."}</p>` : ""}
+    ${lf.contract_only.length ? `<p class="small muted" style="margin-top:16px">Found only in the contract (no complaint statistics):</p>${lf.contract_only.map(contractOnly).join("")}` : ""}
+
+    ${lf.interactions.length ? `<h3><span class="num">4.</span>Interactions</h3><ul>${lf.interactions.map((i) => `<li><strong>With ${esc(i.with_what)}:</strong> ${esc(i.effect)}${cite(i.based_on)}</li>`).join("")}</ul>` : ""}
+
+    ${lf.alternatives.length ? `<h3><span class="num">5.</span>Consider a generic</h3>
+      <p class="small muted">Similar lenders without these complaint signals. This is about complaint patterns only, not price or approval.</p>
+      ${lf.alternatives.map((a) => `<div class="alt"><span>${esc(short(a.company))}</span><span class="small muted">${a.total_signals ? a.total_signals + " other signal" + (a.total_signals > 1 ? "s" : "") : "no signals"} · ${a.complaints.toLocaleString()} complaints</span></div>`).join("")}` : ""}
+
+    <h3><span class="num">6.</span>How we know</h3>
+    <ul class="how">
+      <li>${esc(lf.coverage)}</li>
+      <li>Statistic: the proportional reporting ratio drug regulators use for adverse-event reports. ${esc(lf.evidence.rule)}</li>
+      ${Object.values(lf.evidence.datasets).map((d) => `<li>${esc(d.description)}</li>`).join("")}
+      <li>Gemini reads complaint stories to separate real harms from copy-paste templates (${lf.evidence.templates_excluded} of ${lf.evidence.labelled_narratives} in our checked sample were templates and are excluded).</li>
+      ${lf.contract_pages ? `<li>Gemini read all ${lf.contract_pages} contract pages. Every quote above was checked word for word against the contract${lf.rejected_quotes ? `; ${lf.rejected_quotes} that could not be found were discarded` : ""}.</li>` : ""}
+      <li>${esc(lf.evidence.disclaimer)}</li>
+    </ul>
+    <p class="small"><strong>For AI agents applying for credit on someone's behalf:</strong> this leaflet is machine-readable.</p>
+    <div class="agentbox">GET /api/v1/leaflets/${esc(lf.id)}<br>POST /api/v1/check {"issuer": "${esc(p.matched_company || p.issuer_name)}", "product_type": "${esc(p.product_type)}", "applicant_profile": [...]}</div>
+  `;
+  $("leaflet").querySelectorAll(".se > button").forEach((b) => b.addEventListener("click", () => {
+    const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
+  }));
+  $("leaflet").hidden = false; $("pharmFab").hidden = false;
+  $("leaflet").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("chat").innerHTML = "";
+  $("suggest").innerHTML = ["Is this OK for a freelancer?", "What happens if I pay late?", "Can I dispute a purchase?", "How does it compare with Citi?"]
+    .map((q) => `<button type="button">${esc(q)}</button>`).join("");
+}
+
+/* ---- pharmacist ---- */
+$("pharmFab").addEventListener("click", () => { $("pharm").hidden = false; $("pharmFab").hidden = true; $("askInput").focus(); });
+$("pharmClose").addEventListener("click", () => { $("pharm").hidden = true; $("pharmFab").hidden = false; });
+$("suggest").addEventListener("click", (e) => { if (e.target.tagName === "BUTTON") ask(e.target.textContent); });
+$("askForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("askInput").value.trim(); if (q) ask(q); });
+
+function bubble(role, text) {
+  const d = document.createElement("div"); d.className = "msg " + role; d.textContent = text;
+  $("chat").appendChild(d); $("chat").scrollTop = $("chat").scrollHeight; return d;
+}
+
+let spoke = false;
+async function ask(q, viaVoice = false) {
+  $("askInput").value = ""; bubble("user", q);
+  const pending = bubble("model", "…");
+  try {
+    const r = await fetch("/api/pharmacist", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ leaflet_id: leaflet.id, question: q, history }) });
+    const data = await r.json();
+    const text = r.ok ? data.answer : (data.detail || "Sorry, I can't answer right now.");
+    pending.textContent = text;
+    history.push({ role: "user", text: q }, { role: "model", text });
+    if ((viaVoice || spoke) && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  } catch { pending.textContent = "Sorry, I can't answer right now."; }
+}
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) $("micBtn").hidden = true;
+$("micBtn").addEventListener("click", () => {
+  const rec = new SR(); rec.lang = "en-US"; rec.interimResults = false;
+  $("micBtn").classList.add("on");
+  rec.onresult = (e) => { spoke = true; ask(e.results[0][0].transcript, true); };
+  rec.onend = () => $("micBtn").classList.remove("on");
+  rec.start();
+});
+
+init();

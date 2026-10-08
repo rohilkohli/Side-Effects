@@ -1,0 +1,1672 @@
+{
+"labelled_total": 143,
+"templates_excluded": 24,
+"quotes": [
+{
+"complaint_id": "9986252",
+"date": "2024-08-29",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B1",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "I made XXXX payments on XX/XX/XXXX and XXXX on XX/XX/XXXX to pay my balance due on XX/XX/XXXX in full. When I called the number on my card on XX/XX/XXXX to verify credit limit I was given XXXX different amounts by the first agent i spoke to and a third amount from the supervisor I spoke to.both of which differed from the information on the online access. The supervisor told me that XXXX of the XXXX amounts I paid wou\u2026"
+},
+{
+"complaint_id": "9981885",
+"date": "2024-09-01",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"C4",
+"C5",
+"A4",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "I contacted Apple card operated by the terrible company Goldman Sachs in XXXX regarding a charge I did not recognize. I am traveling XXXX XXXX XXXX XXXX and no longer have my American phone number so they will not verify my account and will not allow me to change my phone number and will not email a verification. I contacted them on XX/XX/XXXX and XX/XX/XXXX and also when I went back to the states for a few days and \u2026"
+},
+{
+"complaint_id": "9999003",
+"date": "2024-09-03",
+"company": "Bread Financial Holdings, Inc.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Add-on products and services",
+"fae_codes": [
+"F3",
+"F2",
+"C2",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "XXXX XXXX store credit card company XXXX XXXX XXXX XXXX XXXX for assistance XX/XX/year>. Was misled that the credit protection being offered at the time was credit protection program i had been paying monthly for since inception of getting the credit card. I was told this assistance program in the pandemic would still require me to make payments each month. I later discovered that after I unknowingly signed up for th\u2026"
+},
+{
+"complaint_id": "9978665",
+"date": "2024-08-29",
+"company": "SOFI TECHNOLOGIES, INC.",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Application denied",
+"fae_codes": [
+"E2"
+],
+"official_label_fit": "CAPTURED",
+"text": "I applied for the SoFi Unlimited 2 % Credit Card on XX/XX/2024. I was denied a credit card due to insufficient credit activity. I called SoFi customer service and they said they don't have any specifics on why the system gave that decision. When I pulled my XXXX credit report by using the adverse action right, it showed I have a credit score of XXXX out of XXXX, with XXXX credit cards with balances that are paid off \u2026"
+},
+{
+"complaint_id": "9989937",
+"date": "2024-09-03",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "On XX/XX/XXXX I noticed a fraudulent charge from XX/XX/XXXX of {$2200.00} on my Bank of America XXXX XXXX credit card. I report this to my bank immediately. I went through the dispute process. I changed my passwords, instituted two-factor authentication, and cancelled the card which was used to make the unauthorized purchase. The purchase was from a contracting company, as the invoice alleges. I do not own a home or \u2026"
+},
+{
+"complaint_id": "9961384",
+"date": "2024-08-30",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"A1",
+"F2",
+"H1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "I called Capitol One in XXXX to ask when my promotional APR expired and when I had to pay the balance to avoid receiving any interest fees. The representative told me that if I paid my balance off by XX/XX/XXXX then I would not receive any fees, so I paid the balance on XX/XX/XXXX. On XX/XX/XXXX I was charged {$73.00} in interest. I called their customer service line on XX/XX/XXXX to ask why I was charged interest wh\u2026"
+},
+{
+"complaint_id": "9995561",
+"date": "2024-09-02",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"C2",
+"D1",
+"E1",
+"F2",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "This is the CFPB complaint # XXXX or # XXXX regarding the CITI illegal and abusive actions with respect to my CITI THANKYOU card XXXX, This also is my request of the CFPB thorough investigation of the CITI illegal and abusive practices and my plea to protect me, a senior citizen, from the CITI unfair and abusive practices. XXXX. ADVERSE ACTION FOR NO REASON, WITH NO CAUSE, AND WITHOUT A LEGALLY REQUIRED XXXX DAYS WAR\u2026"
+},
+{
+"complaint_id": "9991148",
+"date": "2024-09-02",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B1"
+],
+"official_label_fit": "BLURRED",
+"text": "Hello, I have owned XXXX rewards credit card for the last 4 months. For some unexplained reason, they decided to put ahold on my one time payment of XXXX dollars on XX/XX/XXXX thats lasted for 14 days before it was reflected on my credit line. They did the same with the payments in the amount of XXXX dollars done on XX/XX/XXXX and XX/XX/XXXX. I have reached out to the company on multiple occasions and they were unabl\u2026"
+},
+{
+"complaint_id": "9969582",
+"date": "2024-08-30",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D1",
+"C1",
+"E2",
+"E1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "about XX/XX/year> charges : I was the victim of Identity Theft in XXXX. I informed Chase about the issue, and they did nothing to stop it. I contacted them via email, online message, phone calls, and social media chat/support. They refused to block the charges, or cancel and issue a new card, or even investigate. As part of my due diligence to report the fraud and identity theft to FDIC, i also started to put credit \u2026"
+},
+{
+"complaint_id": "9995380",
+"date": "2024-09-02",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Problem with rewards from credit card",
+"fae_codes": [
+"F1"
+],
+"official_label_fit": "CAPTURED",
+"text": "I had to pay out of pocket for a benefit that was supposed to be included in my credit card. I call the customer service and they said there were changes. However, I never received any notification about changes to these perks, as you can see from the attached Letters and notice for XXXX. A bank agent mentioned that this change was communicated through an account statement, but this is misleading since account statem\u2026"
+},
+{
+"complaint_id": "9989695",
+"date": "2024-09-02",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Trouble using your card",
+"sub_issue": "Credit card company won't increase or decrease your credit limit",
+"fae_codes": [
+"C3",
+"D1"
+],
+"official_label_fit": "BLURRED",
+"text": "Companies involved were XXXX XXXX XXXX and Chase. Re : XXXX XXXX XXXX My credit card number was available to a family member who lives on the opposite coast from where I reside. In the past, she had used it occasionally. When I noticed additional charges on this card made by this relative, I called XXXX XXXX XXXX to put a hold on California charges. Since a hold was not possible, I asked for the number to be changed.\u2026"
+},
+{
+"complaint_id": "9970321",
+"date": "2024-08-30",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Sent card you never applied for",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "CAPTURED",
+"text": "I have had fraud occur with Bank of America in regards to my credit card that was stolen XXXX times by someone to make unauthorized charges. I closed the credit card on XX/XX/year> as I did not trust the bank as to who was stealing my information. On the evening of XX/XX/year> I received an email about an application for credit card by Bank of America, which I never applied for. I called them immediately, which I was\u2026"
+},
+{
+"complaint_id": "9984068",
+"date": "2024-09-01",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1",
+"B3",
+"D3",
+"C4",
+"G3",
+"H1"
+],
+"official_label_fit": "CAPTURED",
+"text": "I received a letter stating there might be fraudulent charges on my Citi bank credit card account. I could not get into my account when I never had a problem before. I still can not. I called fraud and spoke to a woman The XXXX week of XXXX. She said she will cancel the card issue me another one in the mail and the fraud department will contact me. They have not. I got a new card in the mail the XXXX week of XX/XX/ye\u2026"
+},
+{
+"complaint_id": "9968418",
+"date": "2024-08-30",
+"company": "TheTenn Inc.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"C1",
+"B2"
+],
+"official_label_fit": "BLURRED",
+"text": "I tried to use my card thru XXXX XXXX on XX/XX/year> at XXXX XXXX and it was declined I tired it again same thing tired I again and the same thing I left and went home to get the card. By that time there was a pending transaction say I paid XXXX XXXXXXXX {$76.00} and XXXX cancelled transaction for the same amount. When I got there I tired the card and it was declined but it said that I had paid XXXX XXXXXXXX on my ac\u2026"
+},
+{
+"complaint_id": "9989814",
+"date": "2024-09-02",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"D1",
+"A2"
+],
+"official_label_fit": "BLURRED",
+"text": "I was a victim of fraud on the XX/XX/year> and XX/XX/year>. At the time of these wires I had a lot of money in my checking accouts. I would not have overdrawn my account with these wires. I have proof that these fraudulent wires did not over draw my account ( see below ) I attached my bank online transactions from the account the money went into. you can see I clearly did not need the money Their letter states that b\u2026"
+},
+{
+"complaint_id": "9996329",
+"date": "2024-09-04",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Application denied",
+"fae_codes": [
+"E2"
+],
+"official_label_fit": "CAPTURED",
+"text": "XXXX XXXX XXXX XXXX XXXX XXXX. XXXX XXXX XXXX XXXX, AR XXXX Capital One EIN/TAX ID : XXXX Customer Service Department XXXX XXXX XXXX XXXX XXXX XXXX XXXX UT XXXX XXXX : Formal Complaint Regarding Credit Card Denial Due to Past Account - Violation of FCRA Dear Sir/Madam, I am writing to formally express my concern and lodge a complaint regarding the recent denial of my credit card application with Capital One. The adve\u2026"
+},
+{
+"complaint_id": "9992776",
+"date": "2024-09-02",
+"company": "WELLS FARGO & COMPANY",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"G1",
+"C3"
+],
+"official_label_fit": "MISLABELLED",
+"text": "They kept increasing my credit balance without my consent, so I could not pay for it. I also told them I could pay for it and if I could receive forbearance. That was denied"
+},
+{
+"complaint_id": "9985215",
+"date": "2024-08-29",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Application denied",
+"fae_codes": [
+"E2",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "American Expresss XXXX XXXX told me theyll be opening an investigation on why they keep denying me because of someone else. They have someone with a similar name and even though I asked the representative how is that possible ( since we have social security numbers ) thats when I was told they dont know. I stated to American Express how this is securities fraud because I know theyre able to override their decision an\u2026"
+},
+{
+"complaint_id": "9985419",
+"date": "2024-08-29",
+"company": "DISCOVER BANK",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Overcharged for something you did purchase with the card",
+"fae_codes": [
+"D2"
+],
+"official_label_fit": "CAPTURED",
+"text": "Subject : Urgent Request for Assistance with Unauthorized Car Rental Charges Dear Consumer Financial Protection Bureau, I am seeking your assistance regarding unauthorized charges related to a recent car rental. Below are the details of the transaction and the issues I am facing : Rental Details : Rental Company : XXXXXXXX XXXX XXXX Pick-Up Location : XXXX, XXXX Pick-Up Date & Time : XX/XX/year>, at XXXX XXXX Drop-Of\u2026"
+},
+{
+"complaint_id": "9994775",
+"date": "2024-08-31",
+"company": "UNITED SERVICES AUTOMOBILE ASSOCIATION",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Charged too much interest",
+"fae_codes": [
+"A3"
+],
+"official_label_fit": "BLURRED",
+"text": "XXXX XX/XX/XXXX : I contacted USAA to dispute their practice of burying a higher interest rate balance beneath a lower interest rate balance on my credit card in violation of the Credit Card Act of XXXX. USAA claims that because the balance was a cash advance, that they are not beholden to the rule of allowing consumers to pay off higher interest rate balances. USAA also opened a complaint for me XXXX."
+},
+{
+"complaint_id": "9969427",
+"date": "2024-08-30",
+"company": "Atlanticus Services Corporation",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B2",
+"B1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "They told me the payment didnt go thru so I paid with another card and a week later the payment they claimed didnt go thru was processed and it sitting on a closed account as a positive amount. When I ask when they will issue my refund they tell me the account was sold to someone else but refuse to issue my check. I have screenshots of the conversation.its a Fortiva Credit Card."
+},
+{
+"complaint_id": "9989044",
+"date": "2024-09-03",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Incorrect information on your report",
+"sub_issue": "Account information incorrect",
+"fae_codes": [
+"E1",
+"F2"
+],
+"official_label_fit": "CAPTURED",
+"text": "I was given the option to payoff the account for {$92.00}. I agreed to the auto drafting, they took out three payments with my permission from my bank account. I paid off the account and it says the rest of my balance is forgiven and the account is closed. I disputed so they would uphold their end but they did not they updated the balance to {$130.00}."
+},
+{
+"complaint_id": "9975311",
+"date": "2024-08-29",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B3",
+"A4",
+"C1",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "This card is associated with Amazon and XXXX XXXX exclusively. They are penalizing me claiming that my payment was rejected after telling me that it was accepted. I had extensive conversations with customer service representatives in XXXX after learning that my account had been closed without my knowledge due to failed attempts to collect my auto payments and they sat on the phone XX/XX/24 and helped me fix the probl\u2026"
+},
+{
+"complaint_id": "9993811",
+"date": "2024-09-02",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"A2"
+],
+"official_label_fit": "BLURRED",
+"text": "Synchrony bank attempted to charge {$2.00} interest on a {$4.00} balance ( in which they refunded me the {$4.00} because it was interest on a balance that was charged as a result of their failure to provide legal service of a prior monthly bill ). This card was paid off complete over 2 months ago when their billing issue began and was immediately put in the \" do not use '' pile. 1 month ago the account was closed whe\u2026"
+},
+{
+"complaint_id": "9975273",
+"date": "2024-08-29",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"B1",
+"A4"
+],
+"official_label_fit": "MISLABELLED",
+"text": "This is a follow-up to complaint XXXX, regarding the interest charge by Goldman Sachs Bank USA XXXX XX/XX/year>, for a payment decline which is unjustified. This complaint was closed at the request of the company without further cross examination. I found the company 's response on XX/XX/year> to be inaccurate and incomplete. I made the payment of {$2800.00} on XX/XX/year>, not XX/XX/year>, as stated in their respons\u2026"
+},
+{
+"complaint_id": "9985117",
+"date": "2024-08-29",
+"company": "CLGF Holdco 1, LLC",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B3",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "Concora credit has been taking payments from me 3 weeks after I make the payments. They also scam by hiding previously set payments making you think you never scheduled one in the first place. Forcing me to schedule another payment only to then take both payments at once. This is illegal and intentionally deceptive. If I have a previously scheduled payment there should be a tab that shows my payments and when they wi\u2026"
+},
+{
+"complaint_id": "9965520",
+"date": "2024-08-28",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "CAPTURED",
+"text": "This is the most frustrating company I have ever dealt with... Apple Card is run by Goldman Sachs Bank USA. No matter how many times I call or write, they continue to bill me. They can not tell me what goods or services the charges are for, or who is the company charging me. I filed a complaint with you several months ago. You wrote to them. They told you, Oh we already credited XXXX XXXX. Yet I can find no credit! A\u2026"
+},
+{
+"complaint_id": "9988250",
+"date": "2024-09-02",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Problem with fraud alerts or security freezes",
+"sub_issue": "",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "I was travelling from XXXX XXXXXXXX XXXX XXXX DC via XXXX where I had a layover of some XXXX hours on XX/XX/XXXX. 2024. My flight from XXXX took off early in the morning of XX/XX/year>. When arrived in DC i got transection alerts from Bank of America which had happened while I was on flight. In total three transections ( {$450.00}, {$71.00} and {$37.00} ) had taken place fraudulently and the fourth one was an order p\u2026"
+},
+{
+"complaint_id": "9962401",
+"date": "2024-08-29",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Company closed your account",
+"fae_codes": [
+"C1",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "Apple Card wrongfully and unlawfully closed my account. This has resulted in a big dropped of a XXXX XXXX as I have a credit card account with them for a long time. I called the company XXXX times trying to get the reason why my account was closed and escalated to upper management. They never provided the reason."
+},
+{
+"complaint_id": "9961803",
+"date": "2024-08-29",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B1",
+"F2"
+],
+"official_label_fit": "BLURRED",
+"text": "We opened the account on with Capital One in XXXX of XXXX based on promotional materials we reviewed. On XX/XX/XXXX, our statement balance was paid in full, as well as some of the current billing cycle balance. On XX/XX/XXXX, we noticed our XX/XX/XXXX payment had still not been applied even though the funds had cleared our bank account. Per the terms of the monthly statement, it states that we will receive credit for\u2026"
+},
+{
+"complaint_id": "9997523",
+"date": "2024-09-04",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"D3",
+"H2"
+],
+"official_label_fit": "BLURRED",
+"text": "HomeGoods Customer Service XXXX XXXX XXXX., XXXX, MA XXXX Dear sir, Recently, I started to receive the emails from your company. However, as far as I remember, I never agreed to have the subscription of these emails. Since I have the issue with TJX Reward Credit Card at this moment and I found out the TJX Reward Credit card was referred in the website of your company contact information, I do not want your company to\u2026"
+},
+{
+"complaint_id": "9968394",
+"date": "2024-08-30",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Company closed your account",
+"fae_codes": [
+"C1"
+],
+"official_label_fit": "CAPTURED",
+"text": "I followed the bank 's instructions and updated my profile on XX/XX/XXXX ( please see the attachment ). I made the money transfer after updating my profile, as the system wouldn't allow the transfer without completing the profile update. The success of the transfer serves as proof that the profile update was completed. All their communication emails went to my spam folder, and they never sent any physical letters."
+},
+{
+"complaint_id": "9984310",
+"date": "2024-09-01",
+"company": "ALLY FINANCIAL INC.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D2"
+],
+"official_label_fit": "CAPTURED",
+"text": "I recently got robbed by XXXX XXXX XXXX, a blatant auto dealer that deceives consumers. On XX/XX/year>, after hours, I dropped off my XXXX XXXX due to a leak in the cooling system. The following day, XX/XX/year>, I received a phone call from XXXX XXXX, who identified himself as the service advisor. XXXX XXXX informed me of a radiator leak, even though I had replaced the radiator two years ago following my XX/XX/XXXX.\u2026"
+},
+{
+"complaint_id": "9993187",
+"date": "2024-09-02",
+"company": "Bread Financial Holdings, Inc.",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B3",
+"A4"
+],
+"official_label_fit": "BLURRED",
+"text": "I scheduled a {$75.00} payment on XXXX XXXXXX/XX/XXXX, to post on XXXX XXXXXX/XX/XXXX ( XXXX XXXX ). I selected the desired bank that I wanted the payment taken out from, and finalized the transaction. Unfortunately, XXXX XXXX XXXX prehistoric system glitched, not for the first time, and selected the other bank attached to my account to remove the payment from. I called in the afternoon of XXXX XXXX to rectify this i\u2026"
+},
+{
+"complaint_id": "9993893",
+"date": "2024-09-02",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"A4",
+"F2",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "About a year ago, XXXX Citi card gave me a promotional offer to increase my points. I didn't realize that by agreeing to the offer, I was enrolled in a paperless statement system. I didn't see the statements in my email box so I called the company to request that they resume sending paper statements. Instead, they mailed me old copies of previous months statements. They did NOT restart sending paper statements. I put\u2026"
+},
+{
+"complaint_id": "9973022",
+"date": "2024-09-01",
+"company": "BARCLAYS BANK DELAWARE",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1",
+"D2",
+"C2",
+"E1",
+"D3"
+],
+"official_label_fit": "CAPTURED",
+"text": "1. In XXXX I had XXXX XXXX XXXX \" XXXX XXXX XXXX, XXXX rebuild the engine on my XXXX XXXX XXXX XXXX XXXX, but they did not properly repair the vehicle. They only replaced one lifter instead of all lifters, did not repair the valves and replaced a XXXX. Also, I have replaced the camshaft sensor three times since the repair. I paid for the repair with my XXXX XXXX XXXX XXXX credit card. I requested the credit union do \u2026"
+},
+{
+"complaint_id": "9995001",
+"date": "2024-09-02",
+"company": "TRUIST FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Trouble using your card",
+"sub_issue": "Credit card company won't increase or decrease your credit limit",
+"fae_codes": [
+"C2",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "I am writing to dispute a decrease in my credit limit, which I believe was inaccurately implemented due to a letter sent out regrading the mistake as a result of a company merger from BB & T. This matter has come to my attention through a notification from your company, and I would like to clarify the circumstances surrounding this decision. I have been a loyal customer of your company for several years, and I have a\u2026"
+},
+{
+"complaint_id": "9972562",
+"date": "2024-09-01",
+"company": "Block, Inc.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Privacy issues",
+"fae_codes": [
+"C4",
+"D3",
+"H2"
+],
+"official_label_fit": "BLURRED",
+"text": "I have tried previously with this issue with Cash App, and I am trying again. I called and spoke with a representative today named XXXX. She informed me that I should reinstall the app and install it again. After I do this process, click the question mark and answer the prompts. I did this and learned that data is still linked to my personal information. For example, I was able to find my account through a credit car\u2026"
+},
+{
+"complaint_id": "9993026",
+"date": "2024-09-02",
+"company": "CAVALRY INVESTMENTS, LLC",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"G3"
+],
+"official_label_fit": "MISLABELLED",
+"text": "Back on XX/XX/XXXX I received a letter from a debt collector XXXXXXXX XXXX XXXX XXXX XXXX informing me, that they tried to collect the debt of {$4100.00} on behalf other debt collector Cavalry SPV I, LLC. Within few days later, on XX/XX/XXXX, I sent a Debt Validation Letter to XXXXXXXX XXXX XXXX XXXX XXXXXXXX About two months ago, XX/XX/XXXX I contacted XXXX XXXX XXXX XXXX XXXX XXXX to inquire about the requested doc\u2026"
+},
+{
+"complaint_id": "9991004",
+"date": "2024-09-02",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Card opened without my consent or knowledge",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "CAPTURED",
+"text": "XX/XX/XXXX or XX/XX/XXXX charges were applied to an online account that I did not setup. All the charges were done per online. I never set up online accounts."
+},
+{
+"complaint_id": "9969992",
+"date": "2024-08-30",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Company closed your account",
+"fae_codes": [
+"C1",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "I received pre-approval for a Chase Sapphire Preferred card and applied and had a hard credit check and was approved on XX/XX/2024. I used the digital card to make XXXX purchases at grocery stores and request and was approved for a credit increase. On XXXX XX/XX/2024 the account was closed with no explanation given and they refused to elaborate or remove the credit pull. This has resulted in me wasting time and hurti\u2026"
+},
+{
+"complaint_id": "9984822",
+"date": "2024-08-29",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D1",
+"E1",
+"H1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "After a review of my BestBuy Visa Citibank credit card XXXX statement I noticed XXXX large charges of products bought on XXXX XX/XX/XXXX {$550.00}, XXXX & XXXX XXXX {$880.00} XXXX XXXX using my Bestbuy Visa card. I have called their consumer department over the issue many times starting in XXXX. Each time the customer rep acts like I never called before. Then I received a letter in mid XXXX saying my charges were val\u2026"
+},
+{
+"complaint_id": "9970874",
+"date": "2024-08-30",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"A4",
+"A2",
+"B3",
+"C1"
+],
+"official_label_fit": "BLURRED",
+"text": "I had a credit card with Capital One bank that was closed by them which they had the right to do at any time. What I couldn't understand is how they could close my account but still pull money from my account. Shouldn't that autopay be deactivated once the credit card relationship was terminated? Instead they kept the autopay function on and pulled all the money from my account to pay off the balance. I was left with\u2026"
+},
+{
+"complaint_id": "9984690",
+"date": "2024-08-29",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Problem with rewards from credit card",
+"fae_codes": [
+"F1"
+],
+"official_label_fit": "CAPTURED",
+"text": "XX/XX/year> XXXX purchase XXXXXXXX XXXX ( {$380.00} ) was an airline purchase direct on airline website which per the terms of my American Express platinum card earns XXXX points. I was only provided with XXXX points and still owed XXXX additional points. All amex keeps doing is tell me to contact later and that it isnt their fault even though they are the ones that are mislabeling the charge. They gave me a confirma\u2026"
+},
+{
+"complaint_id": "9969260",
+"date": "2024-08-30",
+"company": "CLGF Holdco 1, LLC",
+"product": "Credit card",
+"issue": "Advertising and marketing, including promotional offers",
+"sub_issue": "Confusing or misleading advertising about the credit card",
+"fae_codes": [
+"A2",
+"F2",
+"E1",
+"C5"
+],
+"official_label_fit": "CAPTURED",
+"text": "I received a credit card offer by mail, reviewed the information and applied for a card believing it was a card without a yearly fee. After receiving the card in XX/XX/XXXX I did not use it for a few days as I have multiple other credit cards. I then charged some groceries to it on XX/XX/XXXX and XX/XX/XXXX, there may have been additional purchases as well but were minor. When I received the first bill there was a XX\u2026"
+},
+{
+"complaint_id": "9971597",
+"date": "2024-08-30",
+"company": "WELLS FARGO & COMPANY",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"C4",
+"A4",
+"F2",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "Opened a credit card, immediately spent approximately {$10000.00} on the card. Attempted to log in to pay the card off, and found that the account was locked for suspected fraud, and couldn't create a login. Called the company to attempt to verify identity and get the lock removed, as well as pay the card. Company instructed us that only going to the physical branch would be accepted to remove fraud lock. Would not g\u2026"
+},
+{
+"complaint_id": "9974843",
+"date": "2024-08-29",
+"company": "SANTANDER HOLDINGS USA, INC.",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"C1",
+"B1"
+],
+"official_label_fit": "BLURRED",
+"text": "I have contacted Santander 2 times in XXXX and finally received a resolution to only have the same issue happen again in XXXX. I have gone into my local branch and they were unable to help me. I reached out via telephone on 4 occasions. They sent me an email with no explanation and no time frame as to when the situation will be resolved. The consumer service is unhelpful and very lacking in any type of resolution. Th\u2026"
+},
+{
+"complaint_id": "9976049",
+"date": "2024-08-31",
+"company": "U.S. BANCORP",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Problem getting a working replacement card",
+"fae_codes": [
+"H1"
+],
+"official_label_fit": "CAPTURED",
+"text": "On or about XXXX XXXX XXXX applied for US Bank Business credit card based on the invitation that I received. I was suppose to get my credit card by XXXX XX/XX/year>- which i never got it. I called and chatted and I was told that it might take 7-10 days and I can figure out that these folks have no clues in terms of what they are talking about? I asked for tracking #- they had-no tracking #. I was told to ask a specif\u2026"
+},
+{
+"complaint_id": "9984854",
+"date": "2024-08-29",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Charged too much interest",
+"fae_codes": [
+"A1"
+],
+"official_label_fit": "BLURRED",
+"text": "Took out loan with Care Credit for XXXX XXXX on promotion. Had 1 year to pay back loan but upon loan maturation, the original loan amount was doubled and excuse given as accrued compound interest rate. Currently paying 32 % interest on original loan amount. Looks like and seems like loan snarking practices by this company. I understand that interest can go up upon the maturity date of a loan, but double compound inte\u2026"
+},
+{
+"complaint_id": "9991180",
+"date": "2024-09-02",
+"company": "Bread Financial Holdings, Inc.",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"A1",
+"A3"
+],
+"official_label_fit": "BLURRED",
+"text": "XXXX Purchased XXXX XXXX at IKEA and paid for their brand sponsored delivery service. After items were received, and we attempted to assemble, there was damage to internal contents as well as missing parts. XXXX All items returned to IKEA at the store a credit of {$610.00} was received. I opened case XXXX XXXXXXXX for the remaining {$41.00} to be refunded which was the delivery fee. It was not equitable to make a con\u2026"
+},
+{
+"complaint_id": "9978264",
+"date": "2024-08-31",
+"company": "GOLDMAN SACHS BANK USA",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D2"
+],
+"official_label_fit": "CAPTURED",
+"text": "Made a transaction of {$250.00} with my AppleCard ( Goldman Sachs ) for an electric vehicle reservation with XXXX on XX/XX/year>. On XX/XX/year>, per the XXXX terms and conditions, requested to cancel the reservation and receive a refund. XXXX replied with a promise to provide a {$220.00} refund ( {$250.00} minus {$25.00} processing fee ) on XX/XX/year> to the original form of payment ; however, no refund has been pr\u2026"
+},
+{
+"complaint_id": "9976415",
+"date": "2024-08-31",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Can't close your account",
+"fae_codes": [
+"D3",
+"B2"
+],
+"official_label_fit": "BLURRED",
+"text": "The credit cards of TJX reward Master Cards, its mother bank Synchrony, and PayPal related to Synchrony, and I have issues from the beginning of this year, XXXX. Recently, I received a credit card which I never asked from this TJX Reward Master Cards/Synchrony. Therefore, I cut it and reported to the several organizations with picture. The cut card is kept at hand as my reward for my future reference to remind what h\u2026"
+},
+{
+"complaint_id": "9970472",
+"date": "2024-08-30",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Problem with customer service",
+"fae_codes": [
+"F2"
+],
+"official_label_fit": "MISLABELLED",
+"text": "Hello, I recently got approved for a XXXX XXXX XXXX by Chase. The advertisement said get a XXXX XXXX once you are approved and continue with the application and it can be applied to the balance of your hotel stay. Well, I applied and now chase will not give my ecard to me and they. Are alleging I signed up for some other credit card. They obtained my social security number under false pretense and I want my XXXX XXXX\u2026"
+},
+{
+"complaint_id": "9981809",
+"date": "2024-09-01",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "CAPTURED",
+"text": "first complaint on XX/XX/XXXX a fraudulent charge from XXXX 's in the sum of XXXX was made, The card never left my possession, first week or so into XXXX I noticed and I closed my card and called American express. a couple weeks later I get a letter saying my card was used in the terminal via chip however its simply impossible because I had the card. American express stated that the actual card was used via chip but \u2026"
+},
+{
+"complaint_id": "9988497",
+"date": "2024-09-03",
+"company": "ALLY FINANCIAL INC.",
+"product": "Credit card",
+"issue": "Incorrect information on your report",
+"sub_issue": "Account status incorrect",
+"fae_codes": [
+"E1",
+"C1"
+],
+"official_label_fit": "CAPTURED",
+"text": "On XX/XX/year> XXXX EST, I enrolled in Ally Financial hardship program which reduced my monthly payments to {$10.00}, and my APR to 6 % as well as closed my account. On the same day, after enrollment in their hardship program, I made my first payment of {$10.00}. I was only 28 days past due at the time, and the payment made should have registered my account current. But instead, Ally Financial incorrectly reported me\u2026"
+},
+{
+"complaint_id": "9985077",
+"date": "2024-08-29",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Charged too much interest",
+"fae_codes": [
+"A1"
+],
+"official_label_fit": "BLURRED",
+"text": "I noticed my balance was way higher than it should have been so I went to review statements on my XXXX account, card is through Citi Bank. I called XXXX and the XXXX told me that the entire interest amount for purchase is charged at end of promotional period regardless of payments made. This is illegal. And XXXX purchase would have been fully paid off before end of promotion period. I have been charged over $ XXXX in\u2026"
+},
+{
+"complaint_id": "9974238",
+"date": "2024-08-31",
+"company": "WELLS FARGO & COMPANY",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Company closed your account",
+"fae_codes": [
+"C1",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "On XX/XX/XXXX, Wells Fargo Card Services, suddenly closed my credit card account and provided no clear, specific, justified or valid reason for their actions. I've had the credit card account since XXXX and a banking relationship with Wells Fargo since XXXX and never, ever, ever made any late payments or have any kind of derogatory history with them. Furthermore, the sudden closure of the account lowered my credit sc\u2026"
+},
+{
+"complaint_id": "9969410",
+"date": "2024-08-30",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Closing your account",
+"sub_issue": "Can't close your account",
+"fae_codes": [
+"E1",
+"C5"
+],
+"official_label_fit": "CAPTURED",
+"text": "XXXX XXXX to whom this card was issued elected for a private liquidation per California 's laws on. Assignment for the Benefit of Creditors. There is no money left as all unsecured creditors were paid XXXX % of their debt and we are dissolving the company shortly. According to the company attorney, the explanation accompanied the check. Under California 's laws and common law around Assignment for the Benefit of Cred\u2026"
+},
+{
+"complaint_id": "9989464",
+"date": "2024-09-03",
+"company": "CAPITAL ONE FINANCIAL CORPORATION",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Card opened without my consent or knowledge",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "CAPTURED",
+"text": "Account opened in XX/XX/year> without my knowledge. No monies from the account ever used. Bank acknowledges phone and email in the acct not mine. No real investigation."
+},
+{
+"complaint_id": "9984695",
+"date": "2024-08-29",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Incorrect information on your report",
+"sub_issue": "Account status incorrect",
+"fae_codes": [
+"E1",
+"B1"
+],
+"official_label_fit": "BLURRED",
+"text": "On XX/XX/year> ( today ) I chatted with a rep to see why my payment had not been reflected and it had been 6 days since the payment was made and debited out of my account. In that time I looked over my statement, my balance due amount was {$1700.00}, I made a payment of {$1100.00}. I than notice that my statement end date according to my statement online under more information stated it was XX/XX/year>. Just trying t\u2026"
+},
+{
+"complaint_id": "9982391",
+"date": "2024-09-01",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Credit card company forcing arbitration",
+"fae_codes": [
+"C1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "I only have credit cards with Chase. I use XXXX a lot and Im used to paying with my chase credit cards. Now chase is banning the use of my credit card with some companies forcing me to use their XXXX service. If I pay my credit card bill on time I should be able to use my credit card wherever I want. Its an arbitration on behalf of chase to force me to use their services. Im closing all my credit cards with Chase bec\u2026"
+},
+{
+"complaint_id": "9982984",
+"date": "2024-09-01",
+"company": "DISCOVER BANK",
+"product": "Credit card",
+"issue": "Improper use of your report",
+"sub_issue": "Reporting company used your report improperly",
+"fae_codes": [
+"H2"
+],
+"official_label_fit": "BLURRED",
+"text": "My privacy was not protected when discover card gave my information to XXXX XXXX XXXX according to 15 USC 1681 I have the right to privacy."
+},
+{
+"complaint_id": "9981293",
+"date": "2024-09-02",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"F2",
+"E1",
+"A4",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "In XX/XX/XXXX, I opened an account at the XXXX Macys store located at XXXX XXXX XXXX XXXX XXXX, XXXX, XXXX XXXX. During a purchase at the store, the cashier informed me that my previous account had been closed and asked if I would like to open a new one. Even at the time of opening that account, the store clerk did not inform me that I had an outstanding balance from a previous account. I agreed, and a new account wa\u2026"
+},
+{
+"complaint_id": "9967296",
+"date": "2024-08-31",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1",
+"D3",
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "On the week of XXXX I was checking my email and spotted emails saying that I needed to check my credit report. I have an app to XXXX and XXXX XXXX XXXXXXXX. I opened XXXX and noticed that I had several inquiry notices plus delinquent notices. Some I knew about but the one that opened my eyes wide was a charge of {$2800.00} dollars coming from a XXXX issued by XXXX 's I guess a couple of years. The same I decided not \u2026"
+},
+{
+"complaint_id": "9969622",
+"date": "2024-08-30",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Other features, terms, or problems",
+"sub_issue": "Other problem",
+"fae_codes": [
+"B2",
+"B3"
+],
+"official_label_fit": "BLURRED",
+"text": "On XX/XX/year>, I closed my account with Synchrony.com ( XXXX, Acct # : XXXX ). However, many years earlier I had set up automatic payments from my XXXX XXXXXXXX XXXX ( XXXX ) to Synchrony Bank to make the monthly payments. After I paid off the balance of {$1100.00} with Synchrony, my XXXX sent them an auto payment of {$97.00}. I spoke with Synchrony Bank on multiple occasions with XXXX on XX/XX/XXXX ; with XXXX on X\u2026"
+},
+{
+"complaint_id": "9973420",
+"date": "2024-08-29",
+"company": "JPMORGAN CHASE & CO.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"F3"
+],
+"official_label_fit": "MISLABELLED",
+"text": "We charged an XXXX to our Chase Sapphire card on XX/XX/XXXX for travel at the end of XXXX. On XX/XX/XXXX, I was seen for a life threatening condition that required XXXX. My doctor filled out the form required by the company, stating I was advised not to travel during the dates we had booked the XXXX. Our Chase Sapphire card promises to reimburse for illness or injury when documented by a physician. I submitted two do\u2026"
+},
+{
+"complaint_id": "9984324",
+"date": "2024-09-01",
+"company": "CLGF Holdco 1, LLC",
+"product": "Credit card",
+"issue": "Trouble using your card",
+"sub_issue": "Can't use card to make purchases",
+"fae_codes": [
+"C4",
+"C1",
+"A2"
+],
+"official_label_fit": "CAPTURED",
+"text": "I opened a Destiny Mastercard with Concora Credit online on XX/XX/year>. I responded to an offer through the mail, followed their steps for the process. I uploaded a photo of my government issued ID for verification and was approved. I set up my account with them online and the site suggested adding the card to my XXXX wallet so I could use it while waiting for my physical card, so I did. I used the card a day or two\u2026"
+},
+{
+"complaint_id": "9980779",
+"date": "2024-08-31",
+"company": "TD BANK US HOLDING COMPANY",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "CAPTURED",
+"text": "It had been XXXX years since i have an account open with TD bank and thats when they offered me credit card which i have opened since then, after some time i got some good cards from other companies and i have lessened the usage of my TD bank card. I did not even realize that i had lost my card like a month ago until i saw the statement balance on my card which was extremely high. And card was used in small amount at\u2026"
+},
+{
+"complaint_id": "9978126",
+"date": "2024-08-31",
+"company": "HSBC NORTH AMERICA HOLDINGS INC.",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"B1",
+"A4"
+],
+"official_label_fit": "BLURRED",
+"text": "HSBC and XXXX XXXX sit on payments to generate late fees. I pay bills usually the day after I receive them."
+},
+{
+"complaint_id": "9980785",
+"date": "2024-08-31",
+"company": "Fidelity National Information Services, Inc. (FNIS)",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"B2",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "On XX/XX/XXXX a refund was issued to my closed credit card account for a purchase I made on XX/XX/XXXX. XXXX XXXX was the 3rd party servicer for credit cards issued by my bank that is now closed. The refund was accepted by XXXX XXXX and I have not received the refund. I can not get through the automated system to contact XXXX XXXX because my account is closed. Their customer service is atrocious."
+},
+{
+"complaint_id": "9970926",
+"date": "2024-08-30",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Overcharged for something you did purchase with the card",
+"fae_codes": [
+"D1",
+"D3",
+"C2",
+"E1"
+],
+"official_label_fit": "MISLABELLED",
+"text": "I have called, emailed and written to Sam 's Club Card/Sychrony Bank in regard to the fraudulent charges made on my card. These charges were made by a lady by the name of XXXX XXXX XXXX. Prior to XXXX XXXX gaining access to my account I have never charged more than {$1000.00} on my Sam 's card as it is designated for grocery purchase only. Due to identity theft, unauthorized use of two credit cards Sam 's Club Card/S\u2026"
+},
+{
+"complaint_id": "9982454",
+"date": "2024-09-01",
+"company": "Atlanticus Services Corporation",
+"product": "Credit card",
+"issue": "Problem with a company's investigation into an existing problem",
+"sub_issue": "Their investigation did not fix an error on your report",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "BLURRED",
+"text": "My ex wife got a card in my name with my information according to the card company they say its mine because we have the same address we havent had the same address in a year and a half they have a police report and refuse to remove the card the card company has since changed the phone number and address to mine from the one originally used to get the card"
+},
+{
+"complaint_id": "9976929",
+"date": "2024-08-31",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Card was charged for something you did not purchase with the card",
+"fae_codes": [
+"D1"
+],
+"official_label_fit": "CAPTURED",
+"text": "Subject : Dispute of Fraudulent Charge Request for Intervention Dear Consumer Financial Protection Bureau, I am writing to request your assistance in resolving a dispute with Bank of America regarding a fraudulent charge on my XXXX XXXX XXXX XXXX XXXX Despite my efforts to resolve this issue directly with the bank, the matter remains unresolved. Transaction Details : Date of Fraudulent Charge : XX/XX/year> Location o\u2026"
+},
+{
+"complaint_id": "9962161",
+"date": "2024-08-30",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"F3",
+"A2"
+],
+"official_label_fit": "BLURRED",
+"text": "Credit card - PayPal Credit Card Issue - credit companies are steering or unwittingly fleecing people with protection plan fees This isnt the first time Ive seen this this year. I noticed this in my Rooms2Go account as well. Asked my girlfriend to look at her Room2Go account and she was also being charged for payment protection plans she didnt opt into."
+},
+{
+"complaint_id": "9976135",
+"date": "2024-08-31",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D2",
+"D1"
+],
+"official_label_fit": "CAPTURED",
+"text": "Over the past 12 months, I have submitted 2 separate disputes to charges on my credit card statement. In both instances, evidence explicitly shows the charges were not authorized. However, the credit card company Citibank denied both disputes. 1ST DISPUTE : In the later half of XXXX, I was charged twice for the same meal from XXXX XXXX XXXX. I was charged once by XXXX and then again by the merchant XXXX XXXX XXXX. Th\u2026"
+},
+{
+"complaint_id": "9974217",
+"date": "2024-08-31",
+"company": "BANK OF AMERICA, NATIONAL ASSOCIATION",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"A1",
+"A3"
+],
+"official_label_fit": "MISLABELLED",
+"text": "I availed a 0 % APR CREDIT CARD, The promotion was eligible till XX/XX/XXXX and my payment due for every month is XXXX, Hence I paid minimum amount till ( XXXX Which is the due date for XX/XX/XXXX statement ) as agreed to XXXX XXXX XXXX In next statement ( I noticed a fee of {$85.00} on XX/XX/XXXX statement since I have not paid full payment which is not legitimate and somehow I missed to Check the complete statement\u2026"
+},
+{
+"complaint_id": "9984744",
+"date": "2024-08-29",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Getting a credit card",
+"sub_issue": "Application denied",
+"fae_codes": [
+"F2",
+"E2"
+],
+"official_label_fit": "CAPTURED",
+"text": "On XX/XX/year>, I received an offer from American Express ( AMEX ) inviting me to apply for \" The Blue Business Cash Card '' via phone or their website. In response to this offer, I contacted AMEX by telephone to proceed with the application. During this call, I was instructed to provide all necessary information for the application, including my business name, Employer Identification Number ( EIN ), business address\u2026"
+},
+{
+"complaint_id": "9985443",
+"date": "2024-08-29",
+"company": "DISCOVER BANK",
+"product": "Credit card",
+"issue": "Problem with a purchase shown on your statement",
+"sub_issue": "Credit card company isn't resolving a dispute about a purchase on your statement",
+"fae_codes": [
+"D2"
+],
+"official_label_fit": "CAPTURED",
+"text": "I dispute two transaction from the same merchant. One is for XXXX and the other one for XXXX both charges are about the quality of work that they did on my pool remodel. They left my pool hazard issues that will now cost me money to repair it. The credit card closed my dispute and didnt take the pool inspection into consideration. They said that they need to see a refund from the merchant. However, the merchant is no\u2026"
+},
+{
+"complaint_id": "9961753",
+"date": "2024-08-30",
+"company": "CITIBANK, N.A.",
+"product": "Credit card",
+"issue": "Fees or interest",
+"sub_issue": "Problem with fees",
+"fae_codes": [
+"A2",
+"C5"
+],
+"official_label_fit": "BLURRED",
+"text": "I was reviewing my financial records from XXXX and noticed a {$99.00} annual fee on my Citibank card ending in XXXX. I had thought I closed this account in XXXX and have not used it since nor do I even have this card in my possesion I requested Citi to refund the fee and verify the account was closed. They refused to refund the fee stating the account was open. They then insisted they send me a text message to close \u2026"
+},
+{
+"complaint_id": "9976182",
+"date": "2024-08-31",
+"company": "AMERICAN EXPRESS COMPANY",
+"product": "Credit card",
+"issue": "Incorrect information on your report",
+"sub_issue": "Account status incorrect",
+"fae_codes": [
+"E1"
+],
+"official_label_fit": "CAPTURED",
+"text": "Previous case o XXXX Account Number XXXX To your response to case the fraudulent in itself is your company not and outside source. I am writing to formally dispute the continued reporting of the above-referenced account as delinquent on my credit report. This account was closed and declared as a tax write-off by your company. Reporting this account as delinquent is fraudulent and violates several consumer protection \u2026"
+},
+{
+"complaint_id": "9971429",
+"date": "2024-08-30",
+"company": "SYNCHRONY FINANCIAL",
+"product": "Credit card",
+"issue": "Problem when making payments",
+"sub_issue": "Problem during payment process",
+"fae_codes": [
+"B1",
+"H1"
+],
+"official_label_fit": "BLURRED",
+"text": "They said my cashiers check was rejected by my bank. I had the money taken out of my account. I sent Synchrony Bank a copy of the canceled check and a copy of my statement. I sent it certified mail XX/XX/year>. They receive the copies and I got an email saying the case was closed. They stated they would send me a verdict in 7 to 10 days. I never received an answer. On XX/XX/year>, I received an email saying they got \u2026"
+},
+{
+"complaint_id": "9999321",
+"date": "2024-09-03",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3",
+"H1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "At the end of XXXX ( unable to provide exact date, as Navy Federal changed my account numbers as part of the Fraud Alert and Account Recovery process and I can no longer access previous statements ) I received a notification via the Navy Federal Mobile App that money had been taken out of my account. When I logged into the app, I saw that {$5000.00} had been withdrawn from my checking account, which came as a surpris\u2026"
+},
+{
+"complaint_id": "9998430",
+"date": "2024-09-03",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"G2",
+"A3",
+"G1",
+"G3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "The loan has an interest rate of 591.18 % attached to it and I couldn't pay the balance down. I tried to reach out for a payment plan, but my efforts were refused. The loan originated in XXXX, but recently discovered it was sent to collections. There isn't illustrated how much was paid toward the loan, either."
+},
+{
+"complaint_id": "9995362",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"B2",
+"D2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "In XX/XX/2024 I stayed at an XXXX for XXXX nights and I paid using the payment plan company Klarna. I used the entire XXXX stay, but on the morning I was leaving I found biohazards on the mattress I was sleeping in and requested a refund from XXXX who denied me. Because I felt that XXXX violated their terms and conditions I initiated a dispute for the amount that I paid. The first dispute was for the original payment\u2026"
+},
+{
+"complaint_id": "9994520",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3",
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "a few months back i was scammed by what i thought was a potioanl emplyer they recieved a copy of my id and my ss card my bank information i keep getting these inquaries and notices regaruding payday loans and credit cards that i did not aply for. i have reached out to get a securtiy freeze form all three credit brues and i am still getting notices from XXXX XXXX XXXX that my information is still being used i triedto \u2026"
+},
+{
+"complaint_id": "9993724",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I was XXXX and upon release I found out someone took a loan out in my name and now in this recent data breach I realized that my social may have been breached and thats how they took a loan out in my information."
+},
+{
+"complaint_id": "9991762",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3",
+"G3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "Company allowed me to sign up for a next day loan, and immediatly added egregious interest rates that caused the repayment amount to be unreasonable to pay back. Have been sending threatening emails."
+},
+{
+"complaint_id": "9990395",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"B1",
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "XX/XX/year>2024 I was on a payment agreement for XXXX. I made a payment and they said they never received it so I had to pay again. On XX/XX/year>2024 I made a payment and of {$230.00} and their saying they haven't received it and I sebt in proof from my bank and I been contacting them and emailing them everyday since XX/XX/scrub>XXXX 2024. Nobody has called me or emailed me to follow up. They reported to the credit \u2026"
+},
+{
+"complaint_id": "9989893",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3",
+"A2",
+"F2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "This is a complaint for an unlawful credit product, cash advance, payday loan, consumer loan or line of credit contract or agreement with NetCredit XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX NetCredit ''. On XX/XX/XXXX I agreed for NetCredit to obtain my credit report for the purpose of a consumer loan. NetCredit approved and funded a {$1500\u2026"
+},
+{
+"complaint_id": "9987973",
+"date": "2024-09-03",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"I1",
+"D2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "Scaling with Sales contacted me with a \" job '' opportunity to \" XXXX XXXX '' I received a call one day, which I assume was an add I clicked on that caught my attention on XXXX. They asked if I was interested in making {$5000.00} per month as an XXXX XXXXr and to give a call if I was interested. Which I did, and the guy I spoke to was XXXX, he set me up with a XXXX call the following day. I went to the XXXX meeting a\u2026"
+},
+{
+"complaint_id": "9987936",
+"date": "2024-09-03",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "They are predators taking advantage of peoples need of quick money to pay and no one would approve me but they did for XXXX and I needed it and so I was like ok great I do all the steps and I see at the very end its says my interest rate is XXXX % and I have to repay XXXX dollars back for only taking out {$850.00}. Which is XXXX absurd!!!!!! Thank you."
+},
+{
+"complaint_id": "9987834",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3",
+"G1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I made ontime regular payments until XXXX. The company increased the payments from {$61.00} to {$590.00} a month. I spoke to an agent and advise that the payments were not manageable. The agent refused to assist and stated that no adjustments could be made at this time. Unable to adjust the payments it is currently 24 days past due"
+},
+{
+"complaint_id": "9984954",
+"date": "2024-08-29",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"G2",
+"A3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "Husband frustrated since {$10000.00} paid and I still owe the same amount after XXXX payments. I have to live with him and this is outrageous owing this much interest. They also rolled a previous loan into this one and are charging double interest and added additional payments for the loan that was almost paid off as well."
+},
+{
+"complaint_id": "9984741",
+"date": "2024-08-29",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3",
+"G3",
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "There are numerous of payday loan accounts that were taken out in my name however my signature was forged by my ex-husband. in our divorce decree it states that he was to take care of said accounts associated with payday loan accounts for which he had signed my name on the check, used my social security number and date of birth. He would use his cell number in the event loan companies contacted. He also charged up a \u2026"
+},
+{
+"complaint_id": "9984363",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "When i apply they say XXXX days and we will send you a response and its always we can not approve you at this time."
+},
+{
+"complaint_id": "9984344",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"I1",
+"G2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "in XXXX of 2022 I got a loan from this loan company for solar panel and they were supposed to verify that the product was finished before they pay and they didnt I at same as a lot of people was scammed for that company selling solar panels I had been talking to the loan company to get my loan canceled but they refuse even that they know about this big scam also I know they had canceled a lot of loans for the same re\u2026"
+},
+{
+"complaint_id": "9983582",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3",
+"B1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I reached out via chat to ask how I could pay towards my principal amount in order to lower my next months payment but I am being told that I have to always make the mnimum payment. This was right after I made my previous payment of XXXX which only contributed to my principal with about XXXX dollars of that. I asked to make a bigger principal payment in order to lower next months but they want me to pay another XXXX \u2026"
+},
+{
+"complaint_id": "9983476",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "On XX/XX/XXXX I received an email from Affirm letting me know I had been approved for {$2000.00} at XXXX stores. I have never even heard of Affirm. I did not apply for this. Minutes later I received an email asking that I click to confirm my email. I did NOT click anything. Moments later I received an email with a code to click that was good for {$620.00} at XXXX stores. I did NOT click that. Then I received an email\u2026"
+},
+{
+"complaint_id": "9982635",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"B3",
+"A4",
+"H1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I have multiple accounts with Upgrade, including personal loans, checking and savings accounts. One of the loans is set up on auto-pay from the Upgrade checking account ( ending in XXXX ). The autopay was set to pay {$330.00} on XX/XX/year>. I noticed the account did not have enough to cover the payment, so I transferred funds from my Upgrade savings account ( ending in XXXX ) into the checking. Per Upgrade, these fu\u2026"
+},
+{
+"complaint_id": "9982628",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "While checking my credit report I noticed XXXX/Oportun reporting two accounts that I did not apply for. I have never and would not seek credit from this company."
+},
+{
+"complaint_id": "9982399",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3",
+"G1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "CreditFresh is licensed by Texas XXXX as a Regulated Lender, under license XXXX, Master File Number XXXX with a current license status of ACTIVE. I transacted with CreditFresh on/about XX/XX/2023. Despite the aforementioned ( in the previous paragraph ) CreditFresh made no representations that it was a Texas-regulated lender, failing to display any such indication ( by way of Texas XXXX license number, master file nu\u2026"
+},
+{
+"complaint_id": "9981611",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"G2",
+"A3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I took out a loan of {$1000.00} on XX/XX/2023. In less than a year I have paid River Valley loans over XXXX times the amount I borrowed, a total of {$3300.00}, and I currently owe more than I borrowed in the total of {$1200.00}. The APR is almost 700 %, which is not only predatory and unethical but illegal in the state of Oregon as the maximum percentage allowed is 36 % which I was not aware of when I borrowed this l\u2026"
+},
+{
+"complaint_id": "9981570",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"B1",
+"F2",
+"A4",
+"H1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "We purchased furniture from Ashley Furniture XXXX XXXX SC on XX/XX/year>. The total purchase amount was {$7600.00}. We paid {$4000.00} by credit card and financed the remaining {$3600.00} with a special offer at 0 % interest for 12 months. Ashely later credited us {$100.00} for damaged furniture, leaving a balance finance of {$3500.00}. Upon purchase we received no details on the financing, so after a few weeks we te\u2026"
+},
+{
+"complaint_id": "9980832",
+"date": "2024-09-02",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "In previous years, I had a good credit score and was able to obtain a personal loan from my bank. However, after my divorce, I began to struggle financially and started to use numerous credit cards and had a difficult time keeping up with the payments, resulting in a decline in my credit score. Due to this, I began to only use my debit card to build myself back up financially. In doing this, I was able to build my cr\u2026"
+},
+{
+"complaint_id": "9980819",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"I1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I entered into a loan agreement with GoodLeap to finance the installation of a solar panel system by XXXX XXXX XXXX. The solar system was supposed to significantly reduce or eliminate my electricity costs. However, the system has failed to meet the promised performance levels, leading to a substantial increase in my monthly expenses. My total energy costs have risen from {$200.00} to {$650.00}, with {$200.00} for reg\u2026"
+},
+{
+"complaint_id": "9978141",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E1",
+"G1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I reached out to XXXX at the end of XXXX to talk to someone about my payments, because we had some unexpected home repairs that made money extremely tight. I asked to push my monthly payment out a couple weeks to ensure I had received another paycheck before the payment pulled again. XXXX agreed to put me on their Catch Up Plan which we agreed upon payment amounts and dates, to ensure I stay caught up on my loan. I m\u2026"
+},
+{
+"complaint_id": "9976835",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"I1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I have a loan for my solar from Mosaic. My solar company has since gone out of business and my solar panels were up for less than a year before they stopped working. I contacted the owner of the company and he said Mosaic takes a portion of the cut for a safety net if this happens to pay for repairs if the company were to go out of business. I have a warranty from XXXX years on my contract and mosaic is doing nothing\u2026"
+},
+{
+"complaint_id": "9976212",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"F2",
+"A3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "When I was on the phone with a agent, she told me that my interest on {$2400.00} would.ve roughly about {$800.00} I was rushed through the process under the threat that I only had so much time left to complete the process or I would be denied, so I accepted the terms vocally over the phone and when I called back 6 months later to find out I was being charged double and that wasn't the agreement I agreed to, the custo\u2026"
+},
+{
+"complaint_id": "9974808",
+"date": "2024-08-29",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"F2",
+"F3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "We purchased a XXXX XXXX XXXX from XXXXXXXX XXXX XXXXXXXX. A negotiated price was agreed to, and we decided to purchase the vehicle. In our sit down with the finance representative. The finance representative proceeded to add additional charges as follows : He added a \" {$3000.00} - XXXX XXXX miles service plan '', as mandatory/required. In addition to a \" {$1200.00} Maintenance VIP Membership Plan '', as mandatory/r\u2026"
+},
+{
+"complaint_id": "9973153",
+"date": "2024-09-01",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"I1",
+"F2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "Good Leap LLC is predatory lending company. They charged {$20000.00} to replace a {$10000.00} roof. They are charge 12 % interest and placed a linen on my house. Im XXXX XXXX XXXX and my husband is now deceased. I not made fully aware of what I was signing up here."
+},
+{
+"complaint_id": "9971036",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "12 CFR 1002.6 ( b ) ( 6 ) states, in part, that \" To the extent that a creditor considers credit history in evaluating the creditworthiness of similarly qualified applicants for a similar type and amount of credit, in evaluating an applicant 's creditworthiness a creditor shall consider : On the applicant 's request, any information the applicant may present that tends to indicate the credit history being considered \u2026"
+},
+{
+"complaint_id": "9970948",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"D3",
+"B3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "On XX/XX/year> I applied for a payday advance through the Earnin app. I put in my email and did the entire process and it said I was approved for XXXX I connected my bank and it said I had a previous account. It took my bank account information and has it set up to take XXXX dollars of a past loan I did not authorize from an email address that I did not use to XXXX XXXX for the date I stated, Someone used my XXXX add\u2026"
+},
+{
+"complaint_id": "9970447",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A3"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I don't have dates, but I spoke to XXXX about my loan and they said it was transferee to SST. I have being paying on this loan but interest continue to come out. I asked about this and it said this is the way the loan is set up. I have two other loans like this predator loans. XXXX XXXX and XXXX XXXX."
+},
+{
+"complaint_id": "9969708",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"B1",
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "i bought a truck at a dealership and ally financial financed the truck and i have made every payment on time. but in may i made a payment like i haven since XXXX of XXXX money was taken out of my bank and didn't think anything of it.well fast forward to end of may i get a automated text saying im 20 days late. so im confused because it says the money was taken out and sent to XXXX which is a 3rd party used by ally. w\u2026"
+},
+{
+"complaint_id": "9968958",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"A2",
+"G2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I have had a line of Credit with credit fresh for a few months and finally used it. In the truth in lending there is a chart that shows ranges that have the payment based off the amount you withdraw so I thought. Come to find out this is just a fee and that doesnt go towards the principal at all. In my case I withdrew {$2300.00} and the chart showed XXXX a month. Not knowing this XXXX XXXX year s just a monthly fee a\u2026"
+},
+{
+"complaint_id": "9968710",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "Affirm has reported the following two accounts as 30 days late : XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX XXXX : XXXX. Both late reports filed by Affirm are inaccurate. I made both payments listed above on XX/XX/year>. Affirm has reported both accounts as 30 days late stating these payments were made on XX/XX/year>. In accordance with the Fair Credit Reporting Act, this Creditor has violated my rights. Pursuant t\u2026"
+},
+{
+"complaint_id": "9968415",
+"date": "2024-08-30",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E1",
+"G3",
+"C2"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "XXXX provided what was advertised as an unsecured, personal loan for {$3500.00} in XX/XX/XXXX. I paid {$260.00} a month ( {$130.00} autopay every XXXX weeks ). When I underwent a credit check and compliance clearance for my job XXXX XXXX XXXX XXXX XXXX this account was flagged as a problem. Per terms of my employment, I provided full details and portal access for my employer to approve me to hold the account. The ina\u2026"
+},
+{
+"complaint_id": "9967405",
+"date": "2024-08-31",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"C1",
+"F2",
+"A4"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "I pawned my title in XXXX of XXXX and at the time the title was on my mothers name. I was told by XXXX XXXX employee who processed the loan ) that they could complete the loan and I could switch everything over at the tag office. I was told that the fees along with the {$18.00} title fee would be reimbursed and that I would receive a {$50.00} gift card. I completed the transfer at the tag office and paid {$550.00}. I\u2026"
+},
+{
+"complaint_id": "9962411",
+"date": "2024-08-29",
+"company": "NOT_IN_SOURCE",
+"product": "Payday loan, title loan, personal loan, or advance loan",
+"issue": "NOT_IN_SOURCE",
+"sub_issue": "NOT_IN_SOURCE",
+"fae_codes": [
+"E1"
+],
+"official_label_fit": "PRODUCT_ONLY",
+"text": "The company reported this item twice on my report and I have XXXX balance. But it being reported twice and negative on my report."
+}
+]
+}

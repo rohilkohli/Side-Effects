@@ -1,0 +1,191 @@
+[
+ {
+  "code": "A1",
+  "soc": "Cost & pricing",
+  "preferred_term": "PROMO_EXPIRY_TRAP",
+  "definition": "Deferred-interest or promo-APR expiry produces interest the holder did not expect (retroactive interest; expiry date misstated or hidden)",
+  "example_trigger": "0% for 12 months furniture/medical financing; return credit applied to wrong balance"
+ },
+ {
+  "code": "A2",
+  "soc": "Cost & pricing",
+  "preferred_term": "SURPRISE_FEE",
+  "definition": "A fee the holder did not anticipate: annual/membership fee; minimum interest charge; draw or billing-cycle fee; cash-advance fee",
+  "example_trigger": "annual fee on a card believed closed; $2 minimum interest charge on refunded balance"
+ },
+ {
+  "code": "A3",
+  "soc": "Cost & pricing",
+  "preferred_term": "COST_HIGHER_THAN_EXPECTED",
+  "definition": "APR or finance charge or instalment higher than understood: triple-digit APR; payment allocation keeping high-APR balance; payment jump; prepayment friction",
+  "example_trigger": "cash-advance balance never paid down; instalment jumps from $61 to $590"
+ },
+ {
+  "code": "A4",
+  "soc": "Cost & pricing",
+  "preferred_term": "PENALTY_CASCADE",
+  "definition": "Late/returned-payment fees and interest triggered by a lender-side or system failure or a single slip",
+  "example_trigger": "autopay fails on lender side then late fee + interest"
+ },
+ {
+  "code": "B1",
+  "soc": "Payments & funds",
+  "preferred_term": "PAYMENT_NOT_CREDITED_OR_HELD",
+  "definition": "Payment debited but not credited or held for days; payment claimed rejected",
+  "example_trigger": "every payment over $300 held; check 'not received' for a month"
+ },
+ {
+  "code": "B2",
+  "soc": "Payments & funds",
+  "preferred_term": "MONEY_NOT_RETURNED",
+  "definition": "Refund / credit balance / overpayment withheld",
+  "example_trigger": "credit balance on closed account after account sold"
+ },
+ {
+  "code": "B3",
+  "soc": "Payments & funds",
+  "preferred_term": "PAYMENT_MISFIRE",
+  "definition": "Autopay or scheduled payment debits the wrong amount / wrong account / twice / after closure",
+  "example_trigger": "app hides scheduled payment so holder pays twice"
+ },
+ {
+  "code": "C1",
+  "soc": "Access & control",
+  "preferred_term": "ACCOUNT_CLOSED_FROZEN_RESTRICTED",
+  "definition": "Account closed / frozen / restricted by the provider with little or no notice or reason",
+  "example_trigger": "closed because of a linked family member's account"
+ },
+ {
+  "code": "C2",
+  "soc": "Access & control",
+  "preferred_term": "CREDIT_LIMIT_CUT",
+  "definition": "Unilateral limit reduction (often utilisation and score damage)",
+  "example_trigger": "limit cut with every payment"
+ },
+ {
+  "code": "C3",
+  "soc": "Access & control",
+  "preferred_term": "LIMIT_RAISED_WITHOUT_CONSENT",
+  "definition": "Limit or balance capacity increased without the holder's consent",
+  "example_trigger": "limit raised while a relative was misusing the card"
+ },
+ {
+  "code": "C4",
+  "soc": "Access & control",
+  "preferred_term": "LOCKED_OUT_VERIFICATION",
+  "definition": "Cannot access / pay / close because identity re-verification fails",
+  "example_trigger": "OTP only to a home-country phone while abroad"
+ },
+ {
+  "code": "C5",
+  "soc": "Access & control",
+  "preferred_term": "CANNOT_CANCEL_OR_EXIT",
+  "definition": "Unable to cancel the product or an add-on or to close the account",
+  "example_trigger": "closure needs a text code the holder cannot receive"
+ },
+ {
+  "code": "D1",
+  "soc": "Fraud & disputes",
+  "preferred_term": "FRAUD_LOSS_PUT_ON_CUSTOMER",
+  "definition": "Unauthorised charges left with the holder; fraud claim denied",
+  "example_trigger": "denied because 'chip read / PIN entered'"
+ },
+ {
+  "code": "D2",
+  "soc": "Fraud & disputes",
+  "preferred_term": "MERCHANT_DISPUTE_FAILED",
+  "definition": "Chargeback / dispute for goods or services denied or auto-closed",
+  "example_trigger": "dispute closed because merchant gave no refund"
+ },
+ {
+  "code": "D3",
+  "soc": "Fraud & disputes",
+  "preferred_term": "ACCOUNT_OPENED_IN_MY_NAME",
+  "definition": "Credit opened in the holder's name without consent",
+  "example_trigger": "ex-spouse opened card; BNPL account opened by fraudster"
+ },
+ {
+  "code": "E1",
+  "soc": "Credit file",
+  "preferred_term": "CREDIT_FILE_DAMAGE",
+  "definition": "Inaccurate or unfair reporting (late marks; wrong balance; duplicates; reporting during hardship or dispute)",
+  "example_trigger": "hardship plan enrolment still reported 30-days-late"
+ },
+ {
+  "code": "E2",
+  "soc": "Credit file",
+  "preferred_term": "OPAQUE_DENIAL_OR_BLACKLIST",
+  "definition": "Denied or blacklisted with opaque or legacy reasons",
+  "example_trigger": "denied for 'insufficient credit activity'; past account with issuer"
+ },
+ {
+  "code": "F1",
+  "soc": "Promises & add-ons",
+  "preferred_term": "BENEFIT_OR_REWARD_TAKEN_AWAY",
+  "definition": "Rewards / benefits forfeited / devalued / not credited",
+  "example_trigger": "card benefit removed with notice buried in statement"
+ },
+ {
+  "code": "F2",
+  "soc": "Promises & add-ons",
+  "preferred_term": "MIS_SOLD_OR_MISINFORMED",
+  "definition": "Mis-selling or wrong information at sale or from service staff",
+  "example_trigger": "rep gives wrong promo-expiry date; product switched at application"
+ },
+ {
+  "code": "F3",
+  "soc": "Promises & add-ons",
+  "preferred_term": "PROTECTION_ADD_ON_HARM",
+  "definition": "Insurance / protection / debt-cancellation add-on: unwanted enrolment or claim not paid",
+  "example_trigger": "trip-cancellation claim stalled; payment-protection fees never opted into"
+ },
+ {
+  "code": "G1",
+  "soc": "Hardship & collections",
+  "preferred_term": "HARDSHIP_HELP_REFUSED_OR_BOTCHED",
+  "definition": "Forbearance or payment plan refused or mis-administered",
+  "example_trigger": "Catch-Up plan amortised wrongly"
+ },
+ {
+  "code": "G2",
+  "soc": "Hardship & collections",
+  "preferred_term": "DEBT_SPIRAL",
+  "definition": "Payments mostly interest or fees; owes more than borrowed; loan flipping",
+  "example_trigger": "$3300 paid on $1000 loan and still owes $1200"
+ },
+ {
+  "code": "G3",
+  "soc": "Hardship & collections",
+  "preferred_term": "COLLECTIONS_PRESSURE",
+  "definition": "Aggressive collection; debt sold or collected without validation",
+  "example_trigger": "debt buyer cannot validate"
+ },
+ {
+  "code": "H1",
+  "soc": "Service & data",
+  "preferred_term": "SERVICE_RUNAROUND",
+  "definition": "Unreachable support / contradictory information / bots / transfers",
+  "example_trigger": "transferred between departments"
+ },
+ {
+  "code": "H2",
+  "soc": "Service & data",
+  "preferred_term": "DATA_SHARED_OR_MISUSED",
+  "definition": "Personal data shared or used without consent",
+  "example_trigger": "store-card data used for marketing"
+ },
+ {
+  "code": "I1",
+  "soc": "Embedded finance",
+  "preferred_term": "SELLER_FAILED_LENDER_STILL_COLLECTS",
+  "definition": "Point-of-sale / BNPL / home-improvement loan where seller failed or was a scam but lender keeps collecting",
+  "example_trigger": "solar installer bankrupt; pay-to-work scheme financed with BNPL"
+ },
+ {
+  "code": "X1",
+  "soc": "Non-harm",
+  "preferred_term": "NO_SPECIFIC_HARM_TEMPLATE",
+  "definition": "Credit-repair or legal-theory template with no product-specific facts (exclude from signal)",
+  "example_trigger": "'I am now opting out of any and all authorizations...'"
+ }
+]

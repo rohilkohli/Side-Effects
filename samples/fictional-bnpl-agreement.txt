@@ -1,0 +1,63 @@
+=== PAGE 1 ===
+FLEXIPAY PAY-IN-4 AND MONTHLY PLANS
+LOAN AGREEMENT AND DISCLOSURES
+FICTIONAL SAMPLE: written for the SIDE EFFECTS demo. "FlexiPay" and "Example Lending Co." are not real companies.
+
+1. About this agreement
+This agreement is between you and Example Lending Co. ("we", "us"), the lender of every FlexiPay plan. FlexiPay is a brand used by Example Lending Co. The store where you shop is not a party to this agreement and is not your lender.
+
+2. Your plan
+2.1 Pay-in-4. You repay the purchase price in four equal instalments. The first instalment is due at checkout and the remaining three are due every two weeks. Pay-in-4 plans carry no interest.
+2.2 Monthly plans. For purchases over $400 you may be offered a monthly plan of 6, 12 or 24 months with an annual percentage rate (APR) between 0% and 35.99%, shown before you confirm.
+2.3 Promotional 0% plans. Some monthly plans are offered at 0% APR if the entire plan balance is paid by the end of the promotional period. If any amount of the plan balance remains unpaid at the end of the promotional period, interest will be charged on the original purchase amount from the date of purchase at the standard rate of 29.99% APR.
+
+=== PAGE 2 ===
+3. Payments
+3.1 Automatic payments. By accepting a plan you authorise us to debit each instalment from the debit card or bank account you add ("payment method") on its due date. You may change your payment method in the app at least three business days before a due date.
+3.2 Retries. If a payment attempt fails, we may retry the payment method up to three times in the following ten days, and we may attempt to collect from any other payment method saved to your FlexiPay account.
+3.3 Allocation. We apply payments first to fees, then to interest, then to the instalment that is most overdue, then to the instalments of your oldest plan. If you have more than one plan, a payment you make for one plan may be applied to another plan.
+3.4 Processing time. Payments may take up to five business days to be credited to your plan. A payment is treated as made on the date it is credited, not the date it leaves your account.
+
+=== PAGE 3 ===
+4. Fees
+4.1 Late fee. If an instalment is not paid within 10 days of its due date we may charge a late fee of up to $10 or 25% of the instalment, whichever is less, for each late instalment.
+4.2 Returned payment fee. If a payment is returned unpaid by your bank, we may charge a returned payment fee of $15.
+4.3 Your bank may also charge you its own fees for a failed or returned debit. We are not responsible for fees charged by your bank.
+
+5. Missed payments
+5.1 If you miss a payment, we may suspend your ability to open new plans on any FlexiPay account.
+5.2 If two or more instalments are late, we may declare all amounts on all your plans immediately due.
+5.3 We may refer an overdue plan to a collection agency or sell it to a third party, who may contact you about the debt.
+
+=== PAGE 4 ===
+6. Returns, refunds and disputes with the store
+6.1 Refunds are issued by the store. When we receive a refund from the store we will apply it to your plan, first to the final scheduled instalment, then to earlier instalments in reverse order.
+6.2 If you have a problem with goods or services, you must first try to resolve it with the store. You may report a dispute to us in the app. While we review a dispute you must continue to pay your scheduled instalments. We may pause a plan during a review at our discretion.
+6.3 If the store does not provide a refund, or goes out of business, your obligation to repay this plan continues.
+
+7. Credit reporting
+7.1 We may report information about your plans, including late or missed payments, to one or more credit reporting agencies. Late payments, missed payments or other defaults on your account may be reflected in your credit report.
+7.2 We may obtain a credit report about you when you apply and at any time while you have a plan.
+
+=== PAGE 5 ===
+8. Your account
+8.1 We may close, suspend or restrict your FlexiPay account at any time and for any reason, including to manage risk, with or without notice, subject to applicable law. Closing your account does not change what you owe.
+8.2 Your spending limit is set by us for each purchase and may change at any time without notice.
+8.3 You can close your account in the app once all plans are paid in full.
+
+9. Optional Purchase Protection
+9.1 You may add Purchase Protection for $2.99 per month. It is cancelled only by contacting customer service. Purchase Protection claims are paid only for items damaged within 30 days of delivery.
+
+10. Changes to this agreement
+We may change the terms of this agreement, including fees, by posting the updated agreement in the app. Changes apply to new plans and, where permitted by law, to existing plans 30 days after posting.
+
+=== PAGE 6 ===
+11. Resolving disputes with us
+11.1 Arbitration. Any claim between you and us will be resolved by binding individual arbitration, not in court. You waive any right to participate in a class action.
+11.2 You may opt out of arbitration by writing to us within 30 days of accepting this agreement.
+
+12. Communications
+You agree to receive communications electronically, including by in-app notice, email and text message. You are responsible for keeping your contact details current; notices we send to your last known contact details are treated as received.
+
+13. Governing law
+This agreement is governed by federal law and, to the extent not preempted, the laws of the State of Delaware.
