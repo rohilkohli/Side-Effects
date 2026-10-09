@@ -1,0 +1,114 @@
+{
+ "IN": {
+  "source": {
+   "name": "RBI Annual Report of the Ombudsman Scheme 2024-25, Appendix 1.5",
+   "url": "https://rbi.org.in/Scripts/PublicationsView.aspx?id=23441",
+   "period": "Apr 2024-Mar 2025"
+  },
+  "india_per_1000_cards": 0.375,
+  "cards_in_force": 110090451,
+  "credit_card_groups": {
+   "public_sector": {
+    "label": "Public sector banks",
+    "complaints": 3021,
+    "per_1000_cards": 0.114,
+    "cards_in_force": 26500000,
+    "x_vs_india": 0.3
+   },
+   "private_sector": {
+    "label": "Private sector banks",
+    "complaints": 32696,
+    "per_1000_cards": 0.42,
+    "cards_in_force": 77847619,
+    "x_vs_india": 1.1
+   },
+   "small_finance": {
+    "label": "Small finance banks",
+    "complaints": 1279,
+    "per_1000_cards": 1.141,
+    "cards_in_force": 1120947,
+    "x_vs_india": 3.0
+   },
+   "foreign": {
+    "label": "Foreign banks",
+    "complaints": 4266,
+    "per_1000_cards": 0.923,
+    "cards_in_force": 4621885,
+    "x_vs_india": 2.5
+   }
+  },
+  "nbfc_card_complaints": 9063,
+  "members": {
+   "public_sector": [
+    "State Bank of India",
+    "SBI",
+    "Bank of Baroda",
+    "Punjab National Bank",
+    "PNB",
+    "Canara Bank",
+    "Union Bank of India",
+    "Bank of India",
+    "Indian Bank",
+    "Central Bank of India",
+    "Indian Overseas Bank",
+    "UCO Bank",
+    "Bank of Maharashtra",
+    "Punjab & Sind Bank"
+   ],
+   "private_sector": [
+    "HDFC Bank",
+    "ICICI Bank",
+    "Axis Bank",
+    "Kotak Mahindra Bank",
+    "Kotak",
+    "IndusInd Bank",
+    "Yes Bank",
+    "RBL Bank",
+    "IDFC First Bank",
+    "IDFC FIRST",
+    "Federal Bank",
+    "Bandhan Bank",
+    "IDBI Bank",
+    "South Indian Bank",
+    "Karur Vysya Bank",
+    "City Union Bank",
+    "DCB Bank",
+    "Karnataka Bank",
+    "CSB Bank",
+    "Tamilnad Mercantile Bank",
+    "Jammu & Kashmir Bank"
+   ],
+   "small_finance": [
+    "AU Small Finance Bank",
+    "AU Bank",
+    "Ujjivan Small Finance Bank",
+    "Equitas Small Finance Bank",
+    "Jana Small Finance Bank",
+    "Utkarsh Small Finance Bank",
+    "Suryoday Small Finance Bank",
+    "ESAF Small Finance Bank",
+    "Unity Small Finance Bank",
+    "Shivalik Small Finance Bank",
+    "Capital Small Finance Bank",
+    "North East Small Finance Bank"
+   ],
+   "foreign": [
+    "American Express Banking Corp",
+    "American Express",
+    "Amex",
+    "HSBC",
+    "Standard Chartered",
+    "DBS Bank India",
+    "Citibank",
+    "Deutsche Bank",
+    "Barclays Bank"
+   ],
+   "nbfc": [
+    "SBI Card",
+    "SBI Cards and Payment Services",
+    "Bajaj Finance",
+    "Bajaj Finserv"
+   ]
+  }
+ }
+}

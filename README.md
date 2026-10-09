@@ -53,7 +53,7 @@ Offline, the **harvest pipeline** turns raw complaints into the signal table:
 | US CFPB personal loan / BNPL complaints | 38,988 | BNPL lender and category signals |
 | Hand-labelled CFPB complaint stories | 143 | real stories on the leaflet, classifier evaluation |
 
-Singapore regulators publish no complaint-level data, so Singapore products get a clause-only leaflet that says so. Insurance is out of scope for the same reason.
+India: RBI Ombudsman complaints per 1,000 credit cards by bank group (FY2024-25, 41,262 card complaints across 110M cards) are shown on Indian card leaflets. Unlike the US data this is a true rate. Singapore regulators publish no complaint-level data, so Singapore products get a clause-only leaflet that says so. Insurance is out of scope for the same reason.
 
 ## Run locally
 

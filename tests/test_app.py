@@ -90,3 +90,12 @@ def test_without_credentials_the_ui_gets_a_clear_error(monkeypatch):
     gemini.client.cache_clear()
     r = TestClient(app).post("/api/leaflet", data={"flyer_text": "0% APR"})
     assert "not configured" in r.text.splitlines()[-1]
+
+
+def test_india_rates_from_rbi():
+    le = evidence.local_evidence("IN", "credit_card", "AU Small Finance Bank LIT card")
+    assert le["group"]["label"] == "Small finance banks" and le["group"]["x_vs_india"] == 3.0
+    assert evidence.india_group("SBI Card ELITE") == "nbfc"
+    assert evidence.local_evidence("US", "credit_card", "AU Bank") is None
+    india = evidence.apac()["IN"]
+    assert 105e6 < india["cards_in_force"] < 115e6  # matches ~110M Indian credit cards, March 2025

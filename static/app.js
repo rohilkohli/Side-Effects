@@ -149,6 +149,16 @@ function contractOnly(c) {
       ${c.how_to_reduce_risk ? `<p class="tip">${esc(c.how_to_reduce_risk)}</p>` : ""}</div></div>`;
 }
 
+function localHtml(le) {
+  const max = Math.max(...le.groups.map((g) => g.per_1000_cards));
+  const bars = le.groups.map((g) => `<div class="lg ${le.group && le.group.label === g.label ? "on" : ""}">
+      <span>${esc(g.label)}</span><span class="lg-bar"><i style="width:${(g.per_1000_cards / max) * 100}%"></i></span>
+      <span class="small">${g.per_1000_cards} <span class="muted">(${g.x_vs_india}×)</span></span></div>`).join("");
+  return `<div class="local"><p class="small muted" style="margin-top:16px">Local evidence: ${esc(le.country)}. Complaints to the RBI Ombudsman per 1,000 credit cards, ${esc(le.source.period)}:</p>
+    <p>${esc(le.note)}</p>${bars}
+    <p class="small muted">Unlike US data this is a true rate: the RBI publishes complaints per 1,000 cards. Bank-group level, not this card.</p></div>`;
+}
+
 function short(name) {
   return String(name || "").replace(/,? (INC\.?|N\.A\.|NATIONAL ASSOCIATION|FINANCIAL CORPORATION|COMPANY|& CO\.|Holdings, Inc|Inc\.|LLC|AB)$/i, "").trim();
 }
@@ -183,6 +193,7 @@ function render(lf) {
     ${bank.length ? `<p class="small muted">Found in real complaints about this lender, compared with similar lenders. Tap one for the clause and real stories.</p>${bank.map(sideEffect).join("")}` : ""}
     ${klass.length ? `<p class="small muted" style="margin-top:16px">Reported across Buy Now Pay Later lenders as a group, compared with other lenders:</p>${klass.map(sideEffect).join("")}` : ""}
     ${!bank.length && !klass.length ? `<p>${lf.product.matched_company ? "No side effect is reported disproportionately often for this lender compared with its peers." : "We have no complaint statistics for this lender."}</p>` : ""}
+    ${lf.local_evidence ? localHtml(lf.local_evidence) : ""}
     ${lf.contract_only.length ? `<p class="small muted" style="margin-top:16px">Found only in the contract (no complaint statistics):</p>${lf.contract_only.map(contractOnly).join("")}` : ""}
 
     ${lf.interactions.length ? `<h3><span class="num">4.</span>Interactions</h3><ul>${lf.interactions.map((i) => `<li><strong>With ${esc(i.with_what)}:</strong> ${esc(i.effect)}${cite(i.based_on)}</li>`).join("")}</ul>` : ""}
@@ -194,6 +205,7 @@ function render(lf) {
     <h3><span class="num">6.</span>How we know</h3>
     <ul class="how">
       <li>${esc(lf.coverage)}</li>
+      ${lf.local_evidence ? `<li>${esc(lf.local_evidence.country)}: ${esc(lf.local_evidence.source.name)}.</li>` : ""}
       <li>Statistic: the proportional reporting ratio drug regulators use for adverse-event reports. ${esc(lf.evidence.rule)}</li>
       ${Object.values(lf.evidence.datasets).map((d) => `<li>${esc(d.description)}</li>`).join("")}
       <li>Gemini reads complaint stories to separate real harms from copy-paste templates (${lf.evidence.templates_excluded} of ${lf.evidence.labelled_narratives} in our checked sample were templates and are excluded).</li>

@@ -239,3 +239,48 @@ def dataset_notes() -> dict:
                       "Numbers compare how often a kind of problem is reported relative to similar companies; "
                       "they are not the chance that it will happen to you.",
     }
+
+
+@lru_cache
+def apac() -> dict:
+    path = DATA / "apac.json"
+    return json.load(open(path)) if path.exists() else {}
+
+
+def india_group(*names: str | None) -> str | None:
+    """Which RBI reporting group an Indian card issuer belongs to."""
+    members = apac().get("IN", {}).get("members", {})
+    for name in names:
+        if not name:
+            continue
+        n = " " + _norm(name) + " "
+        # longest names first so "SBI Card" (NBFC) wins over "SBI" (public sector bank)
+        pairs = sorted(((b, g) for g, banks in members.items() for b in banks), key=lambda p: -len(p[0]))
+        for bank, group in pairs:
+            if f" {_norm(bank)} " in n:
+                return group
+    return None
+
+
+def local_evidence(jurisdiction: str, product_type: str, *names: str | None) -> dict | None:
+    """Country-specific complaint evidence for APAC products (India: RBI Ombudsman per-card rates)."""
+    if jurisdiction != "IN" or product_type != "credit_card":
+        return None
+    india = apac().get("IN")
+    if not india:
+        return None
+    group = india_group(*names)
+    out = {"country": "India", "source": india["source"], "india_per_1000_cards": india["india_per_1000_cards"],
+           "groups": list(india["credit_card_groups"].values()), "group": None}
+    if group == "nbfc":
+        out["note"] = (f"This issuer is a non-bank (NBFC). NBFC card issuers drew {india['nbfc_card_complaints']:,} "
+                       "Ombudsman complaints, but the RBI publishes no per-card rate for them.")
+    elif group:
+        g = india["credit_card_groups"][group]
+        out["group"] = g
+        out["note"] = (f"{g['label']} drew {g['per_1000_cards']} Ombudsman complaints per 1,000 credit cards, "
+                       f"{g['x_vs_india']}x the Indian average of {india['india_per_1000_cards']} "
+                       f"({g['complaints']:,} complaints, {india['source']['period']}).")
+    else:
+        out["note"] = "We could not tell which RBI reporting group this issuer belongs to."
+    return out

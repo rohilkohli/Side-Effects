@@ -10,6 +10,10 @@ FAKE_QUOTE = "We will refund every disputed purchase within one day."
 
 def fake(prompt, schema, **kw):
     text = prompt if isinstance(prompt, str) else " ".join(p for p in prompt if isinstance(p, str))
+    if schema is ProductCard and "India" in text:
+        return ProductCard(issuer_name="AU Small Finance Bank", brand_name="LIT Credit Card", product_type=ProductType.credit_card,
+                           product_name="AU LIT Credit Card", jurisdiction="IN", headline_claims=["Lifetime free"],
+                           stated_terms=[], left_unsaid=["Late payment charges"])
     if schema is ProductCard:
         return ProductCard(issuer_name="Example Lending Co.", brand_name="FlexiPay", product_type=ProductType.bnpl,
                            product_name="FlexiPay Pay-in-4", jurisdiction="US", headline_claims=["No hidden fees"],

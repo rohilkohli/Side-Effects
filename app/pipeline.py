@@ -150,6 +150,8 @@ def run(inp: Inputs) -> Iterator[dict]:
         "alternatives": evidence.alternatives(company, product["product_type"], [l["label"] for l in lines if l["scope"] == "bank"])
                         if company else [],
         "coverage": coverage_note(company, jurisdiction, bool(pages)),
+        "local_evidence": evidence.local_evidence(jurisdiction, product["product_type"], inp.issuer_override,
+                                                  card.issuer_name, card.brand_name, card.product_name),
         "evidence": evidence.dataset_notes(),
         "contract_pages": len(pages),
         "rejected_quotes": rejected,
@@ -168,5 +170,5 @@ def coverage_note(company: str | None, jurisdiction: str, has_contract: bool) ->
                 "products (CFPB) and may not reflect local practice.")
     local = {"SG": "Singapore regulators publish no complaint-level data",
              "AU": "Australian ombudsman (AFCA) decisions are not yet loaded for this lender",
-             "IN": "Indian consumer-court orders are not yet loaded for this lender"}.get(jurisdiction, "No complaint data was found for this lender")
+             "IN": "India has no complaint-level data; RBI Ombudsman rates by bank group are shown instead"}.get(jurisdiction, "No complaint data was found for this lender")
     return f"{local}. {'This leaflet is based on the contract only.' if has_contract else 'Add the contract to see clause-level side effects.'}"
