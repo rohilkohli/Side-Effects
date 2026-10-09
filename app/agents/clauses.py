@@ -47,7 +47,7 @@ def pin_clauses(pages: list[Page], lines: list[dict]) -> dict:
     listed = "\n".join(f"- line_id={l['id']} | {l['label']} (CFPB category: {l['cfpb_term']})" for l in lines) or "(none)"
     prompt = (f"SIDE-EFFECT VOCABULARY\n{vocab}\n\nSIDE EFFECTS TO EXPLAIN\n{listed}\n\n"
               f"CONTRACT\n{format_contract(pages)}")
-    found: ClauseFindings = gemini.generate_json(prompt, ClauseFindings, model=gemini.DEEP_MODEL, system=SYSTEM, temperature=0)
+    found: ClauseFindings = gemini.generate_json(prompt, ClauseFindings, model=gemini.DEEP_MODEL, system=SYSTEM)
 
     known = {l["id"] for l in lines}
     links, rejected = {}, 0

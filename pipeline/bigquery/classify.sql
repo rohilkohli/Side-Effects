@@ -6,7 +6,7 @@
 -- 1. One-time: a remote model that points at Gemini on Vertex AI.
 CREATE OR REPLACE MODEL `PROJECT.side_effects.gemini_coder`
   REMOTE WITH CONNECTION `PROJECT.us.vertex_ai`
-  OPTIONS (ENDPOINT = 'gemini-2.5-flash-lite');
+  OPTIONS (ENDPOINT = 'gemini-3.5-flash-lite');
 
 -- 2. Code each narrative. The prompt carries the vocabulary (data/vocabulary.json).
 CREATE OR REPLACE TABLE `PROJECT.side_effects.coded_complaints` AS
@@ -36,6 +36,6 @@ FROM ML.GENERATE_TEXT(
                       'Payday loan, title loan, personal loan, or advance loan')
       AND date_received >= '2023-01-01'
   ),
-  STRUCT(0.0 AS temperature, 256 AS max_output_tokens, TRUE AS flatten_json_output,
+  STRUCT(1024 AS max_output_tokens, TRUE AS flatten_json_output,
          'application/json' AS response_mime_type)
 );

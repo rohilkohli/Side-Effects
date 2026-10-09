@@ -12,7 +12,8 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-FAST_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+# Gemini 2.5 is closed to new projects; 3.x models are the current stable line.
+FAST_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 # The clause reader needs long context and careful reading.
 DEEP_MODEL = os.environ.get("GEMINI_DEEP_MODEL", FAST_MODEL)
 
@@ -32,8 +33,11 @@ def client():
 
 
 def generate_json(prompt: list | str, schema: type[BaseModel], *, model: str | None = None,
-                  system: str | None = None, temperature: float = 0.2) -> BaseModel:
-    """Call Gemini with a response schema and return the parsed object."""
+                  system: str | None = None, temperature: float | None = None) -> BaseModel:
+    """Call Gemini with a response schema and return the parsed object.
+
+    Temperature is left at the model default unless asked: Gemini 3 models are
+    tuned for their default and can loop at low temperatures."""
     from google.genai import types
 
     resp = client().models.generate_content(

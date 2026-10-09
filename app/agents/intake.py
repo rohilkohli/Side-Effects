@@ -22,5 +22,5 @@ def transcribe(pdf_bytes: bytes) -> list[Page]:
     t = gemini.generate_json(
         [gemini.part_from_bytes(pdf_bytes, "application/pdf"),
          "Transcribe every page of this contract verbatim. One entry per page, numbered from 1."],
-        Transcript, model=gemini.DEEP_MODEL, temperature=0)
+        Transcript, model=gemini.DEEP_MODEL)
     return t.pages

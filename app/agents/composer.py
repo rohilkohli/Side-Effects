@@ -24,4 +24,4 @@ def compose(product: dict, lines: list[dict], profile_keys: list[str], note: str
     prompt = (f"PRODUCT\n{json.dumps(product)}\n\nSIDE EFFECTS\n{json.dumps(slim)}\n\n"
               f"READER'S SITUATION\n{profiles.describe(profile_keys, note)}\n"
               f"Side-effect codes that hit this situation hardest: {sensitive}")
-    return gemini.generate_json(prompt, LeafletText, system=SYSTEM, temperature=0.3)
+    return gemini.generate_json(prompt, LeafletText, system=SYSTEM)

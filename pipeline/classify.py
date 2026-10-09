@@ -13,6 +13,7 @@ For hundreds of thousands of rows use the BigQuery version (pipeline/bigquery/cl
 import argparse
 import csv
 import json
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -38,7 +39,8 @@ def system_prompt() -> str:
 
 
 def code_one(text: str, system: str) -> Coding:
-    return gemini.generate_json(f"COMPLAINT:\n{text[:6000]}", Coding, system=system, temperature=0)
+    return gemini.generate_json(f"COMPLAINT:\n{text[:6000]}", Coding, system=system,
+                                model=os.environ.get("GEMINI_CLASSIFY_MODEL", "gemini-3.5-flash-lite"))
 
 
 def main():

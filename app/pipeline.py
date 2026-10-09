@@ -21,6 +21,7 @@ from .agents import clauses, composer, intake
 from .schemas import Page
 
 US = {"US", "USA", "UNITED STATES"}
+MAX_KEPT = 200
 LEAFLETS: dict[str, dict] = {}
 CONTRACTS: dict[str, list[dict]] = {}
 
@@ -158,6 +159,9 @@ def run(inp: Inputs) -> Iterator[dict]:
     }
     LEAFLETS[lid] = leaflet
     CONTRACTS[lid] = [p.model_dump() for p in pages]
+    while len(LEAFLETS) > MAX_KEPT:  # oldest first; dicts keep insertion order
+        old = next(iter(LEAFLETS))
+        LEAFLETS.pop(old); CONTRACTS.pop(old, None)
     yield {"step": "compose", "status": "done", "detail": "Leaflet ready"}
     yield {"step": "leaflet", "leaflet": leaflet}
 

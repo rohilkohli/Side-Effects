@@ -56,7 +56,7 @@ def main():
                 for d in res.get("docs", []):
                     body = post(f"/doc/{d['tid']}/").get("doc", "")
                     text = html.unescape(re.sub(r"<[^>]+>", " ", body))
-                    order = gemini.generate_json(f"CONSUMER COURT ORDER:\n{text[:20000]}", Order, system=system, temperature=0)
+                    order = gemini.generate_json(f"CONSUMER COURT ORDER:\n{text[:20000]}", Order, system=system)
                     out.write(json.dumps({"tid": d["tid"], "title": d.get("title"), "date": d.get("publishdate"),
                                           **order.model_dump()}) + "\n")
 

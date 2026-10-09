@@ -68,7 +68,7 @@ Open http://localhost:8080 and press **Try a sample**. The sample is a fictional
 
 Tests use a stand-in for Gemini, so they run without credentials: `pytest`. To click through the UI without credentials: `python -m tests.fake_server`.
 
-Model: `GEMINI_MODEL` (default `gemini-2.5-flash`), and optionally `GEMINI_DEEP_MODEL` for the contract reader.
+Model: `GEMINI_MODEL` (default `gemini-3.8-flash`; Gemini 2.5 is closed to new projects), and optionally `GEMINI_DEEP_MODEL` for the contract reader.
 
 ## Deploy to Cloud Run
 

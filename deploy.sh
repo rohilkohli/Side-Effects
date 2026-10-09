@@ -6,7 +6,7 @@ set -euo pipefail
 : "${PROJECT_ID:?set PROJECT_ID}"
 REGION="${REGION:-asia-southeast1}"          # Cloud Run region (Singapore)
 VERTEX_LOCATION="${VERTEX_LOCATION:-global}"  # where Gemini is called
-MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+MODEL="${GEMINI_MODEL:-gemini-3.8-flash}"
 SA="side-effects@${PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud config set project "$PROJECT_ID"

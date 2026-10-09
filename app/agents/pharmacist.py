@@ -75,7 +75,6 @@ def answer(leaflet: dict, pages: list[dict], history: list[dict], question: str)
         config=types.GenerateContentConfig(
             system_instruction=SYSTEM,
             tools=build_tools(leaflet, pages),
-            temperature=0.3,
             automatic_function_calling=types.AutomaticFunctionCallingConfig(maximum_remote_calls=6),
         ),
     )
