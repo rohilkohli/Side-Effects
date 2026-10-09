@@ -99,3 +99,10 @@ def test_india_rates_from_rbi():
     assert evidence.local_evidence("US", "credit_card", "AU Bank") is None
     india = evidence.apac()["IN"]
     assert 105e6 < india["cards_in_force"] < 115e6  # matches ~110M Indian credit cards, March 2025
+
+
+def test_india_bank_disclosure():
+    assert evidence.india_disclosure("American Express Platinum")["bank"] == "American Express Banking Corp"
+    assert evidence.india_disclosure("SBI Card ELITE") is None  # SBI Card is not SBI
+    le = evidence.local_evidence("IN", "personal_loan", "DCB Bank personal loan")
+    assert le["disclosure"]["bank"] == "DCB Bank" and le["groups"] == []

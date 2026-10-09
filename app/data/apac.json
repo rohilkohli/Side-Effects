@@ -109,6 +109,238 @@
     "Bajaj Finance",
     "Bajaj Finserv"
    ]
+  },
+  "bank_disclosures": {
+   "State Bank of India": {
+    "url": "https://sbi.bank.in/documents/53471/263971/Statement+of+Complaints+Received+and+Disposed+during+the+FY+2024-25.pdf/90db37b0-246f-495f-576e-f5637eb17526",
+    "total": 2850520,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 1757070,
+      "share": 0.616
+     },
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 706788,
+      "share": 0.248
+     },
+     {
+      "ground": "Operation of accounts",
+      "complaints": 44631,
+      "share": 0.016
+     },
+     {
+      "ground": "Loans and advances",
+      "complaints": 15539,
+      "share": 0.005
+     },
+     {
+      "ground": "Excessive charges",
+      "complaints": 11694,
+      "share": 0.004
+     }
+    ]
+   },
+   "Canara Bank": {
+    "url": "https://canarabank.com/UploadedFiles/Pdf/Disclosure_of_Complaints_MARCH02025.pdf",
+    "total": 397084,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 145076,
+      "share": 0.365
+     },
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 76105,
+      "share": 0.192
+     },
+     {
+      "ground": "Charges without notice / excessive charges",
+      "complaints": 14703,
+      "share": 0.037
+     },
+     {
+      "ground": "Loans and advances",
+      "complaints": 11798,
+      "share": 0.03
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 9261,
+      "share": 0.023
+     }
+    ]
+   },
+   "Bandhan Bank": {
+    "url": "https://bandhan.bank.in/sites/default/files/2026-02/Complaint-Analysis-FY-2024-25.pdf",
+    "total": 155958,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 46068,
+      "share": 0.295
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 41831,
+      "share": 0.268
+     },
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 26718,
+      "share": 0.171
+     },
+     {
+      "ground": "Loans and advances",
+      "complaints": 12016,
+      "share": 0.077
+     },
+     {
+      "ground": "Cross-selling / para-banking",
+      "complaints": 5141,
+      "share": 0.033
+     }
+    ]
+   },
+   "AU Small Finance Bank": {
+    "url": "https://www.au.bank.in/notice-board-language/complaint-analysis-2024-25/English.pdf",
+    "total": 46801,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "Credit cards",
+      "complaints": 19749,
+      "share": 0.422
+     },
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 9777,
+      "share": 0.209
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 2535,
+      "share": 0.054
+     },
+     {
+      "ground": "Staff behaviour",
+      "complaints": 423,
+      "share": 0.009
+     },
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 320,
+      "share": 0.007
+     }
+    ]
+   },
+   "American Express Banking Corp": {
+    "url": "https://www.americanexpress.com/content/dam/amex/in/legal/customer-complaint-grievance-redressal-policy/american-express-banking-corp-fy-2024-25.pdf",
+    "total": 70971,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "Credit cards",
+      "complaints": 34469,
+      "share": 0.486
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 9471,
+      "share": 0.133
+     },
+     {
+      "ground": "Charges without notice / excessive charges",
+      "complaints": 7121,
+      "share": 0.1
+     },
+     {
+      "ground": "Fair Practices Code not followed",
+      "complaints": 3213,
+      "share": 0.045
+     },
+     {
+      "ground": "Mis-selling / para-banking",
+      "complaints": 2394,
+      "share": 0.034
+     }
+    ]
+   },
+   "Ujjivan Small Finance Bank": {
+    "url": "https://www.ujjivansfb.in/sites/default/files/2025-06/Analysis-and-Disclosure-of-Customer-Complaints-FY-2024-25.pdf",
+    "total": 15553,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 6499,
+      "share": 0.418
+     },
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 2287,
+      "share": 0.147
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 1932,
+      "share": 0.124
+     },
+     {
+      "ground": "Loans and advances",
+      "complaints": 718,
+      "share": 0.046
+     }
+    ]
+   },
+   "DCB Bank": {
+    "url": "https://www.dcb.bank.in/api/dcb/assets/2025-07/Status-of-Complaints-fo-FY-2024-25.pdf",
+    "total": 24727,
+    "period": "Apr 2024-Mar 2025",
+    "grounds": [
+     {
+      "ground": "ATM/debit cards",
+      "complaints": 9738,
+      "share": 0.394
+     },
+     {
+      "ground": "Loans and advances",
+      "complaints": 8435,
+      "share": 0.341
+     },
+     {
+      "ground": "Internet/mobile/electronic banking",
+      "complaints": 2986,
+      "share": 0.121
+     },
+     {
+      "ground": "Account opening / operation",
+      "complaints": 1441,
+      "share": 0.058
+     },
+     {
+      "ground": "Para-banking",
+      "complaints": 555,
+      "share": 0.022
+     },
+     {
+      "ground": "Mis-selling",
+      "complaints": 275,
+      "share": 0.011
+     }
+    ]
+   }
+  },
+  "disclosure_aliases": {
+   "SBI": "State Bank of India",
+   "AU Bank": "AU Small Finance Bank",
+   "Amex": "American Express Banking Corp",
+   "American Express": "American Express Banking Corp"
   }
  }
 }

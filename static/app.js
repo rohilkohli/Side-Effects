@@ -149,14 +149,22 @@ function contractOnly(c) {
       ${c.how_to_reduce_risk ? `<p class="tip">${esc(c.how_to_reduce_risk)}</p>` : ""}</div></div>`;
 }
 
+function disclosureHtml(d) {
+  return `<p class="small muted" style="margin-top:12px">What customers complained to ${esc(d.bank)} about, in the bank's own published figures (${esc(d.period)}, ${d.total.toLocaleString()} complaints):</p>
+    ${d.grounds.map((g) => `<div class="lg"><span>${esc(g.ground)}</span><span class="lg-bar"><i style="width:${g.share * 100}%"></i></span><span class="small">${(g.share * 100).toFixed(1)}%</span></div>`).join("")}
+    <p class="small muted">Self-reported by the bank under RBI rules; only its largest complaint categories are published. <a href="${esc(d.url)}" target="_blank" rel="noopener">Source</a></p>`;
+}
+
 function localHtml(le) {
+  if (!le.groups.length) return le.disclosure ? `<div class="local"><p class="small muted" style="margin-top:16px">Local evidence: ${esc(le.country)}</p>${disclosureHtml(le.disclosure)}</div>` : "";
   const max = Math.max(...le.groups.map((g) => g.per_1000_cards));
   const bars = le.groups.map((g) => `<div class="lg ${le.group && le.group.label === g.label ? "on" : ""}">
       <span>${esc(g.label)}</span><span class="lg-bar"><i style="width:${(g.per_1000_cards / max) * 100}%"></i></span>
       <span class="small">${g.per_1000_cards} <span class="muted">(${g.x_vs_india}×)</span></span></div>`).join("");
   return `<div class="local"><p class="small muted" style="margin-top:16px">Local evidence: ${esc(le.country)}. Complaints to the RBI Ombudsman per 1,000 credit cards, ${esc(le.source.period)}:</p>
     <p>${esc(le.note)}</p>${bars}
-    <p class="small muted">Unlike US data this is a true rate: the RBI publishes complaints per 1,000 cards. Bank-group level, not this card.</p></div>`;
+    <p class="small muted">Unlike US data this is a true rate: the RBI publishes complaints per 1,000 cards. Bank-group level, not this card.</p>
+    ${le.disclosure ? disclosureHtml(le.disclosure) : ""}</div>`;
 }
 
 function short(name) {

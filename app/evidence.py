@@ -262,16 +262,33 @@ def india_group(*names: str | None) -> str | None:
     return None
 
 
+def india_disclosure(*names: str | None) -> dict | None:
+    """The bank's own published complaint breakdown, when we have it."""
+    india = apac().get("IN", {})
+    disc, aliases = india.get("bank_disclosures", {}), india.get("disclosure_aliases", {})
+    keys = sorted(list(disc) + list(aliases), key=len, reverse=True)
+    for name in names:
+        if not name or india_group(name) == "nbfc":  # e.g. "SBI Card" is a separate company from SBI
+            continue
+        n = " " + _norm(name) + " "
+        for k in keys:
+            if f" {_norm(k)} " in n:
+                bank = aliases.get(k, k)
+                return dict(disc[bank], bank=bank)
+    return None
+
+
 def local_evidence(jurisdiction: str, product_type: str, *names: str | None) -> dict | None:
     """Country-specific complaint evidence for APAC products (India: RBI Ombudsman per-card rates)."""
-    if jurisdiction != "IN" or product_type != "credit_card":
-        return None
     india = apac().get("IN")
-    if not india:
+    if jurisdiction != "IN" or not india:
         return None
     group = india_group(*names)
     out = {"country": "India", "source": india["source"], "india_per_1000_cards": india["india_per_1000_cards"],
-           "groups": list(india["credit_card_groups"].values()), "group": None}
+           "groups": [], "group": None, "note": "", "disclosure": india_disclosure(*names)}
+    if product_type != "credit_card":
+        return out if out["disclosure"] else None
+    out["groups"] = list(india["credit_card_groups"].values())
     if group == "nbfc":
         out["note"] = (f"This issuer is a non-bank (NBFC). NBFC card issuers drew {india['nbfc_card_complaints']:,} "
                        "Ombudsman complaints, but the RBI publishes no per-card rate for them.")
