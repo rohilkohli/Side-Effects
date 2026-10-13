@@ -10,8 +10,8 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import evidence, gemini, pipeline, profiles
-from .agents import pharmacist
+from . import evidence, gate, gemini, pipeline, profiles
+from .agents import pharmacist, shopper
 
 ROOT = Path(__file__).parent.parent
 STATIC = ROOT / "static"
@@ -22,6 +22,25 @@ log = logging.getLogger("side_effects")
 app = FastAPI(title="SIDE EFFECTS", description="Pharmacovigilance for money: a side-effects leaflet for credit products.")
 
 
+def _ndjson(events) -> StreamingResponse:
+    """Stream events as NDJSON, turning failures into an error event the UI can show."""
+    def stream():
+        try:
+            for event in events:
+                yield json.dumps(event) + "\n"
+        except gemini.LLMUnavailable as e:
+            yield json.dumps({"step": "error", "type": "error", "status": "error",
+                              "detail": f"Gemini is not configured: {e}"}) + "\n"
+        except Exception as e:  # surface failures to the UI instead of a broken stream
+            log.exception("stream failed")
+            from google.genai import errors as genai_errors
+            detail = (f"Gemini refused the request ({e.code}): {e.message}" if isinstance(e, genai_errors.APIError)
+                      else f"Something went wrong: {type(e).__name__}")
+            yield json.dumps({"step": "error", "type": "error", "status": "error", "detail": detail}) + "\n"
+
+    return StreamingResponse(stream(), media_type="application/x-ndjson")
+
+
 @app.get("/healthz")
 def healthz():
     return {"ok": True}
@@ -29,6 +48,11 @@ def healthz():
 
 @app.get("/")
 def index():
+    return FileResponse(STATIC / "agent.html")
+
+
+@app.get("/leaflet")
+def leaflet_page():
     return FileResponse(STATIC / "index.html")
 
 
@@ -82,22 +106,36 @@ async def make_leaflet(
         product_type_override=product_type if product_type in {"credit_card", "bnpl", "personal_loan"} else "",
         profile=[p for p in profile.split(",") if p], note=note[:500], flyer_text=flyer_text[:4000],
     )
-    def stream():
-        try:
-            for event in pipeline.run(inp):
-                yield json.dumps(event) + "\n"
-        except gemini.LLMUnavailable as e:
-            yield json.dumps({"step": "error", "status": "error", "detail": f"Gemini is not configured: {e}"}) + "\n"
-        except Exception as e:  # surface failures to the UI instead of a broken stream
-            log.exception("pipeline failed")
-            from google.genai import errors as genai_errors
-            if isinstance(e, genai_errors.APIError):
-                yield json.dumps({"step": "error", "status": "error",
-                                  "detail": f"Gemini refused the request ({e.code}): {e.message}"}) + "\n"
-                return
-            yield json.dumps({"step": "error", "status": "error", "detail": f"Something went wrong: {type(e).__name__}"}) + "\n"
+    return _ndjson(pipeline.run(inp))
 
-    return StreamingResponse(stream(), media_type="application/x-ndjson")
+
+class AgentRun(BaseModel):
+    persona: str = "maya"
+    gated: bool = True
+
+
+@app.post("/api/agent/run")
+def agent_run(body: AgentRun):
+    """A Gemini shopping agent checks out for a person, live, with or without the SIDE EFFECTS gate."""
+    return _ndjson(shopper.run(body.persona, body.gated))
+
+
+class AgentConfirm(BaseModel):
+    persona: str = "maya"
+    offer_id: str
+
+
+@app.post("/api/agent/confirm")
+def agent_confirm(body: AgentConfirm):
+    try:
+        return shopper.confirm(body.persona, body.offer_id)
+    except KeyError:
+        raise HTTPException(404, "Unknown option")
+
+
+@app.get("/api/agent/personas")
+def agent_personas():
+    return {k: {f: v[f] for f in ("name", "about", "task")} for k, v in shopper.PERSONAS.items()}
 
 
 class Ask(BaseModel):
@@ -156,26 +194,7 @@ class Check(BaseModel):
 @app.post("/api/v1/check")
 def agent_check(body: Check):
     """Deterministic gate for agents: no language model in the loop, same answer every time."""
-    company = evidence.resolve_company(body.issuer, body.product_type)
-    sig = evidence.signals_for(company, body.product_type)
-    sensitive = profiles.sensitive_codes(body.applicant_profile)
-    disclosures, matches = [], []
-    for l in sig["lines"]:
-        level = "bank-level complaint signal" if l["scope"] == "bank" else "product-category complaint signal"
-        text = (f"{l['label']}: reported {l['reported_x']}x more often than at peer lenders "
-                f"({l['n']:,} complaints, {l['period']}; {level}; unverified reports).")
-        disclosures.append({"side_effect": l["label"], "fae_code": l["fae"], "reported_x": l["reported_x"],
-                            "ci95": l["ci95"], "n": l["n"], "level": l["scope"], "text": text})
-        if l["fae"] in sensitive:
-            matches.append(l["label"])
-    verdict = "human_review" if matches else ("disclose" if disclosures else "no_signal")
-    return JSONResponse({
-        "issuer_matched": company,
-        "verdict": verdict,
-        "matches_applicant_situation": matches,
-        "required_disclosures": disclosures,
-        "disclaimer": evidence.dataset_notes()["disclaimer"],
-    })
+    return JSONResponse(gate.check(body.issuer, body.product_type, body.applicant_profile))
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

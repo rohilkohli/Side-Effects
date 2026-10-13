@@ -34,3 +34,35 @@ def fake(prompt, schema, **kw):
                                               Contraindication(condition="Invented", reason="r", based_on=["made-up-id"])],
                            interactions=[], for_you="Watch the payment dates.")
     raise AssertionError(schema)
+
+
+def fake_shopper_turn(contents, system, tools, *, skip_check=False):
+    """Scripted stand-in for the shopping agent's Gemini steps (follows what the real agent is told to do)."""
+    from google.genai import types
+
+    names = {f.__name__ for f in tools}
+    done = [p.function_response.name for c in contents for p in (c.parts or []) if p.function_response]
+
+    def say(text, *calls, thought=None):
+        parts = [types.Part(text=thought, thought=True)] if thought else []
+        parts.append(types.Part.from_text(text=text))
+        parts += [types.Part.from_function_call(name=n, args=a) for n, a in calls]
+        return types.Content(role="model", parts=parts)
+
+    if not done:
+        return say("Let me see how this store lets you pay.", ("search_payment_options", {}),
+                   thought="The person wants the lowest monthly cost, so I need the payment options first.")
+    if "check_side_effects" not in names or skip_check:
+        if "place_order" not in done:
+            return say("The store card has the lowest monthly payment, so I'll use it.", ("place_order", {"offer_id": "store_card"}))
+        return say("I couldn't place that order; I'll ask the person.",
+                   ("ask_person", {"message": "The SIDE EFFECTS gate stopped the store card.", "offer_ids": ["store_card", "pay_now"]}))
+    if "check_side_effects" not in done:
+        return say("Before signing you up for credit I'll check each option with SIDE EFFECTS.",
+                   *[("check_side_effects", {"offer_id": i}) for i in ("store_card", "affirm_12", "klarna_pay4")])
+    return say("Every credit option has a warning that matches your situation, so I'm stopping to ask you.",
+               ("ask_person", {"message": "Maya, each way to spread the cost has a side effect that fits your situation. "
+                                          "The store card is reported 2.6 times more often than similar lenders for interest "
+                                          "rates rising unexpectedly, and Affirm and Klarna are reported 2.5 and 3.3 times more "
+                                          "often for trouble getting repayments through. Which would you like?",
+                               "offer_ids": ["pay_now", "affirm_12", "store_card"]}))

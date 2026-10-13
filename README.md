@@ -4,6 +4,8 @@
 
 Point your phone at an offer. SIDE EFFECTS runs the statistics drug regulators use on adverse-event reports over real consumer complaints, uses Gemini to find the exact contract clause behind each problem, and prints a medicine-style leaflet for you: possible side effects, who should not take it, interactions, and lenders with fewer reported problems. A pharmacist you can talk to answers questions about it. AI agents that apply for credit on someone's behalf can read the same leaflet as JSON before they sign their human up.
 
+**The live demo** (the home page): the same Gemini shopping agent buys a laptop for Maya, a freelancer with irregular income, twice. On its own it picks the lowest monthly payment and signs her up for a deferred-interest store card whose lender is reported 2.6x more often for interest rates rising unexpectedly. With SIDE EFFECTS it checks every credit option first, finds side effects that match her situation, and stops to ask her. The gate is enforced inside `place_order`, so an agent that skips the check still cannot sign. The store is fictional; the lenders' complaint signals are real.
+
 Theme: **01 BFSI: Intelligent Risk, Fraud & Financial Experiences** (Google Cloud AI Builder Cup 2026, team CyberNex - Vision Matters).
 
 ## What the leaflet says, and how we know
@@ -34,6 +36,9 @@ Every number comes from code, never from the model:
  6. Pharmacist agent ─── Gemini with tools: get_side_effects, search_contract, complaint_examples, compare_with
         │
  /api/v1/check ───────── deterministic gate for AI agents: no_signal / disclose / human_review
+ Shopping agent ──────── Gemini with function calling, run step by step (app/agents/shopper.py);
+                          thoughts and tool calls stream live; place_order refuses human_review
+                          options until the person confirms
 ```
 
 Offline, the **harvest pipeline** turns raw complaints into the signal table:

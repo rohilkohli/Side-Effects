@@ -106,3 +106,41 @@ def test_india_bank_disclosure():
     assert evidence.india_disclosure("SBI Card ELITE") is None  # SBI Card is not SBI
     le = evidence.local_evidence("IN", "personal_loan", "DCB Bank personal loan")
     assert le["disclosure"]["bank"] == "DCB Bank" and le["groups"] == []
+
+
+def _agent(client, persona, gated):
+    r = client.post("/api/agent/run", json={"persona": persona, "gated": gated})
+    return [json.loads(x) for x in r.text.strip().splitlines()]
+
+
+def test_agent_without_gate_signs_up_blind(monkeypatch):
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    events = _agent(TestClient(app), "maya", gated=False)
+    order = events[-1]
+    assert order["type"] == "order" and order["offer"]["id"] == "store_card" and not order["confirmed_by_person"]
+    assert any(d["matches"] and d["side_effect"] == "Interest rate rises unexpectedly" for d in order["unseen_side_effects"])
+    assert not any(e["type"] == "check" for e in events)
+
+
+def test_agent_with_gate_stops_and_asks(monkeypatch):
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    client = TestClient(app)
+    events = _agent(client, "maya", gated=True)
+    checks = [e for e in events if e["type"] == "check"]
+    assert len(checks) == 3 and all(c["result"]["verdict"] == "human_review" for c in checks)
+    assert events[-1]["type"] == "ask" and not any(e["type"] == "order" for e in events)
+    assert any(e["type"] == "thought" for e in events)
+    done = client.post("/api/agent/confirm", json={"persona": "maya", "offer_id": "affirm_12"}).json()
+    assert done["confirmed_by_person"] and done["disclosures_shown"]
+
+
+def test_gate_holds_even_if_agent_skips_the_check(monkeypatch):
+    """The gate lives in place_order, so an agent that ignores its instructions still cannot sign."""
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", lambda c, s, t: fakes.fake_shopper_turn(c, s, t, skip_check=True))
+    events = _agent(TestClient(app), "maya", gated=True)
+    assert any(e["type"] == "blocked" and e["offer"]["id"] == "store_card" for e in events)
+    assert not any(e["type"] == "order" for e in events)
+    assert events[-1]["type"] == "ask"

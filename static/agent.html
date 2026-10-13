@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIDE EFFECTS</title>
+<meta name="description" content="AI agents are about to sign people up for credit. SIDE EFFECTS stops them until the person has read the side effects.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/agent.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></a>
+  <nav><a class="on" href="/">Agent checkout</a><a href="/leaflet">Leaflet for any offer</a></nav>
+</header>
+
+<section class="hero">
+  <p class="kicker">Live demo &middot; two Gemini agents, one checkout</p>
+  <h1>Your AI agent is about to sign you up for credit.<br><span>Who reads the side effects?</span></h1>
+  <p class="lede">Every medicine ships with a leaflet. Credit doesn't, and soon agents will choose it for us in milliseconds.
+    Watch the same shopping agent buy a laptop twice: once on its own, once with SIDE EFFECTS checking
+    136,270 real complaints the way drug regulators check adverse-event reports.</p>
+
+  <div class="personas" id="personas" role="radiogroup" aria-label="Who is the agent buying for?"></div>
+  <button class="go" id="runBtn" type="button">Run both agents live</button>
+  <p class="err" id="err" role="alert" hidden></p>
+</section>
+
+<section class="arena" id="arena" hidden>
+  <div class="lane plain" id="laneA">
+    <header><span class="dot"></span><div><strong>Agent on its own</strong><small>Gemini shopping agent, no checks</small></div></header>
+    <ol class="feed"></ol>
+  </div>
+  <div class="lane gated" id="laneB">
+    <header><span class="dot"></span><div><strong>Agent + SIDE EFFECTS</strong><small>Same agent, same task, gated</small></div></header>
+    <ol class="feed"></ol>
+  </div>
+</section>
+
+<section class="why">
+  <div class="stat"><b>136,270</b><span>real US complaints read with Gemini and scored with the statistic drug regulators use (PRR)</span></div>
+  <div class="stat"><b>2.1&times;</b><span>Apple Card dispute complaints vs peers: the problem the US regulator fined Goldman Sachs $45M for, found from public data alone</span></div>
+  <div class="stat"><b>3.0&times;</b><span>complaints per card at Indian small finance banks vs the national average (RBI Ombudsman, FY2024-25)</span></div>
+</section>
+
+<section class="api">
+  <h2>Any agent can call the gate</h2>
+  <p>No language model in the loop: the same lender and situation always get the same verdict. The gate also sits inside
+    <code>place_order</code>, so an agent that forgets to check still can't sign.</p>
+<pre><code>POST /api/v1/check
+{"issuer": "Klarna", "product_type": "bnpl", "applicant_profile": ["irregular_income"]}
+
+&rarr; {"verdict": "human_review",
+   "matches_applicant_situation": ["Trouble making repayments go through"],
+   "required_disclosures": [{"text": "Trouble making repayments go through: reported 3.3x more often than at peer lenders ..."}]}</code></pre>
+  <p class="muted"><a href="/.well-known/side-effects.json">Agent descriptor</a> &middot; <a href="/leaflet">Make a leaflet for any card or BNPL offer</a></p>
+</section>
+
+<footer class="foot">
+  Northwind Electronics and its payment terms are fictional. The lenders' complaint signals are real (CFPB Consumer Complaint Database, RBI Ombudsman).
+  Complaints are unverified reports, not proof of what a product will do to you, and this is not financial advice. Built with Gemini on Google Cloud.
+</footer>
+<script src="/static/agent.js"></script>
+</body>
+</html>

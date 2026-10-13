@@ -171,6 +171,32 @@ function short(name) {
   return String(name || "").replace(/,? (INC\.?|N\.A\.|NATIONAL ASSOCIATION|FINANCIAL CORPORATION|COMPANY|& CO\.|Holdings, Inc|Inc\.|LLC|AB)$/i, "").trim();
 }
 
+const TYPE_LABEL = { credit_card: "Credit card", bnpl: "Buy Now Pay Later", personal_loan: "Personal loan" };
+
+function boxHtml(lf) {
+  const p = lf.product;
+  const lines = [...lf.side_effects].sort((a, b) => b.reported_x - a.reported_x);
+  const mine = lines.filter((l) => l.relevant_to_you).length + lf.contract_only.filter((c) => c.relevant_to_you).length;
+  const top = lines[0];
+  const warn = lines.length
+    ? `<b>${lines.length} side effect${lines.length > 1 ? "s" : ""}</b> reported up to <b>${top.reported_x}×</b> more often than at similar lenders.${mine ? ` <b>${mine} match${mine > 1 ? "" : "es"} your situation.</b>` : ""}`
+    : lf.contract_only.length ? `No complaint statistics for this lender. <b>${lf.contract_only.length} risk${lf.contract_only.length > 1 ? "s" : ""}</b> found in the contract itself.`
+    : "No side effect is reported disproportionately often for this lender.";
+  const tiles = lines.slice(0, 6).map((l) => `<div class="tile ${l.relevant_to_you ? "you" : ""}">
+      <span class="tx">${l.reported_x}×</span><span class="tl">${esc(l.label)}</span>
+      <span class="ts">${l.scope === "bank" ? "this lender" : "all BNPL lenders"}${l.relevant_to_you ? " · fits you" : ""}${l.clause ? " · clause p." + l.clause.page : ""}</span></div>`).join("");
+  return `<div class="box ${lines.length ? "" : "clean"}">
+    <div class="box-front">
+      <div class="box-top"><span class="pill" aria-hidden="true"></span>SIDE EFFECTS <span>Leaflet enclosed</span></div>
+      <div class="box-name">${esc(p.brand_name || p.product_name || "This product")}</div>
+      <div class="box-dose">${esc(p.product_name || "")}${p.product_type ? " · " + esc(TYPE_LABEL[p.product_type] || p.product_type) : ""}${p.jurisdiction ? " · " + esc(p.jurisdiction) : ""}</div>
+      ${p.headline_claims?.length ? `<div class="box-claim">“${esc(p.headline_claims[0])}”</div>` : ""}
+      <div class="box-warn"><span class="tri" aria-hidden="true">▼</span><span>${warn}</span></div>
+    </div>
+    ${tiles ? `<div class="tiles">${tiles}</div>` : ""}
+  </div>`;
+}
+
 function render(lf) {
   leaflet = lf; history = [];
   const p = lf.product;
@@ -179,9 +205,8 @@ function render(lf) {
   const byId = Object.fromEntries([...lf.side_effects, ...lf.contract_only].map((l) => [l.id, l.label]));
   const cite = (ids) => ids.length ? ` <span class="small muted">(${ids.map((i) => esc(byId[i] || "")).join("; ")})</span>` : "";
 
-  $("leaflet").innerHTML = `
+  $("leaflet").innerHTML = boxHtml(lf) + `
     <div class="lf-kicker">Package leaflet: information for the borrower</div>
-    <div class="lf-title">${esc(p.brand_name || p.product_name)}</div>
     <div class="lf-sub">${esc(p.product_name)}${p.matched_company ? " · Lender in complaint records: " + esc(p.matched_company) : ""}</div>
     <div class="lf-box"><strong>Read all of this leaflet carefully before you sign.</strong>
       <ul><li>Keep this leaflet. You may need to read it again.</li>
