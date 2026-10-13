@@ -90,6 +90,11 @@ async def make_leaflet(
             yield json.dumps({"step": "error", "status": "error", "detail": f"Gemini is not configured: {e}"}) + "\n"
         except Exception as e:  # surface failures to the UI instead of a broken stream
             log.exception("pipeline failed")
+            from google.genai import errors as genai_errors
+            if isinstance(e, genai_errors.APIError):
+                yield json.dumps({"step": "error", "status": "error",
+                                  "detail": f"Gemini refused the request ({e.code}): {e.message}"}) + "\n"
+                return
             yield json.dumps({"step": "error", "status": "error", "detail": f"Something went wrong: {type(e).__name__}"}) + "\n"
 
     return StreamingResponse(stream(), media_type="application/x-ndjson")
