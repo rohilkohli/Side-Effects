@@ -15,6 +15,11 @@ gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
   gcloud iam service-accounts create side-effects --display-name "SIDE EFFECTS app"
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$SA" --role roles/aiplatform.user --condition=None >/dev/null
 
+# New projects: let the default compute service account build from source.
+PN=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:${PN}-compute@developer.gserviceaccount.com" \
+  --role roles/run.builder --condition=None >/dev/null
+
 # Leaflets live in memory, so one instance keeps the pharmacist next to its leaflet.
 gcloud run deploy side-effects \
   --source . \
