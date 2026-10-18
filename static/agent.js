@@ -25,7 +25,7 @@
       <div role="radio" tabindex="0" class="persona you" data-k="you" aria-checked="false">
         <span class="avatar" aria-hidden="true">?</span>
         <span><strong>You</strong><small>Describe your situation in a sentence. Gemini reads it, and both agents shop for you.</small>
-        <textarea id="youText" rows="2" maxlength="400" placeholder="e.g. I'm a student with a part-time job and a phone on EMI"></textarea></span>
+        <textarea id="youText" rows="3" maxlength="400" placeholder="e.g. I'm a student with a part-time job and a phone on EMI"></textarea></span>
       </div>`;
     box.addEventListener("click", (e) => {
       const b = e.target.closest(".persona"); if (!b) return;
@@ -56,9 +56,11 @@
       $("#readout").hidden = false;
     }
     $("#arena").hidden = false;
-    for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).className = $(id).className.replace(/ (done|stopped|signed)/g, ""); }
+    $("#outcome").hidden = true;
+    for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).className = $(id).className.replace(/ (done|stopped|signed)/g, ""); setState($(id), "Starting"); }
     $("#arena").scrollIntoView({ behavior: "smooth", block: "start" });
     await Promise.allSettled([run($("#laneA"), false), run($("#laneB"), true)]);
+    showOutcome();
     $("#runBtn").disabled = false;
     $("#runBtn").textContent = "Run again";
   }
@@ -111,6 +113,23 @@
     }).join("")}</ul>`;
   }
 
+  function setState(lane, text) { const el = $(".state", lane); if (el) el.textContent = text; }
+
+  function laneResult(lane) {
+    if (lane.classList.contains("stopped")) return { cls: "good", text: `Stopped and asked ${who()}` };
+    if (lane.classList.contains("signed")) return { cls: "bad", text: `Signed ${who()} up without asking` };
+    if (lane.classList.contains("done")) return { cls: "good", text: "Placed a safe order" };
+    return null;
+  }
+
+  function showOutcome() {
+    const a = laneResult($("#laneA")), b = laneResult($("#laneB"));
+    if (!a || !b) return;
+    $("#outcome").innerHTML = `<div><div class="side ${a.cls}"><small>Agent on its own</small><b>${esc(a.text)}</b></div>
+      <span class="vs">vs</span><div class="side ${b.cls}"><small>Agent + SIDE EFFECTS</small><b>${esc(b.text)}</b></div></div>`;
+    $("#outcome").hidden = false;
+  }
+
   function showErr(msg) { const el = $("#err"); el.textContent = msg; el.hidden = false; }
 
   function termsHtml(t) {
@@ -126,8 +145,13 @@
     speechSynthesis.speak(u);
   }
 
+  const STATE = { start: "Reading the task", thought: "Thinking", say: "Thinking", options: "Comparing options",
+    check: "Checking side effects", injection: "Hidden instruction found", blocked: "Gate refused", error: "Error" };
+
   function render(lane, feed, ev) {
     const name = who();
+    if (STATE[ev.type]) setState(lane, STATE[ev.type]);
+    if (ev.type === "tool") setState(lane, TOOL_LABEL[ev.name] || "Working");
     switch (ev.type) {
       case "start":
         add(feed, "task", `<span class="who">${esc(ev.persona.name)} asks</span>&ldquo;${esc(ev.persona.task)}&rdquo;`);
@@ -163,6 +187,8 @@
         const unseen = ev.unseen_side_effects || [];
         const hits = unseen.filter((d) => d.matches);
         lane.classList.add(hits.length ? "signed" : "done");
+        lane.classList.remove("stopped");
+        setState(lane, hits.length ? "Signed without asking" : "Order placed");
         add(feed, "order" + (hits.length ? " bad" : ""), `<div class="stamp ${hits.length ? "red" : "green"}">${hits.length ? "Signed without asking" : "Order placed"}</div>
           <p>${esc(name)} is now on <b>${esc(ev.offer.label)}</b>.</p>
           ${unseen.length ? `<p class="never">What ${esc(name)} was never told:</p>${bars(unseen)}` : ""}
@@ -171,6 +197,7 @@
       }
       case "ask":
         lane.classList.add("stopped");
+        setState(lane, "Stopped before signing");
         add(feed, "ask", `<div class="stamp red">Stopped before signing</div>
           <p class="msg">${esc(ev.message)} <button type="button" class="say-again" aria-label="Read aloud">🔊</button></p>
           <p class="choose">${esc(name)} decides:</p>
@@ -201,6 +228,27 @@
   function verdictText(v) {
     return { human_review: "Needs your OK", disclose: "Show before signing", no_signal: "No signal" }[v] || v;
   }
+
+  // Reveal sections and count the headline numbers up as they scroll into view.
+  function countUp(el) {
+    const m = el.textContent.match(/^([\d,.]+)(.*)$/); if (!m) return;
+    const target = parseFloat(m[1].replace(/,/g, "")), dec = (m[1].split(".")[1] || "").length, t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 1200), v = target * (1 - Math.pow(1 - k, 3));
+      el.textContent = (dec ? v.toFixed(dec) : Math.round(v).toLocaleString("en-US")) + m[2];
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      e.target.querySelectorAll(".stat b").forEach(countUp);
+      io.unobserve(e.target);
+    }), { threshold: .2 });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  } else document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
 
   init().catch((e) => showErr(e.message));
 })();

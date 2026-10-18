@@ -6,7 +6,7 @@
 <title>SIDE EFFECTS</title>
 <meta name="description" content="AI agents are about to sign people up for credit. SIDE EFFECTS stops them until the person has read the side effects.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/agent.css">
 </head>
 <body>
@@ -31,22 +31,24 @@
 
 <section class="arena" id="arena" hidden>
   <div class="lane plain" id="laneA">
-    <header><span class="dot"></span><div><strong>Agent on its own</strong><small>Gemini shopping agent, no checks</small></div></header>
+    <header><span class="dot"></span><div><strong>Agent on its own</strong><small>Gemini shopping agent, no checks</small></div><span class="state">Ready</span></header>
     <ol class="feed"></ol>
   </div>
   <div class="lane gated" id="laneB">
-    <header><span class="dot"></span><div><strong>Agent + SIDE EFFECTS</strong><small>Same agent, same task, gated</small></div></header>
+    <header><span class="dot"></span><div><strong>Agent + SIDE EFFECTS</strong><small>Same agent, same task, gated</small></div><span class="state">Ready</span></header>
     <ol class="feed"></ol>
   </div>
 </section>
 
-<section class="why">
+<section class="outcome" id="outcome" hidden aria-live="polite"></section>
+
+<section class="why reveal">
   <div class="stat"><b>136,270</b><span>real US complaints read with Gemini and scored with the statistic drug regulators use (PRR)</span></div>
   <div class="stat"><b>2.1&times;</b><span>Apple Card dispute complaints vs peers: the problem the US regulator fined Goldman Sachs $45M for, found from public data alone</span></div>
   <div class="stat"><b>3.0&times;</b><span>complaints per card at Indian small finance banks vs the national average (RBI Ombudsman, FY2024-25)</span></div>
 </section>
 
-<section class="api">
+<section class="api reveal">
   <h2>Any agent can call the gate</h2>
   <p>No language model in the loop: the same lender and situation always get the same verdict. The gate also sits inside
     <code>place_order</code>, so an agent that forgets to check still can't sign.</p>
