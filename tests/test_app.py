@@ -484,3 +484,19 @@ def test_steady_complaints_raise_no_alert(monkeypatch):
     monkeypatch.setattr(live, "_cfpb", _feed({"Fees or interest": 100, "Problem when making payments": 20},
                                              {"Fees or interest": 400, "Problem when making payments": 80}))
     assert alerts.detect("GOLDMAN SACHS BANK USA", "credit_card")["signals"] == []
+
+
+def test_gate_severity_and_action_follow_fixed_rules():
+    from app import gate
+    klarna = gate.check("Klarna", "bnpl", ["irregular_income", "other_bnpl"])
+    assert klarna["verdict"] == "human_review" and klarna["severity"] == "CRITICAL"  # fits her, reported 3.3x
+    assert klarna["recommended_action"][0].startswith("Hold for person")
+    assert klarna["top_signal"]["reported_x"] == 3.3
+    synchrony = gate.check("Synchrony", "credit_card", ["irregular_income"])
+    assert synchrony["severity"] == "HIGH"  # fits, but under 3x
+    assert gate.check("Apple Card", "credit_card", [])["severity"] == "MODERATE"
+    au = gate.check("AU Small Finance Bank", "credit_card", [])
+    assert au["severity"] == "MODERATE" and au["india_rbi"]["x_vs_india"] == 3.0
+    assert any("Key Facts Statement" in a for a in au["recommended_action"])
+    assert gate.check("Nobody Bank", "credit_card", [])["severity"] == "LOW"
+    assert gate.check("Klarna", "bnpl", ["irregular_income", "other_bnpl"]) == klarna  # deterministic

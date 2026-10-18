@@ -296,3 +296,10 @@ body.app .facts { max-width: none; }
   .seg em { display: none; }
   .sig-prr { font-size: 1.3rem; }
 }
+
+/* Gate severity (fixed rules in app/gate.py) */
+.sev { font-size: .66rem; font-weight: 700; letter-spacing: .05em; padding: 3px 7px; border-radius: 6px; background: var(--panel-2); color: var(--muted); }
+.sev-critical { background: #d92d20; color: #fff; }
+.sev-high { background: var(--red-soft); color: var(--red-ink); }
+.sev-moderate { background: var(--amber-soft); color: var(--amber); }
+.sev-low { background: var(--green-soft); color: var(--green); }

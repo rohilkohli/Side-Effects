@@ -300,6 +300,7 @@ where **a** is complaints about this problem at this lender, **b** its other com
 | The scam guardian makes things up | Every finding must quote the page; quotes not on the page are discarded and counted on screen. |
 | News is wrong | Grounded in Google Search with every source listed; marked unverified without sources; never changes the verdict. |
 | A person's own words are used as instructions | "You" mode sends them fenced as data, and keeps only situations from a fixed list. |
+| The assistant sounds sure without evidence | For any "is this risky?" question it calls the gate and answers in four fixed parts: **risk severity** (copied from the gate), **signal**, **verbatim contract clauses** (or "no contract provided") and **recommended action**. |
 | Secrets leak | None in the code: Cloud Run calls Gemini through Vertex AI with its service account. |
 
 ---
@@ -322,6 +323,9 @@ Content-Type: application/json
 {
   "issuer_matched": "Klarna AB",
   "verdict": "human_review",
+  "severity": "CRITICAL",
+  "recommended_action": ["Hold for person: they must see the matching side effects and confirm"],
+  "top_signal": {"side_effect": "Trouble making repayments go through", "reported_x": 3.3, "n": 364, "level": "bank"},
   "matches_applicant_situation": ["Trouble making repayments go through"],
   "required_disclosures": [
     {"side_effect": "Trouble making repayments go through", "reported_x": 3.3,
@@ -333,7 +337,7 @@ Content-Type: application/json
 }
 ```
 
-Same lender and situation, same verdict, every time. Profile keys: `irregular_income`, `carries_balance`, `other_bnpl`, `new_to_credit`, `big_purchase`, `travels`. Service descriptor: `GET /.well-known/side-effects.json`.
+Same lender and situation, same verdict, every time. Severity follows fixed rules too: **CRITICAL** when a side effect that fits the person is reported 3× or more (or a live safety alert fits them), **HIGH** when one fits, **MODERATE** when there are side effects to disclose (or an Indian bank group with at least 2× the national complaint rate per card), **LOW** when there is no signal. Indian issuers also get a Key Facts Statement review in `recommended_action`. Profile keys: `irregular_income`, `carries_balance`, `other_bnpl`, `new_to_credit`, `big_purchase`, `travels`. Service descriptor: `GET /.well-known/side-effects.json`.
 
 </details>
 

@@ -292,6 +292,9 @@ def descriptor():
         "verdicts": {"no_signal": "no disproportionate complaint signal found",
                      "disclose": "show the listed side effects to the person before signing",
                      "human_review": "a side effect matches the person's situation; the person must confirm"},
+        "severity": {"CRITICAL": "a side effect that fits the person is reported 3x or more, or a live safety alert fits them",
+                     "HIGH": "a side effect fits the person", "MODERATE": "side effects to disclose, none specific to the person",
+                     "LOW": "no complaint signal"},
     }
 
 

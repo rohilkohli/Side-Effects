@@ -61,7 +61,8 @@ def find_alternatives(name: str, product_type: str = "credit_card") -> dict:
 def gate_check(issuer: str, product_type: str = "credit_card", applicant_profile: list[str] | None = None) -> dict:
     """The deterministic SIDE EFFECTS gate an AI shopping agent must call before signing a person up for credit.
     applicant_profile keys: irregular_income, carries_balance, other_bnpl, new_to_credit, big_purchase, travels.
-    Verdicts: no_signal, disclose (show the side effects first) or human_review (the person must confirm)."""
+    Verdicts: no_signal, disclose (show the side effects first) or human_review (the person must confirm).
+    Also returns severity (CRITICAL, HIGH, MODERATE, LOW), recommended_action and top_signal, all from fixed rules."""
     keys = [k for k in (applicant_profile or []) if k in profiles.PROFILES]
     return gate.check(issuer[:80], _ptype(product_type), keys)
 

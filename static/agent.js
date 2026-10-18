@@ -253,7 +253,7 @@
       case "check": {
         const r = ev.result;
         add(feed, "check v-" + r.verdict, `<div class="chk-head"><span class="pill" aria-hidden="true"></span>
-          <strong>${esc(ev.offer.label)}</strong><span class="verdict">${verdictText(r.verdict)}</span></div>
+          <strong>${esc(ev.offer.label)}</strong>${r.severity ? `<span class="sev sev-${esc(r.severity.toLowerCase())}">${esc(r.severity)}</span>` : ""}<span class="verdict">${verdictText(r.verdict)}</span></div>
           ${bars(r.required_disclosures, r.matches_applicant_situation)}`);
         break;
       }
