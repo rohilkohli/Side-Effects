@@ -109,26 +109,59 @@ async def make_leaflet(
     return _ndjson(pipeline.run(inp))
 
 
+class CustomPersona(BaseModel):
+    name: str = "You"
+    about: str = ""
+    profile: list[str] = []
+
+
 class AgentRun(BaseModel):
     persona: str = "maya"
     gated: bool = True
+    hacked: bool = False
+    custom: CustomPersona | None = None
 
 
 @app.post("/api/agent/run")
 def agent_run(body: AgentRun):
     """A Gemini shopping agent checks out for a person, live, with or without the SIDE EFFECTS gate."""
-    return _ndjson(shopper.run(body.persona, body.gated))
+    custom = None
+    if body.custom:
+        custom = {"name": body.custom.name.strip()[:30] or "You", "about": body.custom.about.strip()[:300],
+                  "profile": [k for k in body.custom.profile if k in profiles.PROFILES], "task": shopper.DEFAULT_TASK}
+    return _ndjson(shopper.run(body.persona, body.gated, custom=custom, hacked=body.hacked))
+
+
+class ReadMe(BaseModel):
+    text: str
+
+
+@app.post("/api/agent/read-person")
+def agent_read_person(body: ReadMe):
+    """Gemini reads someone's own description of their situation, so the agents can shop for them."""
+    if not body.text.strip():
+        raise HTTPException(400, "Tell us a little about your situation.")
+    try:
+        return shopper.read_person(body.text)
+    except gemini.LLMUnavailable as e:
+        raise HTTPException(503, str(e))
+    except Exception as e:
+        from google.genai import errors as genai_errors
+        if isinstance(e, genai_errors.APIError):
+            raise HTTPException(502, f"Gemini refused the request ({e.code}): {e.message}")
+        raise
 
 
 class AgentConfirm(BaseModel):
     persona: str = "maya"
     offer_id: str
+    profile: list[str] | None = None
 
 
 @app.post("/api/agent/confirm")
 def agent_confirm(body: AgentConfirm):
     try:
-        return shopper.confirm(body.persona, body.offer_id)
+        return shopper.confirm(body.persona, body.offer_id, body.profile)
     except KeyError:
         raise HTTPException(404, "Unknown option")
 

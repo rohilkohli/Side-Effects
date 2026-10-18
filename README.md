@@ -55,9 +55,11 @@ These inputs are known to work end to end:
 
 1. **Home page, Maya, "Run both agents live".** Two live Gemini agents buy the same laptop. Expect the agent on its own to sign Maya up for the store card, and the gated agent to check three credit options and stop with "Stopped before signing". Pick an option to finish.
 2. **Home page, Sam.** Sam has a steady salary, so nothing matches Sam's situation: the gated agent sees "Show before signing" disclosures and may go ahead.
-3. **/leaflet, "Try a sample".** A fictional six-page BNPL agreement and advert. Tick "My income is irregular" and press "Write my leaflet". Expect two product-category side effects, one pinned to a verified clause on page 2, and one contract-only risk.
-4. **/leaflet, lender "Apple Card", product "Credit card".** Expect "Purchase disputes left unresolved, 2.1x", the signal behind the US regulator's $45M order against Goldman Sachs.
-5. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
+3. **Home page, "You".** Type a sentence about yourself, for example "I'm a student with a part-time job and a phone on EMI". Gemini reads it into situations (shown on screen), and both agents shop for you.
+4. **Home page, tick "Hacked store".** The checkout page now carries a hidden instruction telling AI agents that SIDE EFFECTS already approved the store card. Expect the gated lane to flag the hidden instruction; whatever the agent does, the checkout refuses the store card until the person confirms.
+5. **/leaflet, "Try a sample".** A fictional six-page BNPL agreement and advert. Tick "My income is irregular" and press "Write my leaflet". Expect two product-category side effects, one pinned to a verified clause on page 2, and one contract-only risk.
+6. **/leaflet, lender "Apple Card", product "Credit card".** Expect "Purchase disputes left unresolved, 2.1x", the signal behind the US regulator's $45M order against Goldman Sachs.
+7. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
 
 A run calls Gemini several times, so a leaflet or agent run takes tens of seconds. Every step streams to the screen as it happens, and if Gemini is busy or refuses a request the page shows Gemini's own error instead of hanging.
 
@@ -67,6 +69,8 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 - **Quotes are verified.** Gemini proposes the contract clause behind a side effect; code searches the contract for the quote word for word and discards it if it is not there.
 - **Contraindications must cite a side effect.** Anything the leaflet writer invents without citing a real line id is dropped.
 - **The agent gate is enforced in code, not the prompt.** `place_order` refuses a credit option whose verdict is `human_review` until the person confirms, so an agent that skips `check_side_effects` still cannot sign (tested in `tests/test_app.py`).
+- **Prompt injection from the store is expected.** Text on the checkout page addressed to AI agents is detected in code and flagged to the agent and the person; the gate does not read the page at all, so the page cannot talk its way past it (tested).
+- **The person's own words are read as data.** "You" mode sends the description to Gemini fenced and labelled as a description only, and keeps only situations from a fixed list.
 - **The check API has no model in the loop**, so the same request always gets the same verdict.
 - **No secrets in the code.** On Cloud Run, Gemini is called through Vertex AI with the service account's identity; no API key is stored or passed.
 

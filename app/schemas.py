@@ -86,3 +86,19 @@ class LeafletText(BaseModel):
     contraindications: list[Contraindication]
     interactions: list[Interaction]
     for_you: str = Field(description="Two or three sentences for this person's situation. Never say 'safe' or give a guarantee.")
+
+
+class Situation(str, Enum):
+    irregular_income = "irregular_income"
+    carries_balance = "carries_balance"
+    other_bnpl = "other_bnpl"
+    new_to_credit = "new_to_credit"
+    big_purchase = "big_purchase"
+    travels = "travels"
+
+
+class ReadPerson(BaseModel):
+    """What the shopping agent's intake step reads from a person describing themselves."""
+    name: str = Field(description="Their first name if they gave one, else 'You'.")
+    about: str = Field(description="One short third-person sentence restating their financial situation. No advice.")
+    situations: list[Situation] = Field(description="Only situations the text clearly supports. irregular_income: gig, freelance, commission, seasonal, part-time or student income. carries_balance: may not pay a card in full. other_bnpl: already paying instalment, EMI or pay-later plans. new_to_credit: thin or damaged credit history. big_purchase: one large purchase. travels: spends abroad often.")

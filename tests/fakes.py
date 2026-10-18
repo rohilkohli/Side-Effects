@@ -1,7 +1,7 @@
 """A stand-in for Gemini that returns fixed, schema-valid answers (tests and UI screenshots only)."""
 import json
 
-from app.schemas import (ClauseFindings, ClauseLink, ContractOnlyRisk, Contraindication, Interaction, LeafletText,
+from app.schemas import (ReadPerson, Situation, ClauseFindings, ClauseLink, ContractOnlyRisk, Contraindication, Interaction, LeafletText,
                          LineText, ProductCard, ProductType, StatedTerm)
 
 REAL_QUOTE = "While we review a dispute you must continue to pay your scheduled instalments."
@@ -33,6 +33,9 @@ def fake(prompt, schema, **kw):
                            contraindications=[Contraindication(condition="Not suitable if your income is irregular", reason="r", based_on=ids[:1]),
                                               Contraindication(condition="Invented", reason="r", based_on=["made-up-id"])],
                            interactions=[], for_you="Watch the payment dates.")
+    if schema is ReadPerson:
+        return ReadPerson(name="Priya", about="Priya is a student with a part-time job and a phone on EMI.",
+                          situations=[Situation.irregular_income, Situation.other_bnpl])
     raise AssertionError(schema)
 
 

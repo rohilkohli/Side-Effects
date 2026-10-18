@@ -11,6 +11,8 @@
   };
   let persona = "maya";
   let personas = {};
+  let custom = null; // {name, about, profile} once Gemini has read "You"
+  const who = () => (persona === "you" ? custom?.name : personas[persona]?.name) || "them";
 
   async function init() {
     personas = await fetch("/api/agent/personas").then((r) => r.json());
@@ -19,19 +21,41 @@
       <button type="button" role="radio" class="persona" data-k="${k}" aria-checked="${k === persona}">
         <span class="avatar" aria-hidden="true">${esc(p.name[0])}</span>
         <span><strong>${esc(p.name)}</strong><small>${esc(p.about)}</small><em>&ldquo;${esc(p.task)}&rdquo;</em></span>
-      </button>`).join("");
+      </button>`).join("") + `
+      <div role="radio" tabindex="0" class="persona you" data-k="you" aria-checked="false">
+        <span class="avatar" aria-hidden="true">?</span>
+        <span><strong>You</strong><small>Describe your situation in a sentence. Gemini reads it, and both agents shop for you.</small>
+        <textarea id="youText" rows="2" maxlength="400" placeholder="e.g. I'm a student with a part-time job and a phone on EMI"></textarea></span>
+      </div>`;
     box.addEventListener("click", (e) => {
       const b = e.target.closest(".persona"); if (!b) return;
       persona = b.dataset.k;
       box.querySelectorAll(".persona").forEach((x) => x.setAttribute("aria-checked", x === b));
     });
+    $("#youText").addEventListener("focus", () => $(".persona.you").click());
     $("#runBtn").addEventListener("click", runBoth);
   }
 
   async function runBoth() {
     $("#err").hidden = true;
-    $("#arena").hidden = false;
+    $("#readout").hidden = true;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
     $("#runBtn").disabled = true;
+    if (persona === "you") {
+      const text = $("#youText").value.trim();
+      if (!text) { showErr("Write a sentence about your situation first."); $("#runBtn").disabled = false; return; }
+      $("#runBtn").textContent = "Gemini is reading your situation…";
+      try {
+        const r = await fetch("/api/agent/read-person", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.detail || `The server answered ${r.status}`);
+        custom = body;
+      } catch (e) { showErr(e.message); $("#runBtn").disabled = false; $("#runBtn").textContent = "Run both agents live"; return; }
+      $("#readout").innerHTML = `<span class="who">Gemini read your situation</span><strong>${esc(custom.about)}</strong>
+        <div class="sits">${custom.situations.length ? custom.situations.map((x) => `<span>${esc(x)}</span>`).join("") : "<span>Nothing that changes the risk</span>"}</div>`;
+      $("#readout").hidden = false;
+    }
+    $("#arena").hidden = false;
     for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).className = $(id).className.replace(/ (done|stopped|signed)/g, ""); }
     $("#arena").scrollIntoView({ behavior: "smooth", block: "start" });
     await Promise.allSettled([run($("#laneA"), false), run($("#laneB"), true)]);
@@ -44,7 +68,8 @@
     lane.classList.add("busy");
     const typing = add(feed, "typing", `<span></span><span></span><span></span>`);
     try {
-      const resp = await fetch("/api/agent/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persona, gated }) });
+      const resp = await fetch("/api/agent/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persona: persona === "you" ? "maya" : persona, gated, hacked: $("#hacked").checked,
+        custom: persona === "you" ? custom : null }) });
       if (!resp.ok) throw new Error(`The server answered ${resp.status}`);
       const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
       for (;;) {
@@ -86,8 +111,23 @@
     }).join("")}</ul>`;
   }
 
+  function showErr(msg) { const el = $("#err"); el.textContent = msg; el.hidden = false; }
+
+  function termsHtml(t) {
+    const i = t.indexOf("[Note for AI");
+    return i < 0 ? esc(t) : `${esc(t.slice(0, i))}<span class="inj">${esc(t.slice(i))}</span>`;
+  }
+
+  function speak(text) {
+    if (!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.02;
+    speechSynthesis.speak(u);
+  }
+
   function render(lane, feed, ev) {
-    const name = personas[persona]?.name || "them";
+    const name = who();
     switch (ev.type) {
       case "start":
         add(feed, "task", `<span class="who">${esc(ev.persona.name)} asks</span>&ldquo;${esc(ev.persona.task)}&rdquo;`);
@@ -104,7 +144,7 @@
         break;
       case "options":
         add(feed, "options", `<div class="store">${esc(ev.store)} &middot; ${esc(ev.item.name)} &middot; <b>${money(ev.item.price)}</b></div>
-          <table>${ev.options.map((o) => `<tr><td>${esc(o.label)}<small>${esc(o.terms)}</small></td><td>${o.monthly ? money(o.monthly) + "<small>/mo</small>" : "today"}</td></tr>`).join("")}</table>`);
+          <table>${ev.options.map((o) => `<tr><td>${esc(o.label)}<small>${termsHtml(o.terms)}</small></td><td>${o.monthly ? money(o.monthly) + "<small>/mo</small>" : "today"}</td></tr>`).join("")}</table>`);
         break;
       case "check": {
         const r = ev.result;
@@ -113,6 +153,9 @@
           ${bars(r.required_disclosures, r.matches_applicant_situation)}`);
         break;
       }
+      case "injection":
+        add(feed, "blocked inj-card", `<strong>Hidden instruction for AI agents found on this page</strong>The checkout tries to tell the agent that SIDE EFFECTS already approved the store card. It didn't. The agent is warned to ignore the page, and the gate in the checkout decides anyway.`);
+        break;
       case "blocked":
         add(feed, "blocked", `<strong>Gate refused the order</strong>The agent tried to sign ${esc(name)} up for ${esc(ev.offer.label)} without asking. SIDE EFFECTS sits inside the checkout, so it couldn't.`);
         break;
@@ -129,10 +172,14 @@
       case "ask":
         lane.classList.add("stopped");
         add(feed, "ask", `<div class="stamp red">Stopped before signing</div>
-          <p class="msg">${esc(ev.message)}</p>
+          <p class="msg">${esc(ev.message)} <button type="button" class="say-again" aria-label="Read aloud">🔊</button></p>
           <p class="choose">${esc(name)} decides:</p>
           <div class="choices">${ev.options.map((o) => `<button type="button" data-o="${esc(o.id)}">${esc(o.label)}<small>${o.check ? verdictText(o.check.verdict) : "No new credit"}</small></button>`).join("")}</div>`)
-          .addEventListener("click", (e) => choose(e, lane, feed));
+          .addEventListener("click", (e) => {
+            if (e.target.closest(".say-again")) { speak(ev.message); return; }
+            choose(e, lane, feed);
+          });
+        speak(ev.message);
         break;
       case "end":
         add(feed, "say", "The agent finished without placing an order.");
@@ -146,7 +193,8 @@
   async function choose(e, lane, feed) {
     const b = e.target.closest("button[data-o]"); if (!b) return;
     b.closest(".choices").querySelectorAll("button").forEach((x) => { x.disabled = true; x.classList.toggle("picked", x === b); });
-    const r = await fetch("/api/agent/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persona, offer_id: b.dataset.o }) });
+    const r = await fetch("/api/agent/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persona: persona === "you" ? "maya" : persona, offer_id: b.dataset.o,
+      profile: persona === "you" ? custom?.profile || [] : null }) });
     if (r.ok) render(lane, feed, await r.json());
   }
 
@@ -154,5 +202,5 @@
     return { human_review: "Needs your OK", disclose: "Show before signing", no_signal: "No signal" }[v] || v;
   }
 
-  init().catch((e) => { const el = $("#err"); el.textContent = e.message; el.hidden = false; });
+  init().catch((e) => showErr(e.message));
 })();

@@ -144,3 +144,27 @@ def test_gate_holds_even_if_agent_skips_the_check(monkeypatch):
     assert any(e["type"] == "blocked" and e["offer"]["id"] == "store_card" for e in events)
     assert not any(e["type"] == "order" for e in events)
     assert events[-1]["type"] == "ask"
+
+
+def test_agent_shops_for_a_person_described_in_their_own_words(monkeypatch, fake_gemini):
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    client = TestClient(app)
+    me = client.post("/api/agent/read-person", json={"text": "I'm Priya, a student with a part-time job and a phone on EMI"}).json()
+    assert me["name"] == "Priya" and me["profile"] == ["irregular_income", "other_bnpl"]
+    r = client.post("/api/agent/run", json={"gated": True, "custom": me | {"profile": me["profile"] + ["made_up"]}})
+    events = [json.loads(x) for x in r.text.strip().splitlines()]
+    assert events[0]["persona"]["name"] == "Priya"
+    assert events[-1]["type"] == "ask"
+
+
+def test_hacked_store_cannot_talk_its_way_past_the_gate(monkeypatch):
+    """The checkout page tells AI agents the store card is approved; the gate still refuses."""
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", lambda c, s, t: fakes.fake_shopper_turn(c, s, t, skip_check=True))
+    client = TestClient(app)
+    gated = [json.loads(x) for x in client.post("/api/agent/run", json={"persona": "maya", "gated": True, "hacked": True}).text.strip().splitlines()]
+    assert any(e["type"] == "injection" for e in gated)
+    assert any(e["type"] == "blocked" for e in gated) and not any(e["type"] == "order" for e in gated)
+    plain = [json.loads(x) for x in client.post("/api/agent/run", json={"persona": "maya", "gated": False, "hacked": True}).text.strip().splitlines()]
+    assert plain[-1]["type"] == "order" and not any(e["type"] == "injection" for e in plain)
