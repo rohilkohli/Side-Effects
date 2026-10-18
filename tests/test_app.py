@@ -83,6 +83,24 @@ def test_api_stream_and_agent_check(fake_gemini):
     assert client.post("/api/v1/check", json={"issuer": "Nobody Bank"}).json()["verdict"] == "no_signal"
 
 
+def test_a_typed_name_alone_makes_a_leaflet(fake_gemini):
+    seen = {}
+    real = fakes.fake
+
+    def spy(prompt, schema, **kw):
+        if schema.__name__ == "ProductCard":
+            seen["prompt"] = prompt
+        return real(prompt, schema, **kw)
+
+    gemini.generate_json = spy
+    events = list(pipeline.run(pipeline.Inputs(issuer_override="Apple Card")))
+    assert events[-1]["step"] == "leaflet"
+    assert "Apple Card" in seen["prompt"][0]  # Gemini is told only the name was typed
+    assert events[-1]["leaflet"]["product"]["matched_company"] == "GOLDMAN SACHS BANK USA"
+    assert events[1]["detail"].startswith("Found ")
+    assert list(pipeline.run(pipeline.Inputs()))[-1]["status"] == "error"
+
+
 def test_without_credentials_the_ui_gets_a_clear_error(monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)

@@ -9,7 +9,10 @@ side-effects leaflet for consumer credit products. You read marketing material a
 Identify the product exactly as presented. Copy promises and terms verbatim. In left_unsaid,
 list facts a careful pharmacist would want on the label (what happens after a promo ends,
 late-fee amounts, who the actual lender is) that the material does not state. Do not guess
-values that are not shown."""
+values that are not shown.
+Always find who the lender is: read logos, app headers, "issued by" and "credit provided by" lines,
+the small print, and the parties named in a contract. brand_name is what the customer sees (e.g.
+Apple Card); issuer_name is the bank or company that actually lends (e.g. Goldman Sachs Bank USA)."""
 
 
 def read_product(parts: list) -> ProductCard:

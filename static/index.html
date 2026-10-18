@@ -14,43 +14,46 @@
 <body>
 <header class="top">
   <a class="brand" href="/"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></a>
-  <nav class="tabs"><a href="/">Agent checkout</a><a class="on" href="/leaflet">Leaflet for any offer</a></nav>
+  <nav class="tabs"><a href="/">AI agent demo</a><a class="on" href="/leaflet">Check an offer</a></nav>
 </header>
 
 <main>
   <section class="intro" id="intro">
     <h1>Every medicine tells you what can go wrong.<br>Your credit card never did.</h1>
-    <p>Show us an offer. We check real complaint data the way drug regulators check adverse-event reports, find the contract clause behind each problem, and print the leaflet it should have come with.</p>
+    <p>Show us any credit card, loan or pay-later offer. Gemini works out who the lender is, checks real complaints and today's news, and writes the side-effects leaflet it should have come with.</p>
+    <ol class="how3" aria-label="How it works">
+      <li><b>1</b><span>Show us the offer</span></li>
+      <li><b>2</b><span>Gemini reads the lender and checks complaints and news</span></li>
+      <li><b>3</b><span>Read the side effects and ask questions</span></li>
+    </ol>
   </section>
 
-  <section class="card" id="input">
-    <h2>1. Show us the offer</h2>
-    <div class="grid2">
-      <label class="drop" id="photoDrop">
-        <input type="file" id="images" accept="image/*" capture="environment" multiple hidden>
-        <span class="drop-icon" aria-hidden="true">📷</span>
-        <strong>Photo of the flyer or app screen</strong>
-        <span class="muted" id="imagesName">Tap to take or choose a photo</span>
-      </label>
-      <label class="drop" id="pdfDrop">
-        <input type="file" id="contract" accept="application/pdf,.txt" hidden>
-        <span class="drop-icon" aria-hidden="true">📄</span>
-        <strong>The contract or terms (PDF)</strong>
-        <span class="muted" id="contractName">Optional, but needed to find clauses</span>
-      </label>
+  <section class="card start" id="input">
+    <h2>What are you thinking of signing up for?</h2>
+    <label class="bigdrop" id="drop">
+      <input type="file" id="files" accept="image/*,application/pdf,.txt" multiple hidden>
+      <span class="bigdrop-icons" aria-hidden="true">📷 📄</span>
+      <strong>Add a photo, screenshot or contract PDF</strong>
+      <span class="muted">Drop files here or tap to choose. We read the lender's name from them, so you don't have to type it.</span>
+    </label>
+    <ul class="filelist" id="fileList" hidden></ul>
+
+    <div class="or"><span>or just type it</span></div>
+    <textarea id="quick" rows="2" maxlength="4000" aria-label="Lender name or offer text" placeholder="A card or lender name, like Apple Card or Klarna. Or paste the advert's text."></textarea>
+    <div class="try" id="tryRow"><span class="muted small">Try one:</span>
+      <button type="button" data-try="Apple Card">Apple Card</button>
+      <button type="button" data-try="Klarna" data-type="bnpl">Klarna</button>
+      <button type="button" data-try="Capital One">Capital One</button>
+      <button type="button" id="sampleBtn">A sample advert and contract</button>
     </div>
-    <details class="paste">
-      <summary>Or paste text</summary>
-      <label>Advert or offer text<textarea id="flyerText" rows="3" placeholder="e.g. 0% interest for 12 months! Pay in 4 with ..."></textarea></label>
-      <label>Contract text<textarea id="contractText" rows="5" placeholder="Paste the terms and conditions"></textarea></label>
-    </details>
-    <div class="row">
-      <button class="ghost" id="sampleBtn" type="button">Try a sample (fictional BNPL plan)</button>
-    </div>
-    <details class="paste">
-      <summary>Lender and product (we usually work these out)</summary>
+
+    <h3 class="about">About you <span class="muted small">optional, never stored. It tailors the warnings to you.</span></h3>
+    <div class="chips" id="profileChips" role="group" aria-label="Your situation"></div>
+
+    <details class="paste" id="more">
+      <summary>More options</summary>
       <div class="grid2">
-        <label>Lender<input id="issuer" list="companies" placeholder="e.g. Apple Card, Affirm, Chase"></label>
+        <label>Lender, if we get it wrong<input id="issuer" list="companies" placeholder="e.g. Goldman Sachs"></label>
         <label>Product type
           <select id="productType">
             <option value="">Work it out</option>
@@ -61,13 +64,11 @@
         </label>
       </div>
       <datalist id="companies"></datalist>
+      <label>Contract text<textarea id="contractText" rows="4" placeholder="Paste the terms and conditions, if you have them as text"></textarea></label>
+      <label class="note">Anything else about you?<input id="note" maxlength="300" placeholder="e.g. I'm a freelancer saving for a wedding"></label>
     </details>
 
-    <h2>2. About you <span class="muted small">(optional, never stored)</span></h2>
-    <div class="chips" id="profileChips" role="group" aria-label="Your situation"></div>
-    <label class="note">Anything else?<input id="note" maxlength="300" placeholder="e.g. I'm a freelancer saving for a wedding"></label>
-
-    <button class="primary" id="goBtn" type="button">Write my leaflet</button>
+    <button class="primary" id="goBtn" type="button">Show me the side effects</button>
     <p class="error" id="formError" role="alert" hidden></p>
   </section>
 

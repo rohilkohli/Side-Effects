@@ -35,40 +35,71 @@ async function init() {
   });
 }
 
-function showFile(input, label, drop) {
-  const empty = $(label).textContent;
-  input.addEventListener("change", () => {
-    const names = [...(input.files || [])].map((f) => f.name).join(", ");
-    $(label).textContent = names || empty; $(drop).classList.toggle("has", !!names);
-  });
+/* ---- one place to start: files (photos, PDFs, text), or a name / advert typed in ---- */
+let files = [];
+const isImage = (f) => (f.type || "").startsWith("image/");
+function addFiles(list) {
+  showError("");
+  for (const f of list) {
+    if (!isImage(f) && !/pdf|text/.test(f.type || "") && !/\.(pdf|txt)$/i.test(f.name)) { showError(`${f.name} isn't a photo, PDF or text file.`); continue; }
+    if (f.size > 15 * 1024 * 1024) { showError(`${f.name} is over 15 MB.`); continue; }
+    if (!files.some((g) => g.name === f.name && g.size === f.size)) files.push(f);
+  }
+  showFiles();
 }
-showFile($("images"), "imagesName", "photoDrop");
-showFile($("contract"), "contractName", "pdfDrop");
+function showFiles() {
+  const docs = files.filter((f) => !isImage(f));
+  $("fileList").innerHTML = files.map((f, i) => `<li><span class="fi" aria-hidden="true">${isImage(f) ? "📷" : "📄"}</span>
+    <span class="fn">${esc(f.name)}<small>${isImage(f) ? "Photo: we'll read the offer and the lender" : f === docs[0] ? "Contract: we'll find the clause behind each problem" : "Only one contract is read; this one will be skipped"}</small></span>
+    <button type="button" data-rm="${i}" aria-label="Remove ${esc(f.name)}">×</button></li>`).join("");
+  $("fileList").hidden = !files.length;
+  $("drop").classList.toggle("has", files.length > 0);
+}
+$("files").addEventListener("change", () => { addFiles($("files").files); $("files").value = ""; });
+$("fileList").addEventListener("click", (e) => { const b = e.target.closest("[data-rm]"); if (b) { files.splice(+b.dataset.rm, 1); showFiles(); } });
+["dragenter", "dragover"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave", "drop"].forEach((t) => $("drop").addEventListener(t, (e) => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", (e) => addFiles(e.dataTransfer.files));
+// A short single line is a lender's name; anything longer is the advert's own words.
+const looksLikeName = (t) => t.length <= 60 && !/\n/.test(t) && t.split(/\s+/).length <= 6;
 
+$("tryRow").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-try]"); if (!b) return;
+  $("quick").value = b.dataset.try; $("productType").value = b.dataset.type || "";
+  run();
+});
 $("sampleBtn").addEventListener("click", async () => {
   const [flyer, contract] = await Promise.all([
     fetch("/api/samples/fictional-bnpl-flyer").then((r) => r.json()),
     fetch("/api/samples/fictional-bnpl-agreement").then((r) => r.json()),
   ]);
-  $("flyerText").value = flyer.text; $("contractText").value = contract.text;
-  $("productType").value = "bnpl";
-  document.querySelectorAll(".paste")[0].open = true;
+  $("quick").value = flyer.text; $("productType").value = "bnpl";
+  files = files.filter((f) => f.name !== "sample-contract.txt");
+  addFiles([new File([contract.text], "sample-contract.txt", { type: "text/plain" })]);
+  $("goBtn").focus();
 });
 
 $("goBtn").addEventListener("click", run);
+$("quick").addEventListener("input", () => showError(""));
+$("quick").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && looksLikeName($("quick").value.trim())) { e.preventDefault(); run(); } });
 
 async function run() {
   const fd = new FormData();
-  [...$("images").files].forEach((f) => fd.append("images", f));
-  if ($("contract").files[0]) fd.append("contract", $("contract").files[0]);
-  fd.append("flyer_text", $("flyerText").value);
+  const quick = $("quick").value.trim();
+  const imgs = files.filter(isImage), doc = files.find((f) => !isImage(f));
+  imgs.forEach((f) => fd.append("images", f));
+  if (doc) fd.append("contract", doc);
+  const typedName = quick && looksLikeName(quick);
+  fd.append("flyer_text", typedName ? "" : quick);
   fd.append("contract_text", $("contractText").value);
-  fd.append("issuer", $("issuer").value);
+  fd.append("issuer", $("issuer").value.trim() || (typedName ? quick : ""));
   fd.append("product_type", $("productType").value);
   fd.append("profile", [...profileKeys].join(","));
   fd.append("note", $("note").value);
-  const hasInput = $("images").files.length || $("contract").files.length || $("flyerText").value.trim() || $("contractText").value.trim();
-  if (!hasInput) return showError("Add a photo of the offer, its contract, or paste some text first.");
+  if (!files.length && !quick && !$("contractText").value.trim() && !$("issuer").value.trim()) {
+    $("quick").focus();
+    return showError("Add a photo or PDF of the offer, or type the card or lender's name.");
+  }
   showError("");
 
   $("goBtn").disabled = true;
@@ -171,7 +202,9 @@ function localHtml(le) {
 }
 
 function short(name) {
-  return String(name || "").replace(/,? (INC\.?|N\.A\.|NATIONAL ASSOCIATION|FINANCIAL CORPORATION|COMPANY|& CO\.|Holdings, Inc|Inc\.|LLC|AB)$/i, "").trim();
+  const s = String(name || "").replace(/,? (INC\.?|N\.A\.|NATIONAL ASSOCIATION|FINANCIAL CORPORATION|COMPANY|& CO\.|Holdings, Inc|Inc\.|LLC|AB)$/i, "").trim();
+  // Complaint records shout names in capitals; show them the way people write them.
+  return s === s.toUpperCase() ? s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\b(Usa|Td|Us)\b/g, (m) => m.toUpperCase()) : s;
 }
 
 const TYPE_LABEL = { credit_card: "Credit card", bnpl: "Buy Now Pay Later", personal_loan: "Personal loan" };
@@ -234,8 +267,8 @@ function render(lf) {
     <div class="foryou"><strong>For you</strong> <span class="small muted">(${esc(lf.profile)})</span><br>${esc(lf.for_you)}</div>
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
-    ${p.matched_company ? `<a class="lc-jump" href="/#check=${encodeURIComponent(p.brand_name || p.issuer_name || p.matched_company)}">Check ${esc(p.brand_name || short(p.matched_company))} live: this month's complaints and news ›</a>` : ""}
-    <div class="bqlive" id="bqLive" hidden></div>
+    ${liveName(p) ? `<section class="live" id="live" aria-live="polite"><div class="bq-head"><span class="bq-tag">Live right now</span><span class="small muted">Checked automatically for ${esc(liveName(p))}</span></div>
+      <div class="live-grid"><div id="liveComplaints"></div><div id="liveNews"></div></div></section>` : ""}
     ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">In their own words</span><span class="small muted">Gemini reads real complaint stories</span></div>
       <p class="small">The numbers above are statistics. Gemini can read the actual stories people wrote about this lender, group them by what went wrong, and point out problems our statistics don't show.</p>
       <button type="button" class="radar-btn" id="radarBtn">Read the complaint stories</button><div id="radarOut"></div></div>` : ""}
@@ -281,13 +314,14 @@ function render(lf) {
   $("leaflet").querySelector(".lf-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (b) tab(b.dataset.t); });
   $("leaflet").querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { tab(b.dataset.go); $("leaflet").querySelector(".lf-tabs").scrollIntoView({ behavior: "smooth", block: "start" }); }));
   $("intro").hidden = true; $("input").hidden = true; $("progress").hidden = true;
-  $("lfSummary").innerHTML = `Leaflet for <b>${esc(p.brand_name || p.product_name || "this offer")}</b>`;
+  const brand = p.brand_name || p.product_name || "this offer", lender = p.issuer_name && p.issuer_name !== brand ? p.issuer_name : "";
+  $("lfSummary").innerHTML = `We read: <b>${esc(brand)}</b>${lender ? ` from ${esc(lender)}` : ""}`;
   $("lfbar").hidden = false;
   $("leaflet").querySelectorAll(".se > button").forEach((b) => b.addEventListener("click", () => {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
   }));
   $("leaflet").hidden = false; $("pharmFab").hidden = false;
-  if (p.matched_company) loadBigQuery(p.matched_company, p.product_type);
+  if (liveName(p)) runLive(liveName(p), p.matched_company, p.product_type);
   $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
   window.scrollTo({ top: 0, behavior: "smooth" });
   $("chat").innerHTML = "";
@@ -298,20 +332,44 @@ function render(lf) {
     .map((q) => `<button type="button">${esc(q)}</button>`).join("");
 }
 
-/* ---- live numbers from BigQuery (hidden when BigQuery is off) ---- */
-async function loadBigQuery(company, productType) {
-  try {
-    const r = await fetch(`/api/bigquery/lender?issuer=${encodeURIComponent(company)}&product_type=${encodeURIComponent(productType || "credit_card")}`);
-    const d = await r.json();
-    const box = $("bqLive");
-    if (!d.available || !box) return;
-    const top = d.top_issues.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("");
-    box.innerHTML = `<div class="bq-head"><span class="bq-tag">Live from BigQuery</span><span class="small muted">${esc(d.source)}</span></div>
-      <p><b>${d.last_12_months.toLocaleString()}</b> complaints about ${esc(short(d.company))} in the 12 months to ${esc(new Date(d.latest_date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }))}.</p>
-      <p class="small muted">That is the newest month in Google's public copy of the CFPB database. The side effects above use newer CFPB data.</p>
-      ${top ? `<p class="small muted">Most common:</p><ul class="bq-top">${top}</ul>` : ""}`;
-    box.hidden = false;
-  } catch (e) { /* BigQuery is an extra; the leaflet stands without it */ }
+/* ---- live check of whatever lender Gemini read: the regulator's feed + Gemini with Google Search ---- */
+const liveName = (p) => p.brand_name || p.issuer_name || p.matched_company || "";
+const KIND = { enforcement: "Regulator", lawsuit: "Lawsuit", outage: "Outage", data_breach: "Data breach", fees_or_terms: "Fees or terms", other: "News" };
+const wait = (t) => `<p class="small muted radar-wait"><i></i>${esc(t)}</p>`;
+let liveSeq = 0;
+function runLive(name, company, productType) {
+  const seq = ++liveSeq, type = productType === "bnpl" ? "bnpl" : "credit_card";
+  const q = (n) => `name=${encodeURIComponent(n)}&product_type=${type}`;
+  $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4>` + wait("Asking the regulator's live complaint feed…");
+  $("liveNews").innerHTML = `<h4>In the news <span class="g-tag">Gemini + Google Search</span></h4>` + wait("Gemini is searching today's news. About 15 seconds…");
+  fetch(`/api/live/check?${q(company || name)}`).then((r) => r.json()).then((d) => { if (seq === liveSeq) showComplaints(d); })
+    .catch(() => { if (seq === liveSeq) $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">Couldn't reach the complaint feed just now.</p>`; });
+  fetch(`/api/live/news?${q(name)}`).then((r) => r.json()).then((d) => { if (seq === liveSeq) showNews(d); })
+    .catch(() => { if (seq === liveSeq) $("liveNews").innerHTML = `<h4>In the news</h4><p class="small muted">Couldn't search the news just now.</p>`; });
+}
+function showComplaints(d) {
+  const c = d.complaints || {}, a = d.archive || {}, box = $("liveComplaints"); if (!box) return;
+  const top = (list) => list?.length ? `<ul class="bq-top">${list.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("")}</ul>` : "";
+  if (!d.company) {
+    box.innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">${esc(d.name)} isn't in the US complaint records we can check, so there are no live complaint numbers. The news check still covers it.</p>`;
+  } else if (c.available) {
+    const ch = c.change_pct, trend = ch == null ? "" : ch > 0 ? `<span class="up">▲ ${ch}%</span>` : ch < 0 ? `<span class="down">▼ ${Math.abs(ch)}%</span>` : "no change";
+    box.innerHTML = `<h4>Complaints this quarter</h4>
+      <div class="live-big"><b>${c.last_90_days.toLocaleString()}</b><span>complaints about ${esc(short(c.company))} in the last 90 days${trend ? `, ${trend} on the 90 days before` : ""}</span></div>
+      ${top(c.top_issues)}<p class="small muted">${esc(c.source)}${c.latest_complaint ? `, newest ${esc(c.latest_complaint)}` : ""}. All of the company's products; complaints are unverified.</p>`;
+  } else if (a.available) {
+    box.innerHTML = `<h4>Complaints <span class="bq-tag">BigQuery</span></h4><p class="small muted">The regulator's live feed didn't answer, so this is Google's public copy in BigQuery.</p>
+      <div class="live-big"><b>${a.last_12_months.toLocaleString()}</b><span>complaints in the 12 months to ${esc(a.latest_date)}</span></div>${top(a.top_issues)}`;
+  } else {
+    box.innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">The regulator's live feed didn't answer just now.</p>`;
+  }
+}
+function showNews(d) {
+  const box = $("liveNews"); if (!box) return;
+  if (!d.available) { box.innerHTML = `<h4>In the news</h4><p class="small muted">${esc(d.reason || "Not available right now.")}</p>`; return; }
+  box.innerHTML = `<h4>In the news <span class="g-tag">Gemini + Google Search</span></h4><p>${esc(d.summary)}</p>
+    ${d.items.length ? `<ol class="live-news">${d.items.map((i) => `<li><span class="kind k-${esc(i.kind)}">${esc(KIND[i.kind] || "News")}</span><b>${esc(i.headline)}</b> <span class="muted small">${esc(i.date)} · ${esc(i.source)}</span><p class="small">${esc(i.what_it_means)}</p></li>`).join("")}</ol>` : ""}
+    ${d.sources.length ? `<details class="live-src"><summary>${d.sources.length} source${d.sources.length > 1 ? "s" : ""} Gemini used</summary><ul>${d.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul></details>` : `<p class="small muted">No web sources came back, so treat this as unverified.</p>`}`;
 }
 
 /* ---- emerging side effects: Gemini reads the newest complaint stories ---- */
@@ -372,11 +430,16 @@ $("micBtn").addEventListener("click", () => {
 
 init();
 
+// /leaflet?q=Apple+Card fills in the name and starts straight away (used by links from the agent demo).
+const startQ = new URLSearchParams(location.search).get("q");
+if (startQ) { $("quick").value = startQ.slice(0, 80); setTimeout(run); }
+
 /* ---- fold the form away once a leaflet is made ---- */
 $("newLeaflet").addEventListener("click", () => {
   $("lfbar").hidden = true; $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
   $("intro").hidden = false; $("input").hidden = false;
-  ["flyerText", "contractText", "images", "contract"].forEach((id) => { $(id).value = ""; $(id).dispatchEvent(new Event("change")); });
+  ["quick", "contractText", "issuer", "note", "productType"].forEach((id) => { $(id).value = ""; });
+  files = []; showFiles(); liveSeq++; window.history.replaceState(null, "", "/leaflet");
   document.querySelectorAll(".chip[aria-pressed='true']").forEach((c) => c.click());
   window.scrollTo({ top: 0, behavior: "smooth" });
 });

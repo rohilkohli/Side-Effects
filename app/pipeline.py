@@ -73,14 +73,21 @@ def run(inp: Inputs) -> Iterator[dict]:
         parts.append("MARKETING MATERIAL:\n" + inp.flyer_text.strip())
     if pages:
         parts.append("CONTRACT (first pages):\n" + clauses.format_contract(pages[:4]))
+    if not parts and inp.issuer_override.strip():
+        # Only a name was typed: let Gemini describe the product from what it knows of the name.
+        parts.append(f"The person typed only the name of the credit product or lender they are considering: "
+                     f"{inp.issuer_override.strip()[:80]}. There is no advert, so leave headline_claims and left_unsaid empty. "
+                     f"Give the bank that issues it as issuer_name when that is well known (Apple Card: Goldman Sachs).")
     if not parts:
-        yield {"step": "read", "status": "error", "detail": "Add a photo of the offer, a contract PDF or some text."}
+        yield {"step": "read", "status": "error", "detail": "Add a photo or PDF of the offer, or type the card or lender's name."}
         return
     card = intake.read_product(parts)
     product = card.model_dump(mode="json")
     if inp.product_type_override:
         product["product_type"] = inp.product_type_override
-    yield {"step": "read", "status": "done", "detail": f"{card.brand_name or card.product_name} ({product['product_type'].replace('_', ' ')})",
+    brand = card.brand_name or card.product_name
+    lender = f", lent by {card.issuer_name}" if card.issuer_name and card.issuer_name != brand else ""
+    yield {"step": "read", "status": "done", "detail": f"Found {brand}{lender} ({product['product_type'].replace('_', ' ')})",
            "product": product}
 
     # 2. Match to complaint data ----------------------------------------
