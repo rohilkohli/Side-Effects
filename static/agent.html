@@ -11,7 +11,9 @@
 <link rel="stylesheet" href="/static/agent.css">
 <link rel="stylesheet" href="/static/assistant.css">
 <link rel="stylesheet" href="/static/mobile.css">
+<link rel="stylesheet" href="/static/saas.css">
 <script src="/static/theme.js"></script>
+<script src="/static/shell.js"></script>
 </head>
 <body>
 <header class="top">
@@ -159,15 +161,23 @@
       <p>One check before an AI agent commits someone to credit. Same lender and situation, same answer, every time. It also works when the agent forgets to ask, because the check lives in the checkout.</p>
       <a class="biz-btn" href="/leaflet">Check an offer</a>
     </div>
-    <details class="devbox"><summary>Developer details</summary>
+    <div class="devcode">
+      <div class="dev-tabs"><b>REST</b><span>Deterministic gate, no AI in the loop</span></div>
 <pre><code>POST /api/v1/check
-{"issuer": "Klarna", "product_type": "bnpl", "applicant_profile": ["irregular_income"]}
+{"issuer": "Klarna", "product_type": "bnpl",
+ "applicant_profile": ["irregular_income"]}
 
 &rarr; {"verdict": "human_review",
-   "matches_applicant_situation": ["Trouble making repayments go through"],
-   "required_disclosures": [{"text": "Trouble making repayments go through: reported 3.3x more often than at peer lenders ..."}]}</code></pre>
+   "matches_applicant_situation":
+     ["Trouble making repayments go through"], ...}</code></pre>
+      <div class="dev-tabs"><b>MCP</b><span>Any agent framework, one line</span></div>
+<pre><code>gemini mcp add --transport http side-effects \
+  https://&lt;this-site&gt;/mcp
+
+tools: check_lender · lender_news · safety_alerts
+       compare_lenders · find_alternatives · gate_check</code></pre>
       <p class="muted"><a href="/.well-known/side-effects.json">Agent descriptor</a></p>
-    </details>
+    </div>
   </div>
   <div class="audit" id="audit" hidden></div>
 </section>

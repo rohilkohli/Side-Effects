@@ -133,7 +133,7 @@
     return `<ul class="bars">${disclosures.filter((d) => { const k = d.side_effect + d.level; if (seen.has(k)) return false; seen.add(k); return true; }).map((d) => {
       const hit = matches.includes(d.side_effect) || d.matches;
       return `<li class="${hit ? "hit" : ""}">
-        <span class="lbl">${esc(d.side_effect)}${hit ? ' <b class="fits">fits you</b>' : ""}<small>${d.level === "bank" ? "this lender" : "all pay-later lenders"} &middot; ${Number(d.n).toLocaleString()} complaints</small></span>
+        <span class="lbl">${esc(d.side_effect)}${hit ? ' <b class="fits">fits you</b>' : ""}<small>${d.level === "bank" ? "this lender" : d.level === "safety_alert" ? "new safety alert, last 45 days" : "all pay-later lenders"} &middot; ${Number(d.n).toLocaleString()} complaints</small></span>
         <span class="bar"><i style="width:${Math.min(100, (d.reported_x / max) * 100)}%"></i></span>
         <span class="x">${d.reported_x}&times;</span></li>`;
     }).join("")}</ul>`;
