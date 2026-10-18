@@ -8,7 +8,7 @@ No API key is needed: on Cloud Run the app calls Gemini through Vertex AI using 
 
    ```bash
    unzip -q side-effects-app.zip && cd side-effects-app
-   PROJECT_ID=$(gcloud config get-value project) ./deploy.sh
+   PROJECT_ID=$(gcloud config get-value project) bash deploy.sh
    ```
 
    Answer `y` if it asks to create an Artifact Registry repository. When it finishes it prints a `Service URL` ending in `.run.app`. That is the prototype link for the submission.
@@ -19,7 +19,7 @@ No API key is needed: on Cloud Run the app calls Gemini through Vertex AI using 
 | Message | Fix |
 |---|---|
 | `allUsers` / "organization policy" error on `--allow-unauthenticated` | The project belongs to an organisation that blocks public services. Use a personal project with billing instead. |
-| Agent lane shows `Gemini refused the request (404)` and a model name | That model is not available to the project yet. Redeploy with another one: `PROJECT_ID=$(gcloud config get-value project) GEMINI_MODEL=<model id from the Vertex AI Model Garden> ./deploy.sh` |
+| Agent lane shows `Gemini refused the request (404)` and a model name | That model is not available to the project yet. Redeploy with another one: `PROJECT_ID=$(gcloud config get-value project) GEMINI_MODEL=<model id from the Vertex AI Model Garden> bash deploy.sh` |
 | `Gemini refused the request (429)` | Quota. Wait a minute and rerun; for judging, request a quota increase in the console under IAM & Admin, Quotas. |
 | Billing not enabled | Link a billing account to the project, then rerun the same command. |
 
