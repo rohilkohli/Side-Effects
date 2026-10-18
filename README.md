@@ -21,7 +21,7 @@
 <img alt="Cloud Scheduler" src="https://img.shields.io/badge/Cloud_Scheduler-daily_scan-4285F4?logo=googlecloud&logoColor=white">
 <img alt="Google Search grounding" src="https://img.shields.io/badge/Google_Search-grounding-34A853?logo=google&logoColor=white">
 <img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white">
-<img alt="Tests" src="https://img.shields.io/badge/tests-33_passing-12b76a">
+<img alt="Tests" src="https://img.shields.io/badge/tests-34_passing-12b76a">
 </p>
 
 **Google Cloud AI Builder Cup 2026** · Track 01 BFSI: Intelligent Risk, Fraud & Financial Experiences · Team **CyberNex - Vision Matters**
@@ -45,6 +45,7 @@ SIDE EFFECTS writes the missing leaflet, and puts a gate in front of the checkou
 | | |
 |---|---|
 | 📷 **Show it any offer** | A photo of a flyer, a screenshot of an app, a contract PDF, or just a name. Gemini works out the lender and product. |
+| 🔎 **Lenders we don't have yet** | Not in our statistics? It searches the regulator's live complaint database by name, and Gemini researches the lender with Google Search: who actually lends, its licence and regulator, actions and scam warnings, with sources. The gate says **UNKNOWN**, never "low risk". |
 | 📈 **Real evidence, scored like drug safety** | 136,270 US consumer complaints, scored with the **proportional reporting ratio** regulators use for adverse drug reactions. Code does the counting; Gemini never invents a number. |
 | 📜 **The clause behind the harm** | Gemini reads the contract and pins each side effect to a clause. Every quote is checked word for word; anything it can't find is thrown away. |
 | 🛡️ **A gate for AI agents** | `POST /api/v1/check` and an **MCP server** return a deterministic verdict: `no_signal`, `disclose` or `human_review`. The checkout enforces it in code, so an agent that forgets to check still can't sign. |
@@ -243,7 +244,7 @@ app/
   data/              signal tables, verified quotes, vocabulary, APAC data
 pipeline/            offline harvest: classify, PRR in BigQuery, evaluation, India data
 static/              the web app (no build step)
-tests/               33 tests with a Gemini stand-in; tests/fake_server.py runs the UI offline
+tests/               34 tests with a Gemini stand-in; tests/fake_server.py runs the UI offline
 deploy.sh            one-command Cloud Run + BigQuery + Scheduler deploy
 ```
 
@@ -339,7 +340,7 @@ Content-Type: application/json
 }
 ```
 
-Same lender and situation, same verdict, every time. Severity follows fixed rules too: **CRITICAL** when a side effect that fits the person is reported 3× or more (or a live safety alert fits them), **HIGH** when one fits, **MODERATE** when there are side effects to disclose (or an Indian bank group with at least 2× the national complaint rate per card), **LOW** when there is no signal. Indian issuers also get a Key Facts Statement review in `recommended_action`. Profile keys: `irregular_income`, `carries_balance`, `other_bnpl`, `new_to_credit`, `big_purchase`, `travels`. Service descriptor: `GET /.well-known/side-effects.json`.
+Same lender and situation, same verdict, every time. Severity follows fixed rules too: **CRITICAL** when a side effect that fits the person is reported 3× or more (or a live safety alert fits them), **HIGH** when one fits, **MODERATE** when there are side effects to disclose (or an Indian bank group with at least 2× the national complaint rate per card), **LOW** when there is no signal, and **UNKNOWN** when the lender isn't in the complaint records at all. Indian issuers also get a Key Facts Statement review in `recommended_action`. Profile keys: `irregular_income`, `carries_balance`, `other_bnpl`, `new_to_credit`, `big_purchase`, `travels`. Service descriptor: `GET /.well-known/side-effects.json`.
 
 </details>
 
@@ -358,6 +359,7 @@ gemini mcp add --transport http side-effects \
 | Tool | What it returns |
 |---|---|
 | `check_lender` | live 90-day complaints, trend, top issues and side effects |
+| `research_lender` | for lenders outside our statistics: who lends, licence, regulator, red flags, with sources |
 | `lender_news` | today's news, grounded in Google Search, with sources |
 | `safety_alerts` | active safety alerts, optionally for one lender |
 | `compare_lenders` | side effects of two or more lenders side by side |
@@ -381,7 +383,7 @@ gemini mcp add --transport http side-effects \
 | `POST` | `/api/assistant` | assistant with tools (streams) |
 | `POST` | `/api/v1/voice` | voice agent: JSON text or a multipart audio clip in; heard, tool calls, then `{text, speech, speak}` (streams) |
 | `GET` | `/api/alerts` · `POST /api/alerts/scan` | safety alerts |
-| `GET` | `/api/live/check` · `/api/live/news` | live lender check |
+| `GET` | `/api/live/check` · `/api/live/news` · `/api/live/profile` | live lender check, news, and web research for unknown lenders |
 | `GET` | `/.well-known/side-effects.json` | agent descriptor |
 
 </details>
@@ -422,7 +424,7 @@ No credentials? Click through the whole UI with a Gemini stand-in:
 
 ```bash
 python -m tests.fake_server     # http://localhost:8080
-pytest                           # 33 tests, no credentials needed
+pytest                           # 34 tests, no credentials needed
 ```
 
 </details>

@@ -303,3 +303,17 @@ body.app .facts { max-width: none; }
 .sev-high { background: var(--red-soft); color: var(--red-ink); }
 .sev-moderate { background: var(--amber-soft); color: var(--amber); }
 .sev-low { background: var(--green-soft); color: var(--green); }
+
+/* Lender profile for lenders outside our statistics */
+.live-profile { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; margin: 12px 0; }
+.live-profile h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 8px; }
+.lic { font-size: .72rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+.lic.ok { color: var(--green); background: var(--green-soft); }
+.lic.no { color: var(--amber); background: var(--amber-soft); }
+.prof { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 18px; margin: 10px 0; font-size: .9rem; }
+.prof dt { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.prof dd { margin: 2px 0 0; }
+.prof-h { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin: 12px 0 4px; }
+.prof-flags, .prof-check { margin: 0; padding-left: 18px; font-size: .9rem; display: grid; gap: 4px; }
+.prof-flags li::marker { color: var(--red-ink); }
+.sev-unknown { background: var(--panel-2); color: var(--muted); }

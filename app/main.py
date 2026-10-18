@@ -343,7 +343,7 @@ def descriptor():
                      "human_review": "a side effect matches the person's situation; the person must confirm"},
         "severity": {"CRITICAL": "a side effect that fits the person is reported 3x or more, or a live safety alert fits them",
                      "HIGH": "a side effect fits the person", "MODERATE": "side effects to disclose, none specific to the person",
-                     "LOW": "no complaint signal"},
+                     "LOW": "no complaint signal", "UNKNOWN": "the lender is not in the complaint records"},
     }
 
 
@@ -398,6 +398,12 @@ def radar_scan(issuer: str, product_type: str = "credit_card"):
 def live_check(name: str, product_type: str = "credit_card", lender: str = ""):
     """Our complaint statistics for a lender plus the CFPB's live complaint feed (last 90 days)."""
     return live.check(name.strip()[:80], product_type, lender.strip()[:80])
+
+
+@app.get("/api/live/profile")
+def live_profile(name: str, product_type: str = "credit_card"):
+    """Who a lender is, for lenders outside our statistics (Gemini + Google Search, with sources)."""
+    return live.profile(name, product_type)
 
 
 @app.get("/api/live/news")

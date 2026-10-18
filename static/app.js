@@ -270,6 +270,7 @@ function render(lf) {
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
     ${liveName(p) ? `<section class="live" id="live" aria-live="polite"><div class="bq-head"><span class="bq-tag">Live right now</span><span class="small muted">Checked automatically for ${esc(liveName(p))}</span></div>
+      <div class="live-profile" id="liveProfile" hidden></div>
       <div class="live-grid"><div id="liveComplaints"></div><div id="liveNews"></div></div></section>` : ""}
     ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">In their own words</span><span class="small muted">Gemini reads real complaint stories</span></div>
       <p class="small">The numbers above are statistics. Gemini can read the actual stories people wrote about this lender, group them by what went wrong, and point out problems our statistics don't show.</p>
@@ -323,6 +324,8 @@ function render(lf) {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
   }));
   $("leaflet").hidden = false;
+  // The web research names the lender behind the brand too, so "FlexiPay" isn't confused with another FlexiPay.
+  profileName = p.issuer_name && p.brand_name && !p.brand_name.toLowerCase().includes(p.issuer_name.toLowerCase()) ? `${p.brand_name} (${p.issuer_name})` : liveName(p);
   if (liveName(p)) runLive(liveName(p), p.matched_company, p.product_type);
   if (p.matched_company) loadAlerts(p.matched_company, p.product_type);
   $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
@@ -338,7 +341,7 @@ function render(lf) {
 const liveName = (p) => p.brand_name || p.issuer_name || p.matched_company || "";
 const KIND = { enforcement: "Regulator", lawsuit: "Lawsuit", outage: "Outage", data_breach: "Data breach", fees_or_terms: "Fees or terms", other: "News" };
 const wait = (t) => `<p class="small muted radar-wait"><i></i>${esc(t)}</p>`;
-let liveSeq = 0, early = null;
+let liveSeq = 0, early = null, profileName = "";
 const liveType = (t) => (t === "bnpl" ? "bnpl" : "credit_card");
 // News is searched by the name people know (the brand); complaints are filed against the lender behind it.
 const liveFetch = (name, type, lender) => {
@@ -357,7 +360,11 @@ function runLive(name, company, productType) {
   early = null;
   $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4>` + wait("Asking the regulator's live complaint feed…");
   $("liveNews").innerHTML = `<h4>In the news <span class="g-tag">Gemini + Google Search</span></h4>` + wait("Gemini is searching today's news…");
-  got.check.then((d) => { if (seq === liveSeq) showComplaints(d); })
+  got.check.then((d) => {
+    if (seq !== liveSeq) return;
+    showComplaints(d);
+    if (!d.company) runProfile(profileName || name, type, seq);  // not in our statistics: find out who this lender is
+  })
     .catch(() => { if (seq === liveSeq) $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">Couldn't reach the complaint feed just now.</p>`; });
   got.news.then((d) => { if (seq === liveSeq) showNews(d); })
     .catch(() => { if (seq === liveSeq) $("liveNews").innerHTML = `<h4>In the news</h4><p class="small muted">Couldn't search the news just now.</p>`; });
@@ -375,19 +382,38 @@ async function loadAlerts(company, productType) {
 function showComplaints(d) {
   const c = d.complaints || {}, a = d.archive || {}, box = $("liveComplaints"); if (!box) return;
   const top = (list) => list?.length ? `<ul class="bq-top">${list.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("")}</ul>` : "";
-  if (!d.company) {
-    box.innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">${esc(d.name)} isn't in the US complaint records we can check, so there are no live complaint numbers. The news check still covers it.</p>`;
+  if (!d.company && !c.available) {
+    box.innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">${esc(d.name)} isn't in the US regulator's complaint database, so there are no complaint numbers. Gemini is researching the lender on the web instead (above).</p>`;
   } else if (c.available) {
     const ch = c.change_pct, trend = ch == null ? "" : ch > 0 ? `<span class="up">▲ ${ch}%</span>` : ch < 0 ? `<span class="down">▼ ${Math.abs(ch)}%</span>` : "no change";
     box.innerHTML = `<h4>Complaints this quarter</h4>
       <div class="live-big"><b>${c.last_90_days.toLocaleString()}</b><span>complaints about ${esc(short(c.company))} in the last 90 days${trend ? `, ${trend} on the 90 days before` : ""}</span></div>
-      ${top(c.top_issues)}<p class="small muted">${esc(c.source)}${c.latest_complaint ? `, newest ${esc(c.latest_complaint)}` : ""}. All of the company's products; complaints are unverified.</p>`;
+      ${top(c.top_issues)}<p class="small muted">${esc(c.source)}${c.latest_complaint ? `, newest ${esc(c.latest_complaint)}` : ""}. All of the company's products; complaints are unverified.${d.company ? "" : ` Not in our statistics yet: found by name in the regulator's live database as ${esc(c.company)}.`}</p>`;
   } else if (a.available) {
     box.innerHTML = `<h4>Complaints <span class="bq-tag">BigQuery</span></h4><p class="small muted">The regulator's live feed didn't answer, so this is Google's public copy in BigQuery.</p>
       <div class="live-big"><b>${a.last_12_months.toLocaleString()}</b><span>complaints in the 12 months to ${esc(a.latest_date)}</span></div>${top(a.top_issues)}`;
   } else {
     box.innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">The regulator's live feed didn't answer just now.</p>`;
   }
+}
+/* ---- lenders outside our statistics: Gemini researches who they are with Google Search ---- */
+function runProfile(name, type, seq) {
+  const box = $("liveProfile"); if (!box) return;
+  box.hidden = false;
+  box.innerHTML = `<h4>Who is this lender? <span class="g-tag">Gemini + Google Search</span></h4>` + wait(`We have no complaint statistics for ${name}, so Gemini is researching it on the web: licence, regulator, actions and warnings…`);
+  fetch(`/api/live/profile?name=${encodeURIComponent(name)}&product_type=${type}`).then((r) => r.json()).then((d) => {
+    if (seq !== liveSeq) return;
+    if (!d.available) { box.innerHTML = `<h4>Who is this lender?</h4><p class="small muted">${esc(d.reason || "The web research didn't answer just now.")}</p>`; return; }
+    const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : "";
+    box.innerHTML = `<h4>Who is this lender? <span class="g-tag">Gemini + Google Search</span>
+        <span class="lic ${d.licence_found ? "ok" : "no"}">${d.licence_found ? "✓ Licence confirmed by a source" : "⚠ No licence confirmed"}</span></h4>
+      <p>${esc(d.summary)}</p>
+      <dl class="prof">${row("Lends as", esc(d.legal_name))}${row("Country", esc(d.country))}${row("Offers", esc(d.what_it_offers))}
+        ${row("Regulated by", esc((d.regulated_by || []).join(", ")))}${row("Complaints", esc(d.complaint_records))}</dl>
+      ${d.red_flags?.length ? `<p class="prof-h">Red flags</p><ul class="prof-flags">${d.red_flags.map((f) => `<li>${esc(f.text)} <span class="muted small">${esc(f.source)}</span></li>`).join("")}</ul>` : `<p class="small muted">No red flags found in the sources.</p>`}
+      ${d.what_to_check?.length ? `<p class="prof-h">Check before you sign</p><ul class="prof-check">${d.what_to_check.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""}
+      ${d.sources.length ? `<details class="live-src"><summary>${d.sources.length} source${d.sources.length > 1 ? "s" : ""} Gemini used</summary><ul>${d.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul></details>` : `<p class="small muted">No web sources came back, so treat this as unverified.</p>`}`;
+  }).catch(() => { if (seq === liveSeq) box.innerHTML = `<h4>Who is this lender?</h4><p class="small muted">Couldn't research this lender just now.</p>`; });
 }
 function showNews(d) {
   const box = $("liveNews"); if (!box) return;

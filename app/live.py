@@ -17,7 +17,7 @@ import urllib.request
 from datetime import date, timedelta
 
 from . import bq, evidence, gemini
-from .schemas import NewsReport
+from .schemas import LenderProfile, NewsReport
 
 log = logging.getLogger("side_effects.live")
 
@@ -65,6 +65,15 @@ def _cfpb(params: dict) -> dict:
     req = urllib.request.Request(url, headers={"User-Agent": "side-effects/1.0 (consumer-protection prototype)",
                                                "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=12) as r:
+        return json.load(r)
+
+
+def _suggest(text: str) -> list:
+    """The CFPB database's company-name search."""
+    url = CFPB_API + "_suggest_company?" + urllib.parse.urlencode({"text": text})
+    req = urllib.request.Request(url, headers={"User-Agent": "side-effects/1.0 (consumer-protection prototype)",
+                                               "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=10) as r:
         return json.load(r)
 
 
@@ -164,16 +173,77 @@ def news(name: str, product_type: str = "credit_card") -> dict:
     return _cached(("news", (company or name).lower(), product_type), make)
 
 
+def _norm(s: str) -> str:
+    return re.sub(r"[^a-z0-9 ]", " ", s.lower()).split(" inc")[0].strip()
+
+
+def find_in_cfpb(name: str) -> str | None:
+    """A lender our statistics don't cover may still be in the regulator's live database: ask its company
+    search, and keep a name only when every word of ours appears in it (no guessing between companies)."""
+    q = re.sub(r"\s+", " ", name).strip()[:60]
+    if len(q) < 3:
+        return None
+
+    def make():
+        try:
+            found = _suggest(q)
+        except Exception as e:
+            log.info("CFPB company search failed: %s", e)
+            return {"available": False}
+        words = [w for w in _norm(q).split() if w not in ("card", "credit", "bank", "the", "loan", "loans")] or _norm(q).split()
+        names = [c for c in (found if isinstance(found, list) else []) if isinstance(c, str)]
+        hits = [c for c in names if all(f" {w}" in " " + _norm(c) for w in words)]
+        return {"available": True, "company": min(hits, key=len) if hits else None}
+    return _cached(("suggest", q.lower()), make).get("company")
+
+
 def check(name: str, product_type: str = "credit_card", lender: str = "") -> dict:
     """What SIDE EFFECTS knows about a lender: our statistics, plus the live complaint feed.
-    lender is the company behind a brand when known (Goldman Sachs for Apple Card); either name may match."""
+    lender is the company behind a brand when known (Goldman Sachs for Apple Card); either name may match.
+    A lender outside our statistics is looked up in the regulator's live database by name (live_company)."""
     company = (lender and evidence.resolve_company(lender, product_type)) or evidence.resolve_company(name, product_type)
+    live_company = company or (lender and find_in_cfpb(lender)) or find_in_cfpb(name)
     sig = evidence.signals_for(company, product_type) if company else {"lines": []}
-    feed = complaints(company) if company else {"available": False}
+    feed = complaints(live_company) if live_company else {"available": False}
     archive = bq.lender_snapshot(company, product_type) if company and not feed.get("available") else {"available": False}
-    return {"name": name, "company": company, "product_type": product_type,
+    return {"name": name, "company": company, "live_company": live_company, "product_type": product_type,
+            "in_statistics": bool(company),
             "signals": [{"label": l["label"], "reported_x": l["reported_x"], "scope": l["scope"]} for l in sig["lines"]][:5],
             "complaints": feed, "archive": archive}
+
+
+PROFILE_PROMPT = """Research this lender on the web (today is {today}): {name}{product}.
+We have no complaint statistics for it, so find out: which company actually lends and in which country;
+whether it is licensed or registered to lend and by which regulator (for example a US state licence or the
+CFPB, the RBI's list of NBFCs and digital lending apps, the FCA register, MAS); any regulator actions, fines,
+lawsuits, scam or fake-app warnings; where customers' complaints are published (regulator databases,
+ombudsman reports, consumer forums) and what they say. Quote numbers only as the sources state them.
+If a name matches several companies, say which one you mean and why. If you find little, say so plainly."""
+
+PROFILE_SYSTEM = """You turn a research note about a lender into a profile. Keep only what the note says, with
+its sources. Never add facts or numbers. licence_found is true only if the note says a source confirms it."""
+
+
+def profile(name: str, product_type: str = "credit_card") -> dict:
+    """Who a lender is, for lenders outside our statistics: Gemini researches it with Google Search."""
+    name = re.sub(r"\s+", " ", name).strip()[:80]
+    product = {"credit_card": " (credit cards)", "bnpl": " (buy now pay later)", "personal_loan": " (personal loans)"}.get(product_type, "")
+
+    def make():
+        try:
+            text, sources, queries = grounded(PROFILE_PROMPT.format(today=date.today().isoformat(), name=name, product=product))
+            got = gemini.generate_json(f"Research note:\n<<<\n{text[:8000]}\n>>>", LenderProfile, system=PROFILE_SYSTEM)
+        except gemini.LLMUnavailable:
+            return {"available": False, "reason": "Gemini is not configured."}
+        except Exception as e:
+            log.warning("lender profile failed: %s", e)
+            return {"available": False, "reason": "Google Search could not be reached just now. Try again in a minute."}
+        out = got.model_dump()
+        out["red_flags"] = out["red_flags"][:5]
+        out["what_to_check"] = out["what_to_check"][:3]
+        return {"available": True, "name": name, **out, "sources": sources, "searched": queries,
+                "grounded": bool(sources), "licence_found": got.licence_found and bool(sources)}
+    return _cached(("profile", name.lower(), product_type), make)
 
 
 def prewarm() -> None:

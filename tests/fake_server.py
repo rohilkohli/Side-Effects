@@ -65,6 +65,7 @@ def _fake_cfpb(params):
 
 
 live._cfpb = _fake_cfpb
+live._suggest = lambda text: ["UPSTART NETWORK, INC.", "UPSTART HOLDINGS"] if "upstart" in text.lower() else []
 live.grounded = lambda prompt: (time.sleep(1.0) or "Stand-in note: a payments system migration was reported in the news.",
                                 [{"title": "stand-in.example", "url": "https://example.com/"}], [])
 live._grounded_research = lambda name, company, product_type: (

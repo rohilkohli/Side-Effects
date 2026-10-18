@@ -19,6 +19,13 @@ from tests.fakes import FAKE_QUOTE, REAL_QUOTE
 SAMPLES = Path(__file__).parent.parent / "samples"
 
 
+@pytest.fixture(autouse=True)
+def no_cfpb_search(monkeypatch):
+    """Tests never reach the CFPB's company search; tests that need it set their own answer."""
+    from app import live
+    monkeypatch.setattr(live, "_suggest", lambda text: [])
+
+
 @pytest.fixture
 def fake_gemini(monkeypatch):
     monkeypatch.setattr(gemini, "generate_json", fakes.fake)
@@ -417,7 +424,7 @@ def test_mcp_server_lists_and_calls_the_same_tools(monkeypatch, fake_gemini):
     assert init["result"]["protocolVersion"] == "2025-06-18" and "tools" in init["result"]["capabilities"]
     assert c.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}).status_code == 202
     tools_ = {t["name"]: t for t in c.post("/mcp", json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"}).json()["result"]["tools"]}
-    assert set(tools_) == {"check_lender", "lender_news", "safety_alerts", "compare_lenders", "find_alternatives", "gate_check"}
+    assert set(tools_) == {"check_lender", "research_lender", "lender_news", "safety_alerts", "compare_lenders", "find_alternatives", "gate_check"}
     assert tools_["gate_check"]["inputSchema"]["properties"]["applicant_profile"]["type"] == "array"
     out = c.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {
         "name": "gate_check", "arguments": {"issuer": "Apple Card", "applicant_profile": ["big_purchase"]}}}).json()["result"]
@@ -498,7 +505,8 @@ def test_gate_severity_and_action_follow_fixed_rules():
     au = gate.check("AU Small Finance Bank", "credit_card", [])
     assert au["severity"] == "MODERATE" and au["india_rbi"]["x_vs_india"] == 3.0
     assert any("Key Facts Statement" in a for a in au["recommended_action"])
-    assert gate.check("Nobody Bank", "credit_card", [])["severity"] == "LOW"
+    assert gate.check("Nobody Bank", "credit_card", [])["severity"] == "UNKNOWN"  # no records is not low risk
+    assert gate.check("Discover", "credit_card", [])["severity"] in ("LOW", "MODERATE")
     assert gate.check("Klarna", "bnpl", ["irregular_income", "other_bnpl"]) == klarna  # deterministic
 
 
@@ -523,3 +531,23 @@ def test_voice_agent_answers_text_and_audio_and_returns_speakable_text(monkeypat
     assert c.post("/api/v1/voice", files={"audio": ("q.exe", b"MZ", "application/octet-stream")}).status_code == 400
     assert c.post("/api/v1/voice", json={"text": "  "}).status_code == 400
     assert c.post("/api/v1/check", json={"issuer": "Klarna", "product_type": "bnpl"}).status_code == 200  # untouched
+
+
+def test_lender_outside_our_statistics_is_found_live_and_researched_on_the_web(monkeypatch, fake_gemini):
+    from app import live, tools
+    _fake_live(monkeypatch)
+    monkeypatch.setattr(live, "_suggest", lambda text: ["UPSTART NETWORK, INC.", "UPSTART HOLDINGS", "UPGRADE, INC."])
+    monkeypatch.setattr(live, "grounded", lambda prompt: ("note", [{"title": "s", "url": "https://example.com/"}], ["q"]))
+    d = live.check("Upstart", "personal_loan")
+    assert d["company"] is None and not d["in_statistics"]
+    assert d["live_company"] == "UPSTART HOLDINGS"  # every word matches; the shortest name wins
+    assert d["complaints"]["available"] and d["complaints"]["last_90_days"] == 120
+    out = tools.check_lender("Upstart", "personal_loan")
+    assert "research_lender" in out["note"] and out["company_in_live_feed"] == "UPSTART HOLDINGS"
+    prof = tools.research_lender("Upstart", "personal_loan")
+    assert prof["licence_found"] and prof["sources"] and prof["red_flags"]
+    r = TestClient(app).get("/api/live/profile", params={"name": "Upstart", "product_type": "personal_loan"}).json()
+    assert r["available"] and r["legal_name"] == "Upstart Network, Inc."
+    # No partial matches: a name that only shares a word with a company is not a match.
+    live._cache.clear()
+    assert live.find_in_cfpb("Upgrade Card Plus Zebra") is None

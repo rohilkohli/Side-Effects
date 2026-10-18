@@ -44,6 +44,14 @@ def fake(prompt, schema, **kw):
     if schema is ReadPerson:
         return ReadPerson(name="Priya", about="Priya is a student with a part-time job and a phone on EMI.",
                           situations=[Situation.irregular_income, Situation.other_bnpl])
+    if schema.__name__ == "LenderProfile":
+        from app.schemas import RedFlag
+        return schema(legal_name="Upstart Network, Inc.", country="United States", what_it_offers="Personal loans through an online platform.",
+                      regulated_by=["State lending licences", "CFPB"], licence_found=True,
+                      complaint_records="Stand-in: complaints are published in the CFPB database.",
+                      red_flags=[RedFlag(text="Stand-in: a regulator reviewed how its model sets loan prices.", source="Stand-in News")],
+                      what_to_check=["The APR after any origination fee", "What happens if a payment is late"],
+                      summary="Stand-in profile: an online personal-loan lender. Nothing alarming in the stand-in note.")
     if schema is NewsReport:
         if "found nothing" in text:
             return NewsReport(items=[], summary="Nothing relevant in the last 12 months.")

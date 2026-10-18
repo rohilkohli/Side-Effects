@@ -180,3 +180,23 @@ class AlertText(BaseModel):
     who_should_care: str = Field(description="One sentence: which customers this matters most for.")
     what_to_do: str = Field(description="One or two practical sentences for someone about to sign up or already a customer.")
     possible_cause: str = Field(description="One sentence from the news note if it explains the rise, else an empty string. Never guess.")
+
+
+# ---- Lenders we have no statistics for: who they are, researched by Gemini with Google Search ----
+
+class RedFlag(BaseModel):
+    text: str = Field(description="One sentence: a regulator action, lawsuit, licence problem, scam warning or pattern of complaints")
+    source: str = Field(description="The publication, regulator or site that reported it")
+
+
+class LenderProfile(BaseModel):
+    """What the web says about a lender. Only facts the research note contains; no numbers it did not state."""
+    legal_name: str = Field(description="The company that actually lends, as the sources name it; empty if unclear")
+    country: str = Field(description="Where it lends, e.g. United States, India; empty if unclear")
+    what_it_offers: str = Field(description="One sentence: its credit products")
+    regulated_by: list[str] = Field(description="Regulators or licences the sources mention, e.g. RBI (NBFC), FCA, state lending licence")
+    licence_found: bool = Field(description="True only if a source confirms it is licensed or registered to lend")
+    complaint_records: str = Field(description="Where complaints about it are published and what they show, only as stated in the note; empty if none found")
+    red_flags: list[RedFlag]
+    what_to_check: list[str] = Field(description="Two or three things to check before signing, specific to this lender")
+    summary: str = Field(description="Two plain sentences: who this lender is and whether anything should worry a customer")

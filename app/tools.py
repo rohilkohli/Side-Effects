@@ -21,10 +21,26 @@ def check_lender(name: str, product_type: str = "credit_card") -> dict:
     about it in the last 90 days, with the trend and top issues. product_type is credit_card, bnpl or personal_loan."""
     d = live.check(name[:80], _ptype(product_type))
     c = d.get("complaints") or {}
-    return {"name": d["name"], "company_in_records": d["company"], "side_effects": d["signals"],
+    note = "reported_x means how many times more often than at similar lenders. Complaints are unverified."
+    if not d["company"]:
+        note = ("Not in our complaint statistics" + (f", but found in the regulator's live database as {d['live_company']}"
+                if d.get("live_company") else "") + ". Call research_lender to find out who this lender is and whether it is licensed.")
+    return {"name": d["name"], "company_in_records": d["company"], "company_in_live_feed": d.get("live_company"),
+            "side_effects": d["signals"],
             "complaints_last_90_days": c.get("last_90_days"), "change_vs_previous_90_days_pct": c.get("change_pct"),
-            "top_complaint_issues": c.get("top_issues", []), "newest_complaint": c.get("latest_complaint"),
-            "note": "reported_x means how many times more often than at similar lenders. Complaints are unverified."}
+            "top_complaint_issues": c.get("top_issues", []), "newest_complaint": c.get("latest_complaint"), "note": note}
+
+
+def research_lender(name: str, product_type: str = "credit_card") -> dict:
+    """For a lender that is not in the complaint records (check_lender says so): Gemini searches the web for who
+    actually lends, its licence and regulator, regulator actions, scam warnings and where complaints about it are
+    published, with sources. Slower (about 10 seconds the first time)."""
+    d = live.profile(name[:80], _ptype(product_type))
+    if not d.get("available"):
+        return {"available": False, "reason": d.get("reason")}
+    keys = ("legal_name", "country", "what_it_offers", "regulated_by", "licence_found", "complaint_records",
+            "red_flags", "what_to_check", "summary")
+    return {**{k: d[k] for k in keys}, "sources": d["sources"][:6]}
 
 
 def lender_news(name: str, product_type: str = "credit_card") -> dict:
@@ -86,7 +102,7 @@ def open_page(page: str, lender: str = "") -> dict:
     return {"url": urls.get(page, "/"), "page": page}
 
 
-ALL = [check_lender, lender_news, safety_alerts, compare_lenders, find_alternatives, gate_check, open_page]
+ALL = [check_lender, research_lender, lender_news, safety_alerts, compare_lenders, find_alternatives, gate_check, open_page]
 BY_NAME = {f.__name__: f for f in ALL}
 # Tools the assistant may use; MCP clients get the same set minus navigation, which only makes sense on the site.
 MCP_TOOLS = [f for f in ALL if f is not open_page]

@@ -34,6 +34,10 @@ def check(issuer: str, product_type: str = "credit_card", applicant_profile: lis
     verdict = "human_review" if matches else ("disclose" if disclosures else "no_signal")
     india = _india_rate(issuer, product_type)
     severity, action = _severity(verdict, disclosures, matches, issuer, india)
+    if not company and severity == "LOW":
+        # No statistics is not the same as no problems: say so instead of calling it low risk.
+        severity = "UNKNOWN"
+        action = ["Not in the complaint records: check the lender's licence and read its key facts before signing"] + action[1:]
     top = max(disclosures, key=lambda d: d["reported_x"] or 0, default=None)
     return {
         "issuer_matched": company,
@@ -66,7 +70,8 @@ def _severity(verdict: str, disclosures: list[dict], matches: list[str], issuer:
     HIGH      a side effect fits the person
     MODERATE  side effects to disclose, none specific to the person, or an Indian bank group with at
               least 2x the national complaint rate per card
-    LOW       no complaint signal"""
+    LOW       no complaint signal
+    UNKNOWN   (set in check) the lender is not in the complaint records at all"""
     fitting = [d for d in disclosures if d["side_effect"] in matches]
     if fitting and any(d["level"] == "safety_alert" or (d["reported_x"] or 0) >= 3 for d in fitting):
         severity = "CRITICAL"
