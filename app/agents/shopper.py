@@ -16,7 +16,7 @@ from typing import Iterator
 
 import re
 
-from .. import gate, gemini, profiles
+from .. import bq, gate, gemini, profiles
 from ..schemas import ReadPerson
 
 MAX_TURNS = 8
@@ -163,6 +163,7 @@ def run(persona_key: str, gated: bool, *, custom: dict | None = None, hacked: bo
         if chk is None:
             return json.dumps({"verdict": "no_signal", "note": "Not a credit product."})
         checks[offer_id] = chk
+        bq.log_decision("agent_check", offer["issuer"], offer["product_type"], p["profile"], chk)
         return json.dumps({k: chk[k] for k in ("verdict", "matches_applicant_situation")} |
                           {"disclosures": [d["text"] for d in chk["required_disclosures"]]})
 
@@ -174,6 +175,7 @@ def run(persona_key: str, gated: bool, *, custom: dict | None = None, hacked: bo
         if gated and offer["product_type"] != "none":
             chk = checks.get(offer_id) or offer_check(offer, p["profile"])
             checks[offer_id] = chk
+            bq.log_decision("checkout", offer["issuer"], offer["product_type"], p["profile"], chk)
             if chk["verdict"] == "human_review":
                 done["blocked"] = {"offer": offer, "check": chk}
                 return ("REFUSED by the SIDE EFFECTS gate: this option has side effects matching the person's "

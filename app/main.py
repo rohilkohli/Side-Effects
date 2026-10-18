@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import evidence, gate, gemini, pipeline, profiles
+from . import bq, evidence, gate, gemini, pipeline, profiles
 from .agents import pharmacist, shopper
 
 ROOT = Path(__file__).parent.parent
@@ -234,7 +234,21 @@ class Check(BaseModel):
 @app.post("/api/v1/check")
 def agent_check(body: Check):
     """Deterministic gate for agents: no language model in the loop, same answer every time."""
-    return JSONResponse(gate.check(body.issuer, body.product_type, body.applicant_profile))
+    result = gate.check(body.issuer, body.product_type, body.applicant_profile)
+    bq.log_decision("api", body.issuer, body.product_type, body.applicant_profile, result)
+    return JSONResponse(result)
+
+
+@app.get("/api/bigquery/lender")
+def bigquery_lender(issuer: str, product_type: str = "credit_card"):
+    """Live complaint counts for a lender from BigQuery's public CFPB table. {"available": false} if BigQuery is off."""
+    return bq.lender_snapshot(evidence.resolve_company(issuer[:120], product_type), product_type)
+
+
+@app.get("/api/bigquery/audit")
+def bigquery_audit():
+    """The gate's decisions over the last 30 days, read back from the BigQuery audit table."""
+    return bq.audit_summary()
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")

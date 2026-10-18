@@ -1,0 +1,11 @@
+[
+  {"name": "ts", "type": "TIMESTAMP", "mode": "REQUIRED"},
+  {"name": "source", "type": "STRING"},
+  {"name": "issuer", "type": "STRING"},
+  {"name": "issuer_matched", "type": "STRING"},
+  {"name": "product_type", "type": "STRING"},
+  {"name": "applicant_profile", "type": "STRING", "mode": "REPEATED"},
+  {"name": "verdict", "type": "STRING"},
+  {"name": "matches", "type": "STRING", "mode": "REPEATED"},
+  {"name": "disclosures", "type": "INTEGER"}
+]

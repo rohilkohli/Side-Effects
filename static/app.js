@@ -231,6 +231,7 @@ function render(lf) {
     <div class="foryou"><strong>For you</strong> <span class="small muted">(${esc(lf.profile)})</span><br>${esc(lf.for_you)}</div>
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
+    <div class="bqlive" id="bqLive" hidden></div>
     <button type="button" class="lf-next" data-go="effects">See the side effects ›</button>
     </div>
     <div class="lf-panel" data-t="effects" hidden>
@@ -279,10 +280,26 @@ function render(lf) {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
   }));
   $("leaflet").hidden = false; $("pharmFab").hidden = false;
+  if (p.matched_company) loadBigQuery(p.matched_company, p.product_type);
   window.scrollTo({ top: 0, behavior: "smooth" });
   $("chat").innerHTML = "";
   $("suggest").innerHTML = ["Is this OK for a freelancer?", "What happens if I pay late?", "Can I dispute a purchase?", "How does it compare with Citi?"]
     .map((q) => `<button type="button">${esc(q)}</button>`).join("");
+}
+
+/* ---- live numbers from BigQuery (hidden when BigQuery is off) ---- */
+async function loadBigQuery(company, productType) {
+  try {
+    const r = await fetch(`/api/bigquery/lender?issuer=${encodeURIComponent(company)}&product_type=${encodeURIComponent(productType || "credit_card")}`);
+    const d = await r.json();
+    const box = $("bqLive");
+    if (!d.available || !box) return;
+    const top = d.top_issues.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("");
+    box.innerHTML = `<div class="bq-head"><span class="bq-tag">Live from BigQuery</span><span class="small muted">${esc(d.source)}</span></div>
+      <p><b>${d.last_12_months.toLocaleString()}</b> complaints about ${esc(short(d.company))} in the 12 months to ${esc(d.latest_date)}.</p>
+      ${top ? `<p class="small muted">Most common:</p><ul class="bq-top">${top}</ul>` : ""}`;
+    box.hidden = false;
+  } catch (e) { /* BigQuery is an extra; the leaflet stands without it */ }
 }
 
 /* ---- pharmacist ---- */

@@ -168,3 +168,78 @@ def test_hacked_store_cannot_talk_its_way_past_the_gate(monkeypatch):
     assert any(e["type"] == "blocked" for e in gated) and not any(e["type"] == "order" for e in gated)
     plain = [json.loads(x) for x in client.post("/api/agent/run", json={"persona": "maya", "gated": False, "hacked": True}).text.strip().splitlines()]
     assert plain[-1]["type"] == "order" and not any(e["type"] == "injection" for e in plain)
+
+
+# ---- BigQuery: optional, never in the gate's way ----
+
+from app import bq
+
+
+class _SyncPool:
+    def submit(self, fn):
+        fn()
+
+
+class _FakeBQ:
+    def __init__(self):
+        self.inserted = []
+
+    def insert_rows_json(self, table, rows):
+        self.inserted.append((table, rows))
+        return []
+
+
+def _bq_on(monkeypatch):
+    monkeypatch.setenv("BIGQUERY_ENABLED", "true")
+    monkeypatch.setenv("GOOGLE_CLOUD_PROJECT", "demo-project")
+    fake = _FakeBQ()
+    monkeypatch.setattr(bq, "_client", fake)
+    monkeypatch.setattr(bq, "_pool", _SyncPool())
+    bq._cache.clear()
+    return fake
+
+
+def test_bigquery_off_hides_panels_and_gate_still_works(monkeypatch):
+    monkeypatch.delenv("BIGQUERY_ENABLED", raising=False)
+    c = TestClient(app)
+    assert c.get("/api/bigquery/lender", params={"issuer": "Apple Card"}).json() == {"available": False}
+    assert c.get("/api/bigquery/audit").json() == {"available": False}
+    assert c.post("/api/v1/check", json={"issuer": "Klarna", "product_type": "bnpl"}).status_code == 200
+
+
+def test_every_gate_decision_is_written_to_the_audit_table(monkeypatch):
+    fake = _bq_on(monkeypatch)
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    c = TestClient(app)
+    c.post("/api/v1/check", json={"issuer": "Klarna", "product_type": "bnpl", "applicant_profile": ["irregular_income"]})
+    list(shopper.run("maya", gated=True))
+    rows = [r for _, rs in fake.inserted for r in rs]
+    assert all(t == "demo-project.side_effects.gate_decisions" for t, _ in fake.inserted)
+    assert rows[0]["source"] == "api" and rows[0]["verdict"] == "human_review"
+    assert any(r["source"] == "agent_check" for r in rows)
+
+
+def test_bigquery_lender_snapshot_and_failure(monkeypatch):
+    _bq_on(monkeypatch)
+    calls = []
+
+    def fake_query(sql, params):
+        calls.append(params)
+        return [{"latest_date": "2026-09-30", "last_12_months": 1234,
+                 "top_issues": [{"issue": "Problem with a purchase shown on your statement", "n": 400}]}]
+
+    monkeypatch.setattr(bq, "_query", fake_query)
+    c = TestClient(app)
+    d = c.get("/api/bigquery/lender", params={"issuer": "Apple Card"}).json()
+    assert d["available"] and d["last_12_months"] == 1234 and d["company"]
+    c.get("/api/bigquery/lender", params={"issuer": "Apple Card"})
+    assert len(calls) == 1  # cached
+
+    def broken(sql, params):
+        raise RuntimeError("quota")
+
+    monkeypatch.setattr(bq, "_query", broken)
+    bq._cache.clear()
+    assert c.get("/api/bigquery/lender", params={"issuer": "Apple Card"}).json() == {"available": False}
+    assert c.get("/api/bigquery/audit").json() == {"available": False}

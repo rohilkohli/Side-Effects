@@ -81,7 +81,7 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 | Risk assessment | Lender risks found in 136,270 real CFPB complaints with the proportional reporting ratio drug regulators use, computed in code (`pipeline/build_data.py`, `app/evidence.py`) |
 | Fraud detection | Hacked-store mode: a shop hides instructions aimed at AI agents; SIDE EFFECTS flags it and the checkout gate still refuses to sign (`app/agents/shopper.py`) |
 | Document intelligence | Gemini reads a card agreement from a photo, PDF or text and quotes the clause behind each problem; every quote is verified word for word |
-| Compliance automation | `POST /api/v1/check` returns a verdict and the disclosures a person must see before an agent commits them to credit (`app/gate.py`) |
+| Compliance automation | `POST /api/v1/check` returns a verdict and the disclosures a person must see before an agent commits them to credit (`app/gate.py`); every decision is logged to a BigQuery audit table |
 | Financial assistance | The pharmacist chat and a shopping agent you can answer by voice |
 | Personalised experiences | Describe yourself in your own words; Gemini maps it to situations and only matching side effects are raised |
 
@@ -93,7 +93,8 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 | **Vertex AI** | Gemini calls in production, authorised by the Cloud Run service account |
 | **Cloud Run** | Hosts the FastAPI app and the streaming endpoints; scales to zero, no sign-in |
 | **Cloud Build / Artifact Registry** | `gcloud run deploy --source` builds the container |
-| **BigQuery** (ready, not yet run) | `pipeline/bigquery/classify.sql` codes the full public CFPB table with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics at scale. The shipped statistics were computed by `pipeline/build_data.py` |
+| **BigQuery** (live) | `app/bq.py`. Each leaflet queries Google's public CFPB table (`bigquery-public-data.cfpb_complaints.complaint_database`) for the lender's latest 12 months of complaints and top issues. Every decision the agent gate makes is written to an audit table (`side_effects.gate_decisions`), shown under For business. Both are optional: if BigQuery fails, the panels hide and the gate's verdict is unchanged. Queries are capped at 3 GB scanned |
+| **BigQuery** (batch, ready, not yet run) | `pipeline/bigquery/classify.sql` codes the full public CFPB table with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics at scale. The shipped statistics were computed by `pipeline/build_data.py` |
 
 ## Fictional and real data
 

@@ -341,4 +341,22 @@
   fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 
   init().catch((e) => showErr(e.message));
+
+/* ---- BigQuery audit trail of gate decisions (hidden when BigQuery is off) ---- */
+async function loadAudit() {
+  try {
+    const d = await (await fetch("/api/bigquery/audit")).json();
+    const box = document.getElementById("audit");
+    if (!d.available || !box) return;
+    const label = { human_review: "Held for the person", disclose: "Disclosed", no_signal: "No signal" };
+    const rows = d.recent.map((r) => `<li><span>${esc(new Date(r.ts).toLocaleString())}</span><span>${esc(r.lender || "Unknown lender")}</span><b class="v-${esc(r.verdict)}">${esc(label[r.verdict] || r.verdict)}</b></li>`).join("");
+    box.innerHTML = `<div class="audit-head"><h3>Every decision, on the record</h3><span class="bq-tag">BigQuery</span></div>
+      <p class="muted">Each time an agent checks or tries to sign, the gate's decision is written to an audit table in BigQuery. Last 30 days:</p>
+      <div class="audit-stats"><div><b>${d.total.toLocaleString()}</b><span>decisions</span></div><div><b>${d.held.toLocaleString()}</b><span>held for the person</span></div><div><b>${d.disclosed.toLocaleString()}</b><span>signed with disclosures</span></div></div>
+      ${rows ? `<ul class="audit-list">${rows}</ul>` : ""}`;
+    box.hidden = false;
+  } catch (e) { /* optional */ }
+}
+document.querySelectorAll('.pager [data-p="biz"]').forEach((b) => b.addEventListener("click", loadAudit));
+if (location.hash === "#biz") loadAudit();
 })();

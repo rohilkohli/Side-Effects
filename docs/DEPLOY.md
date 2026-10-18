@@ -21,6 +21,7 @@ No API key is needed: on Cloud Run the app calls Gemini through Vertex AI using 
 | `allUsers` / "organization policy" error on `--allow-unauthenticated` | The project belongs to an organisation that blocks public services. Use a personal project with billing instead. |
 | Agent lane shows `Gemini refused the request (404)` and a model name | That model is not available to the project yet. Redeploy with another one: `PROJECT_ID=$(gcloud config get-value project) GEMINI_MODEL=<model id from the Vertex AI Model Garden> bash deploy.sh` |
 | `Gemini refused the request (429)` | Quota. Wait a minute and rerun; for judging, request a quota increase in the console under IAM & Admin, Quotas. |
+| BigQuery panels don't appear (leaflet "Live from BigQuery", For business audit) | They hide themselves when BigQuery fails, and the rest of the app works. Check the logs: `gcloud run services logs read side-effects --region asia-southeast1 --limit 50` and look for "BigQuery". Rerunning `bash deploy.sh` re-grants the roles and creates the dataset. |
 | Billing not enabled | Link a billing account to the project, then rerun the same command. |
 
 ## Keeping it live through judging

@@ -10,10 +10,18 @@ MODEL="${GEMINI_MODEL:-gemini-3.8-flash}"
 SA="side-effects@${PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud config set project "$PROJECT_ID"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com bigquery.googleapis.com
 gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
   gcloud iam service-accounts create side-effects --display-name "SIDE EFFECTS app"
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$SA" --role roles/aiplatform.user --condition=None >/dev/null
+
+# BigQuery: live complaint lookups on the public CFPB table, and an audit table of every gate decision.
+for ROLE in roles/bigquery.jobUser roles/bigquery.dataEditor; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$SA" --role "$ROLE" --condition=None >/dev/null
+done
+bq --location="$REGION" show "${PROJECT_ID}:side_effects" >/dev/null 2>&1 || bq --location="$REGION" mk --dataset "${PROJECT_ID}:side_effects"
+bq show "${PROJECT_ID}:side_effects.gate_decisions" >/dev/null 2>&1 || \
+  bq mk --table --time_partitioning_field ts "${PROJECT_ID}:side_effects.gate_decisions" pipeline/bigquery/gate_decisions.schema.json
 
 # New projects: let the default compute service account build from source.
 PN=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
@@ -27,4 +35,4 @@ gcloud run deploy side-effects \
   --service-account "$SA" \
   --allow-unauthenticated \
   --memory 1Gi --timeout 300 --max-instances 1 \
-  --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${VERTEX_LOCATION},GEMINI_MODEL=${MODEL}"
+  --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${VERTEX_LOCATION},GEMINI_MODEL=${MODEL},BIGQUERY_ENABLED=true"

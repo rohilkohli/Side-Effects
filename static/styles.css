@@ -312,3 +312,11 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--blue-sof
 .lf-panel > h3:first-child { margin-top: 4px; }
 .lf-next { display: block; margin: 24px 0 0 auto; border: 0; background: var(--accent); color: #fff; border-radius: 999px; padding: 11px 20px; font-weight: 600; cursor: pointer; }
 .ver { opacity: .7; }
+
+/* Live from BigQuery */
+.bqlive { margin: 22px 0 6px; padding: 18px 20px; border-radius: 18px; background: var(--panel-2, rgba(0,113,227,.06)); border: 1px solid rgba(0,113,227,.25); }
+.bqlive p { margin: 8px 0; }
+.bq-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.bq-tag { background: #0071e3; color: #fff; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.bq-top { list-style: none; padding: 0; margin: 6px 0 0; }
+.bq-top li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid rgba(127,127,127,.2); font-size: 14px; }
