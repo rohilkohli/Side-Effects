@@ -6,7 +6,7 @@ regulator's live feed or Google Search; none of them lets a model make up a numb
 """
 from __future__ import annotations
 
-from . import evidence, gate, live, profiles
+from . import alerts, evidence, gate, live, profiles
 
 PRODUCT_TYPES = ("credit_card", "bnpl", "personal_loan")
 
@@ -66,16 +66,26 @@ def gate_check(issuer: str, product_type: str = "credit_card", applicant_profile
     return gate.check(issuer[:80], _ptype(product_type), keys)
 
 
+def safety_alerts(name: str = "", product_type: str = "credit_card") -> dict:
+    """Safety alerts from the last 30 days: problems suddenly reported much more often at a lender, found by scanning
+    the regulator's live complaint feed. Pass a lender name for its alerts, or leave it empty for all of them."""
+    found = alerts.for_name(name, _ptype(product_type)) if name else alerts.active()
+    return {"alerts": [{k: a[k] for k in ("date", "company", "headline", "what_changed", "who_should_care", "what_to_do",
+                                          "possible_cause", "ratio", "affects")} for a in found[:8]],
+            "note": "Found by comparing the last 45 days of complaints with the 180 days before. Complaints are unverified."}
+
+
 def open_page(page: str, lender: str = "") -> dict:
     """Send the person to a page of the site. page is one of: leaflet (a full side-effects leaflet for a lender or
     offer; pass lender), agent_demo (two AI shopping agents, one protected), scam_arena (Gemini invents scams against
-    AI shoppers), evidence, business."""
+    AI shoppers), safety_alerts, evidence, business."""
     urls = {"leaflet": "/leaflet" + (f"?q={lender[:80]}" if lender else ""), "agent_demo": "/", "scam_arena": "/#scam",
+            "safety_alerts": "/#alerts",
             "evidence": "/#why", "business": "/#biz"}
     return {"url": urls.get(page, "/"), "page": page}
 
 
-ALL = [check_lender, lender_news, compare_lenders, find_alternatives, gate_check, open_page]
+ALL = [check_lender, lender_news, safety_alerts, compare_lenders, find_alternatives, gate_check, open_page]
 BY_NAME = {f.__name__: f for f in ALL}
 # Tools the assistant may use; MCP clients get the same set minus navigation, which only makes sense on the site.
 MCP_TOOLS = [f for f in ALL if f is not open_page]

@@ -112,11 +112,14 @@ no items and say so in the summary."""
 
 
 def _grounded_research(name: str, company: str | None, product_type: str) -> tuple[str, list[dict], list[str]]:
-    from google.genai import types
-
     also = f" (in US complaint records: {company})" if company and company.lower() not in name.lower() else ""
     product = {"credit_card": ", especially its credit cards", "bnpl": ", especially buy now pay later"}.get(product_type, "")
-    prompt = NEWS_PROMPT.format(today=date.today().isoformat(), name=name, also=also, product=product)
+    return grounded(NEWS_PROMPT.format(today=date.today().isoformat(), name=name, also=also, product=product))
+
+
+def grounded(prompt: str) -> tuple[str, list[dict], list[str]]:
+    """Ask Gemini with Google Search grounding; return its note, the web sources it used and its searches."""
+    from google.genai import types
 
     def call():
         resp = gemini.client().models.generate_content(

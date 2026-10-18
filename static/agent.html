@@ -29,6 +29,7 @@
 <div class="pager" role="tablist" aria-label="Sections">
   <button type="button" role="tab" data-p="demo" aria-selected="true">Live demo</button>
   <button type="button" role="tab" data-p="scam" aria-selected="false">Scam arena</button>
+  <button type="button" role="tab" data-p="alerts" aria-selected="false">Safety alerts</button>
   <button type="button" role="tab" data-p="how" aria-selected="false">How it works</button>
   <button type="button" role="tab" data-p="why" aria-selected="false">Evidence</button>
   <button type="button" role="tab" data-p="biz" aria-selected="false">For business</button>
@@ -98,6 +99,26 @@
     <div class="good"><b id="scHeld">0</b><span>times the gate held</span></div>
   </div>
   <div class="rounds" id="scamRounds"></div>
+</section>
+</div>
+
+<div class="panel" id="p-alerts" role="tabpanel" hidden>
+<section class="alerts">
+  <p class="kicker">Pharmacovigilance, live &middot; runs every morning on Cloud Scheduler</p>
+  <h1 class="scam-h">New side effects show up in complaints first.<br><span>We catch them the week they start.</span></h1>
+  <p class="lede">Drug regulators watch incoming reports for a problem that suddenly gets more common, then send a safety alert and update the label.
+    SIDE EFFECTS does the same with the US regulator's live complaint feed, and the alert changes what the gate, the leaflets and the assistant say straight away.</p>
+  <ol class="loop" aria-label="How a safety alert is made">
+    <li><span>📡</span><b>Scan</b><small>Live complaint feed for 15 big lenders</small></li>
+    <li><span>📈</span><b>Detect</b><small>Last 45 days vs the 180 before, same statistics as drug safety</small></li>
+    <li><span>✦</span><b>Explain</b><small>Gemini searches Google for a cause and writes the alert</small></li>
+    <li><span>🗄️</span><b>Record</b><small>Saved to BigQuery</small></li>
+    <li><span>🛡️</span><b>Act</b><small>The gate, leaflets, assistant and MCP use it at once</small></li>
+  </ol>
+  <button class="go" id="alertScan" type="button">Run the scan now</button>
+  <p class="small-note" id="alertNote"></p>
+  <ul class="scanlog" id="scanLog" hidden></ul>
+  <div class="alert-list" id="alertList"></div>
 </section>
 </div>
 

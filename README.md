@@ -154,9 +154,13 @@ POST /api/v1/check
 
 and gets `human_review` with the disclosure "Purchase disputes left unresolved: reported 2.1x more often than at peer lenders (817 complaints, Jan-Dec 2024; bank-level complaint signal; unverified reports)". The answer is deterministic, so the same request always gets the same answer.
 
+### Safety alerts (the pharmacovigilance loop, live)
+
+Every morning Cloud Scheduler calls `POST /api/alerts/scan`. For 15 large lenders it reads the CFPB's live complaint feed and compares the last 45 days with the 180 days before. An issue raises a signal when its share of complaints has at least doubled, on at least 10 complaints, with chi-squared of 4 or more (the same test as the main statistics); a rise of half in complaints a day also counts. This step is plain code. For each signal Gemini searches Google for a likely cause and writes the alert around the fixed numbers. Alerts are saved to BigQuery (`side_effects.safety_alerts`) and reloaded on restart. They take effect at once: the gate discloses them and asks a person to confirm when an alert matches their situation, leaflets show a banner, and the assistant and MCP get a `safety_alerts` tool. The home page's "Safety alerts" tab runs the scan live (at most once an hour).
+
 ### MCP server
 
-SIDE EFFECTS is also a [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON-RPC 2.0) at `POST /mcp`, so any agent framework (ADK, Gemini CLI, Claude, others) can use it as a tool without custom code. Tools: `check_lender`, `lender_news`, `compare_lenders`, `find_alternatives` and `gate_check`. They are the same functions the on-site assistant calls, and `gate_check` returns the same verdict the checkout enforces. Gate calls made over MCP are logged to the BigQuery audit table with source `mcp`.
+SIDE EFFECTS is also a [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON-RPC 2.0) at `POST /mcp`, so any agent framework (ADK, Gemini CLI, Claude, others) can use it as a tool without custom code. Tools: `check_lender`, `lender_news`, `safety_alerts`, `compare_lenders`, `find_alternatives` and `gate_check`. They are the same functions the on-site assistant calls, and `gate_check` returns the same verdict the checkout enforces. Gate calls made over MCP are logged to the BigQuery audit table with source `mcp`.
 
 ```bash
 gemini mcp add --transport http side-effects https://<your-service>/mcp

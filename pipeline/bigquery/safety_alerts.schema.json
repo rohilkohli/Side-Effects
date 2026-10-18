@@ -1,0 +1,23 @@
+[
+  {"name": "id", "type": "STRING", "mode": "REQUIRED"},
+  {"name": "ts", "type": "TIMESTAMP", "mode": "REQUIRED"},
+  {"name": "date", "type": "STRING"},
+  {"name": "company", "type": "STRING"},
+  {"name": "product_type", "type": "STRING"},
+  {"name": "kind", "type": "STRING"},
+  {"name": "issue", "type": "STRING"},
+  {"name": "label", "type": "STRING"},
+  {"name": "fae", "type": "STRING"},
+  {"name": "affects", "type": "STRING", "mode": "REPEATED"},
+  {"name": "ratio", "type": "FLOAT"},
+  {"name": "recent_n", "type": "INTEGER"},
+  {"name": "baseline_n", "type": "INTEGER"},
+  {"name": "facts", "type": "STRING"},
+  {"name": "headline", "type": "STRING"},
+  {"name": "what_changed", "type": "STRING"},
+  {"name": "who_should_care", "type": "STRING"},
+  {"name": "what_to_do", "type": "STRING"},
+  {"name": "possible_cause", "type": "STRING"},
+  {"name": "sources", "type": "STRING"},
+  {"name": "window", "type": "STRING"}
+]

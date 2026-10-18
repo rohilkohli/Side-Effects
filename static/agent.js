@@ -339,6 +339,7 @@
     if (!fromHistory && location.hash !== (name === "demo" ? "" : "#" + name)) history.pushState(null, "", url);
     if (name === "why") requestAnimationFrame(() => carouselLayout());
     if (name === "biz") loadAudit();
+    if (name === "alerts") loadAlerts();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function setBusy(on) {
@@ -372,10 +373,10 @@
   const hashPanel = location.hash.slice(1);
   // Checking a lender now lives on the leaflet page, which reads the lender from a photo or a typed name.
   if (hashPanel.startsWith("check")) location.replace("/leaflet" + (hashPanel.startsWith("check=") ? "?q=" + hashPanel.slice(6) : ""));
-  if (["scam", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel, true);
+  if (["scam", "alerts", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel, true);
   window.addEventListener("popstate", () => {
     const h = location.hash.slice(1);
-    showPanel(["scam", "how", "why", "biz"].includes(h) ? h : "demo", true);
+    showPanel(["scam", "alerts", "how", "why", "biz"].includes(h) ? h : "demo", true);
   });
 
   /* ---- Scam arena: Gemini attacker vs Gemini guardian vs the gate ---- */
@@ -459,6 +460,65 @@
     }
   }
   $("#scamBtn").addEventListener("click", runScam);
+
+  /* ---- Safety alerts: scan the live complaint feed, detect spikes, Gemini explains, the gate acts ---- */
+  const PROFILE_LABEL = { irregular_income: "irregular income", carries_balance: "carrying a balance", other_bnpl: "other pay-later plans",
+    new_to_credit: "new to credit", big_purchase: "a big purchase", travels: "travel" };
+  const nice = (c) => String(c).toLowerCase().replace(/\b\w/g, (x) => x.toUpperCase()).replace(/\b(Usa|Ab|N\.a\.)\b/g, (m) => m.toUpperCase())
+    .replace(/,? (N\.A\.|Inc\.?|National Association|& Co\.|Company|Corporation|Financial Corporation|Holdings,?)\b/gi, "").replace(/[\s,.&]+$/, "").trim();
+  function alertCard(a) {
+    return `<article class="al-card"><div class="al-top"><span class="al-tag">Safety alert</span><span class="muted">${esc(a.date)} · ${esc(nice(a.company))}</span></div>
+      <h3>${esc(a.headline)}</h3>
+      <div class="al-num"><b>${a.ratio}&times;</b><span>${a.kind === "volume_rising" ? "complaints a day vs before" : "its earlier share of complaints"} · ${a.recent_n.toLocaleString()} complaints in 45 days</span></div>
+      <p>${esc(a.what_changed)}</p>
+      <p><b>Who should care:</b> ${esc(a.who_should_care)}</p>
+      <p><b>What to do:</b> ${esc(a.what_to_do)}</p>
+      ${a.possible_cause ? `<p class="al-cause"><b>Possible cause, from the news:</b> ${esc(a.possible_cause)} ${(a.sources || []).map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>`).join(" · ")}</p>` : ""}
+      ${a.affects?.length ? `<p class="al-gate">🛡️ The gate now asks before any AI agent signs up someone with ${a.affects.map((k) => esc(PROFILE_LABEL[k] || k)).join(" or ")}.</p>` : `<p class="al-gate">🛡️ The gate now shows this alert to every agent before it signs.</p>`}
+      <details class="al-facts"><summary>The numbers behind it</summary><p>${esc(a.facts)}</p><p class="muted">Detected in code (no AI): a problem must be reported at least twice its earlier share, at least 10 times, and pass a chi-squared test. Gemini only wrote the words. Complaints are unverified reports.</p></details></article>`;
+  }
+  function showAlerts(list) {
+    $("#alertList").innerHTML = list.length ? list.map(alertCard).join("")
+      : `<p class="muted al-none">No active alerts. Nothing has jumped in the last 45 days for the lenders we watch.</p>`;
+  }
+  async function loadAlerts() {
+    try {
+      const d = await (await fetch("/api/alerts")).json();
+      showAlerts(d.alerts);
+      $("#alertNote").textContent = d.minutes_since_scan != null ? `Last scan ${d.minutes_since_scan} minutes ago: ${d.last_scan.lenders} lenders, ${d.last_scan.signals} spikes.` : "";
+    } catch { /* the scan button still works */ }
+  }
+  let alertScanning = false;
+  async function runAlertScan() {
+    if (alertScanning) return;
+    alertScanning = true; const btn = $("#alertScan"); btn.disabled = true; btn.textContent = "Scanning…";
+    const log = $("#scanLog"); log.hidden = false; log.innerHTML = "";
+    const line = (html, cls = "") => { const li = document.createElement("li"); li.className = cls; li.innerHTML = html; log.appendChild(li); return li; };
+    const writing = {};
+    try {
+      const resp = await fetch("/api/alerts/scan", { method: "POST" });
+      if (!resp.ok) throw new Error();
+      const reader = resp.body.getReader(), dec = new TextDecoder(); let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read(); if (done) break;
+        buf += dec.decode(value, { stream: true }); let i;
+        while ((i = buf.indexOf("\n")) >= 0) {
+          const ev = JSON.parse(buf.slice(0, i)); buf = buf.slice(i + 1);
+          if (ev.type === "scan_start") line(`📡 Reading the live complaint feed for ${ev.lenders} lenders: last ${ev.recent_days} days vs the ${ev.baseline_days} before…`);
+          else if (ev.type === "lender") line(ev.error ? `<span>${esc(nice(ev.company))}</span><b class="muted">feed didn't answer</b>`
+            : `<span>${esc(nice(ev.company))} <small>${ev.recent_total.toLocaleString()} complaints</small></span>${ev.signals.length ? `<b class="hot">${ev.signals.map((s) => `${esc(s.label)} ${s.ratio}&times;`).join(", ")}</b>` : `<b class="ok">steady</b>`}`, "lc");
+          else if (ev.type === "writing") writing[ev.company + ev.label] = line(`<span>✦ Gemini is searching the news and writing the alert for ${esc(nice(ev.company))}: ${esc(ev.label)}</span><i class="spin"></i>`, "wr");
+          else if (ev.type === "alert") { const w = writing[ev.alert.company + ev.alert.label]; if (w) { w.classList.add("done"); w.querySelector("i")?.remove(); } $("#alertList").insertAdjacentHTML("afterbegin", alertCard(ev.alert)); $("#alertList .al-none")?.remove(); }
+          else if (ev.type === "scan_end") { line(`<b>Done: ${ev.signals} spike${ev.signals === 1 ? "" : "s"} found, ${ev.alerts_written} alert${ev.alerts_written === 1 ? "" : "s"} written and saved to BigQuery.</b>`, "end"); showAlerts(ev.alerts); }
+          else if (ev.type === "recent") { line(`The last scan ran ${ev.minutes_ago} minutes ago (it runs at most hourly): ${ev.lenders} lenders, ${ev.signals} spikes.`, "end"); showAlerts(ev.alerts); }
+          else if (ev.type === "busy") line(esc(ev.text), "end");
+          else if (ev.type === "error" || ev.status === "error") line(esc(ev.detail || ev.text || "The scan stopped."), "end");
+        }
+      }
+    } catch { line("The scan couldn't run just now. Please try again in a minute.", "end"); }
+    finally { alertScanning = false; btn.disabled = false; btn.textContent = "Run the scan now"; }
+  }
+  $("#alertScan").addEventListener("click", runAlertScan);
 
   fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 

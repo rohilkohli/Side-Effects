@@ -401,3 +401,8 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--blue-sof
 .bigdrop strong { color: var(--ink); }
 .about .muted { font-weight: 400; }
 .leaflet { overflow: clip; } /* clip, not hidden, so the section tabs can stay pinned while you scroll */
+.lf-alert { margin: 0 0 18px; padding: 14px 16px; border-radius: 16px; background: var(--warn-soft); border-left: 5px solid var(--warn); }
+.lf-alert b { display: block; margin: 4px 0; }
+.lf-alert p { margin: 4px 0 6px; font-size: .92rem; }
+.lf-alert a { color: var(--warn); font-weight: 600; text-decoration: none; font-size: .9rem; }
+.lf-alert-tag { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--warn); }

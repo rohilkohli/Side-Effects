@@ -417,7 +417,7 @@ def test_mcp_server_lists_and_calls_the_same_tools(monkeypatch, fake_gemini):
     assert init["result"]["protocolVersion"] == "2025-06-18" and "tools" in init["result"]["capabilities"]
     assert c.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}).status_code == 202
     tools_ = {t["name"]: t for t in c.post("/mcp", json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"}).json()["result"]["tools"]}
-    assert set(tools_) == {"check_lender", "lender_news", "compare_lenders", "find_alternatives", "gate_check"}
+    assert set(tools_) == {"check_lender", "lender_news", "safety_alerts", "compare_lenders", "find_alternatives", "gate_check"}
     assert tools_["gate_check"]["inputSchema"]["properties"]["applicant_profile"]["type"] == "array"
     out = c.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {
         "name": "gate_check", "arguments": {"issuer": "Apple Card", "applicant_profile": ["big_purchase"]}}}).json()["result"]
@@ -442,3 +442,45 @@ def test_same_lookup_at_the_same_time_runs_once(monkeypatch):
     ts = [threading.Thread(target=lambda: out.append(live._cached(("t", "x"), slow))) for _ in range(3)]
     [t.start() for t in ts]; [t.join() for t in ts]
     assert len(runs) == 1 and all(o["n"] == 1 for o in out)
+
+
+def _feed(recent: dict, base: dict):
+    """A stand-in CFPB feed: issue counts for the recent window and for the baseline window."""
+    def fake(params):
+        counts = base if "date_received_max" in params else recent
+        return {"hits": {"total": {"value": sum(counts.values())}, "hits": []},
+                "aggregations": {"issue": {"issue": {"buckets": [{"key": k, "doc_count": v} for k, v in counts.items()]}}}}
+    return fake
+
+
+def test_safety_alert_loop_detects_writes_records_and_the_gate_acts(monkeypatch, fake_gemini):
+    from app import alerts, bq, gate, live
+    alerts._alerts.clear(); alerts._last_scan.clear()
+    written = []
+    monkeypatch.setattr(bq, "insert", lambda table, row: written.append((table, row)))
+    monkeypatch.setattr(live, "grounded", lambda prompt: ("A system migration in August delayed payments.", [{"title": "s", "url": "https://example.com/"}], []))
+    # Payment problems jump from 5% to 30% of complaints; everything else is steady.
+    monkeypatch.setattr(live, "_cfpb", _feed({"Problem when making payments": 60, "Fees or interest": 140},
+                                             {"Problem when making payments": 40, "Fees or interest": 760}))
+    before = gate.check("Apple Card", "credit_card", ["irregular_income"])
+    events = list(alerts.scan([("GOLDMAN SACHS BANK USA", "credit_card")], force=True))
+    a = next(e["alert"] for e in events if e["type"] == "alert")
+    assert a["label"] == "Trouble making repayments go through" and a["ratio"] == 6.0 and a["recent_n"] == 60
+    assert "irregular_income" in a["affects"] and a["sources"]  # the news found a cause, so its source is kept
+    assert written and written[0][0] == "safety_alerts"
+    after = gate.check("Apple Card", "credit_card", ["irregular_income"])
+    assert after["safety_alerts"][0]["id"] == a["id"]
+    assert "Trouble making repayments go through" in after["matches_applicant_situation"]
+    assert after["verdict"] == "human_review" and len(after["required_disclosures"]) == len(before["required_disclosures"]) + 1
+    # The same alert reaches the assistant's and MCP's tool, and the scan does not rerun within the hour.
+    from app import tools
+    assert tools.safety_alerts("Apple Card")["alerts"][0]["headline"]
+    assert next(alerts.scan())["type"] == "recent"
+    alerts._alerts.clear(); alerts._last_scan.clear()
+
+
+def test_steady_complaints_raise_no_alert(monkeypatch):
+    from app import alerts, live
+    monkeypatch.setattr(live, "_cfpb", _feed({"Fees or interest": 100, "Problem when making payments": 20},
+                                             {"Fees or interest": 400, "Problem when making payments": 80}))
+    assert alerts.detect("GOLDMAN SACHS BANK USA", "credit_card")["signals"] == []

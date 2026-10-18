@@ -36,6 +36,11 @@ def fake(prompt, schema, **kw):
                            contraindications=[Contraindication(condition="Not suitable if your income is irregular", reason="r", based_on=ids[:1]),
                                               Contraindication(condition="Invented", reason="r", based_on=["made-up-id"])],
                            interactions=[], for_you="Watch the payment dates.")
+    if schema.__name__ == "AlertText":
+        cause = "A payments system change was reported in the news." if "migration" in text else ""
+        return schema(headline="Safety alert: payment problems rising", what_changed="Stand-in: payment problems are a bigger share of complaints.",
+                      who_should_care="People who pay close to the due date.", what_to_do="Check each payment cleared.",
+                      possible_cause=cause)
     if schema is ReadPerson:
         return ReadPerson(name="Priya", about="Priya is a student with a part-time job and a phone on EMI.",
                           situations=[Situation.irregular_income, Situation.other_bnpl])

@@ -251,6 +251,7 @@ function render(lf) {
       <button type="button" role="tab" data-t="how" aria-selected="false">How we know</button>
     </div>
     <div class="lf-panel" data-t="overview">
+    <div id="lfAlerts"></div>
     <div class="lf-kicker">Package leaflet: information for the borrower</div>
     <div class="lf-sub">${esc(p.product_name)}${p.matched_company ? " · Lender in complaint records: " + esc(p.matched_company) : ""}</div>
     <div class="lf-box"><strong>Read all of this leaflet carefully before you sign.</strong>
@@ -322,6 +323,7 @@ function render(lf) {
   }));
   $("leaflet").hidden = false;
   if (liveName(p)) runLive(liveName(p), p.matched_company, p.product_type);
+  if (p.matched_company) loadAlerts(p.matched_company, p.product_type);
   $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
   window.scrollTo({ top: 0, behavior: "smooth" });
   const firstEffect = [...lf.side_effects, ...lf.contract_only].map((x) => x.label)[0];
@@ -359,6 +361,16 @@ function runLive(name, company, productType) {
   got.news.then((d) => { if (seq === liveSeq) showNews(d); })
     .catch(() => { if (seq === liveSeq) $("liveNews").innerHTML = `<h4>In the news</h4><p class="small muted">Couldn't search the news just now.</p>`; });
 }
+/* ---- safety alerts: a new spike in this lender's complaints, found by the daily scan ---- */
+async function loadAlerts(company, productType) {
+  try {
+    const d = await (await fetch(`/api/alerts?name=${encodeURIComponent(company)}&product_type=${encodeURIComponent(productType || "credit_card")}`)).json();
+    const box = $("lfAlerts"); if (!box || !d.alerts?.length) return;
+    box.innerHTML = d.alerts.map((a) => `<div class="lf-alert" role="alert"><span class="lf-alert-tag">Safety alert · ${esc(a.date)}</span>
+      <b>${esc(a.headline)}</b><p>${esc(a.what_changed)} ${esc(a.what_to_do)}</p><a href="/#alerts">How we found this ›</a></div>`).join("");
+  } catch { /* alerts are an extra */ }
+}
+
 function showComplaints(d) {
   const c = d.complaints || {}, a = d.archive || {}, box = $("liveComplaints"); if (!box) return;
   const top = (list) => list?.length ? `<ul class="bq-top">${list.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("")}</ul>` : "";

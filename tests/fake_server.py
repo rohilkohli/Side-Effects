@@ -49,11 +49,23 @@ pharmacist.answer = lambda leaflet, pages, history, question: (
     "Stand-in answer for local testing: on the real site, Gemini answers from this leaflet, the contract and real complaints.")
 
 # Made-up live answers (no network here), only so the live check on the leaflet can be seen locally.
-live._cfpb = lambda params: ({"hits": {"total": {"value": 1180 if "date_received_max" in params else 1527}, "hits": [
-    {"_source": {"date_received": "2026-10-09T18:11:45.000Z"}}]},
-    "aggregations": {"issue": {"issue": {"buckets": [{"key": "Problem with a purchase shown on your statement", "doc_count": 576},
-                                                      {"key": "Incorrect information on your report", "doc_count": 217},
-                                                      {"key": "Managing an account", "doc_count": 152}]}}}})
+def _fake_cfpb(params):
+    base = "date_received_max" in params
+    pay = 40 if base else 12
+    if params.get("company") in ("SYNCHRONY FINANCIAL", "Klarna AB") and not base:
+        pay = 140  # a made-up spike in payment problems, so the safety-alert scan has something to find
+    time.sleep(0.3)
+    return {"hits": {"total": {"value": (800 if base else 230) + pay}, "hits": [{"_source": {"date_received": "2026-10-09T18:11:45.000Z"}}]},
+            "aggregations": {"issue": {"issue": {"buckets": [
+                {"key": "Problem with a purchase shown on your statement", "doc_count": 400 if base else 120},
+                {"key": "Incorrect information on your report", "doc_count": 250 if base else 70},
+                {"key": "Managing an account", "doc_count": 150 if base else 40},
+                {"key": "Problem when making payments", "doc_count": pay}]}}}}
+
+
+live._cfpb = _fake_cfpb
+live.grounded = lambda prompt: (time.sleep(1.0) or "Stand-in note: a payments system migration was reported in the news.",
+                                [{"title": "stand-in.example", "url": "https://example.com/"}], [])
 live._grounded_research = lambda name, company, product_type: (
     "Stand-in research note about " + name, [{"title": "stand-in.example", "url": "https://example.com/"}], ["stand-in query"])
 

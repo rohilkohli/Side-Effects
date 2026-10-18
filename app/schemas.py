@@ -171,3 +171,12 @@ class NewsItem(BaseModel):
 class NewsReport(BaseModel):
     items: list[NewsItem]
     summary: str = Field(description="One or two plain sentences: is there anything a customer should know right now?")
+
+
+class AlertText(BaseModel):
+    """Words for a safety alert. Every number is given to the writer; it only explains them."""
+    headline: str = Field(description="Under 12 plain words, like a drug safety alert title. Name the lender and the problem.")
+    what_changed: str = Field(description="One or two sentences using only the numbers given.")
+    who_should_care: str = Field(description="One sentence: which customers this matters most for.")
+    what_to_do: str = Field(description="One or two practical sentences for someone about to sign up or already a customer.")
+    possible_cause: str = Field(description="One sentence from the news note if it explains the rise, else an empty string. Never guess.")

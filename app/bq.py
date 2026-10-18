@@ -191,3 +191,33 @@ def latest_narratives(company: str, product_type: str = "credit_card", n: int = 
             "text": r["text"] or ""} for r in rows]
     _cache[key] = (time.time(), out)
     return out
+
+
+def insert(table: str, row: dict) -> None:
+    """Write one row to a table in our dataset in the background. Never raises."""
+    if not enabled():
+        return
+
+    def write():
+        try:
+            errors = client().insert_rows_json(f"{os.environ['GOOGLE_CLOUD_PROJECT']}.{DATASET}.{table}", [row])
+            if errors:
+                log.warning("BigQuery insert into %s: %s", table, errors)
+        except Exception as e:
+            log.warning("BigQuery insert into %s failed: %s", table, e)
+
+    _pool.submit(write)
+
+
+def recent_rows(table: str, days: int = 30) -> list[dict]:
+    """Rows from the last `days` days of one of our tables (by its ts column); empty when BigQuery is off."""
+    if not enabled():
+        return []
+    from google.cloud import bigquery
+    try:
+        return _query(f"SELECT * FROM `{os.environ['GOOGLE_CLOUD_PROJECT']}.{DATASET}.{table}` "
+                      f"WHERE ts > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL @days DAY) ORDER BY ts DESC LIMIT 200",
+                      [bigquery.ScalarQueryParameter("days", "INT64", days)])
+    except Exception as e:
+        log.warning("BigQuery read of %s failed: %s", table, e)
+        return []

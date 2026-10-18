@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import bq, evidence, gate, gemini, live, mcp, pipeline, profiles
+from . import alerts, bq, evidence, gate, gemini, live, mcp, pipeline, profiles
 from .agents import arena, assistant, pharmacist, radar, shopper
 
 ROOT = Path(__file__).parent.parent
@@ -28,6 +28,9 @@ async def lifespan(_app):
     # Look up the most-asked lenders in the background so the first visitors don't wait for Google Search.
     if os.environ.get("PREWARM", "true").lower() == "true" and os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
         live.prewarm()
+    if bq.enabled():
+        import threading
+        threading.Thread(target=alerts.load, daemon=True, name="load-alerts").start()
     yield
 
 
@@ -231,6 +234,24 @@ def ask_assistant(body: AssistantAsk):
             log.exception("assistant failed")
             yield {"type": "error", "text": "The assistant is busy. Please ask again in a moment."}
     return _ndjson(events())
+
+
+@app.get("/api/alerts")
+def list_alerts(name: str = "", product_type: str = "credit_card"):
+    """Active safety alerts (last 30 days), for one lender or all."""
+    found = alerts.for_name(name, product_type) if name else alerts.active()
+    return {"alerts": found, "last_scan": alerts._last_scan.get("summary"),
+            "minutes_since_scan": int((__import__("time").time() - alerts._last_scan["at"]) / 60) if alerts._last_scan else None}
+
+
+@app.post("/api/alerts/scan")
+def scan_alerts(wait: bool = False):
+    """Run the safety-alert loop: Cloud Scheduler calls this daily (wait=true); the page streams it live.
+    It runs at most once an hour, so the public endpoint cannot be used to run up costs."""
+    if wait:
+        events = list(alerts.scan())
+        return {k: v for k, v in events[-1].items() if k != "alerts"}
+    return _ndjson(alerts.scan())
 
 
 @app.post("/mcp")

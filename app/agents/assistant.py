@@ -37,6 +37,7 @@ TOOL_LABEL = {
     "find_alternatives": "Finding lenders without the same problems",
     "gate_check": "Running the SIDE EFFECTS gate for {issuer}",
     "open_page": "Preparing a link",
+    "safety_alerts": "Reading the latest safety alerts",
     "get_side_effects": "Reading this leaflet",
     "search_contract": "Searching the contract for \"{query}\"",
     "complaint_examples": "Reading real complaints about {side_effect}",
@@ -67,6 +68,9 @@ def _summary(name: str, out) -> str:
             return out.get("reason") or ""
         n, k = len(out.get("items") or []), len(out.get("sources") or [])
         return f"{n} news item{'s' if n != 1 else ''}, {k} source{'s' if k != 1 else ''}"
+    if name == "safety_alerts":
+        n = len(out.get("alerts") or [])
+        return f"{n} active alert{'s' if n != 1 else ''}"
     if name == "gate_check":
         return "Verdict: " + str(out.get("verdict", "")).replace("_", " ")
     if name == "find_alternatives":

@@ -10,9 +10,9 @@
       ? `<ul>${lines.map((l) => `<li>${l.replace(/^\s*[-*•]\s+/, "")}</li>`).join("")}</ul>`
       : `<p>${lines.join("<br>")}</p>`;
   }).join("");
-  const ICON = { check_lender: "📊", lender_news: "📰", compare_lenders: "⚖️", find_alternatives: "🔀", gate_check: "🛡️", open_page: "🔗",
+  const ICON = { check_lender: "📊", lender_news: "📰", compare_lenders: "⚖️", find_alternatives: "🔀", gate_check: "🛡️", open_page: "🔗", safety_alerts: "🚨",
     get_side_effects: "💊", search_contract: "📄", complaint_examples: "🗣️", compare_with: "⚖️" };
-  const PAGE = { leaflet: "Open the leaflet", agent_demo: "Watch the agent demo", scam_arena: "Open the scam arena", evidence: "See the evidence", business: "For business" };
+  const PAGE = { leaflet: "Open the leaflet", agent_demo: "Watch the agent demo", scam_arena: "Open the scam arena", safety_alerts: "See the safety alerts", evidence: "See the evidence", business: "For business" };
   const GENERAL = ["Is Apple Card risky for a freelancer?", "Any news about Klarna?", "Compare Capital One and Chase", "What is deferred interest?"];
 
   const fab = document.createElement("button");
