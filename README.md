@@ -47,7 +47,43 @@ Offline, the **harvest pipeline** turns raw complaints into the signal table:
 - `pipeline/bigquery/prr.sql`: the PRR statistics in BigQuery.
 - `pipeline/eval_classifier.py`: precision, recall and F1 against 143 hand-labelled complaints, with a keyword baseline.
 - `pipeline/build_data.py`: builds `app/data/` from the outputs.
-- `pipeline/apac/`: India (Indian Kanoon consumer-court orders) and Australia (AFCA) validation.
+- `pipeline/apac/build_india.py`: India evidence (RBI Ombudsman rates by bank group, and seven banks' own published complaint breakdowns, with source links).
+
+## Try it (for judges)
+
+These inputs are known to work end to end:
+
+1. **Home page, Maya, "Run both agents live".** Two live Gemini agents buy the same laptop. Expect the agent on its own to sign Maya up for the store card, and the gated agent to check three credit options and stop with "Stopped before signing". Pick an option to finish.
+2. **Home page, Sam.** Sam has a steady salary, so nothing matches Sam's situation: the gated agent sees "Show before signing" disclosures and may go ahead.
+3. **/leaflet, "Try a sample".** A fictional six-page BNPL agreement and advert. Tick "My income is irregular" and press "Write my leaflet". Expect two product-category side effects, one pinned to a verified clause on page 2, and one contract-only risk.
+4. **/leaflet, lender "Apple Card", product "Credit card".** Expect "Purchase disputes left unresolved, 2.1x", the signal behind the US regulator's $45M order against Goldman Sachs.
+5. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
+
+A run calls Gemini several times, so a leaflet or agent run takes tens of seconds. Every step streams to the screen as it happens, and if Gemini is busy or refuses a request the page shows Gemini's own error instead of hanging.
+
+## Guardrails
+
+- **Numbers never come from the model.** Every "reported Nx" figure is computed in code (PRR with a 95% interval, Evans rule) from the complaint tables.
+- **Quotes are verified.** Gemini proposes the contract clause behind a side effect; code searches the contract for the quote word for word and discards it if it is not there.
+- **Contraindications must cite a side effect.** Anything the leaflet writer invents without citing a real line id is dropped.
+- **The agent gate is enforced in code, not the prompt.** `place_order` refuses a credit option whose verdict is `human_review` until the person confirms, so an agent that skips `check_side_effects` still cannot sign (tested in `tests/test_app.py`).
+- **The check API has no model in the loop**, so the same request always gets the same verdict.
+- **No secrets in the code.** On Cloud Run, Gemini is called through Vertex AI with the service account's identity; no API key is stored or passed.
+
+## Google Cloud stack
+
+| Piece | How it is used |
+|---|---|
+| **Gemini** (`gemini-3.8-flash` via the Google Gen AI SDK) | Five agents: intake (multimodal: photo, PDF or text of an offer), clause reader (long-context contract reading with structured output), leaflet writer, pharmacist (tool calling over the leaflet, contract and complaints), and the shopping agent (step-by-step function calling with thought summaries streamed to the page) |
+| **Vertex AI** | Gemini calls in production, authorised by the Cloud Run service account |
+| **Cloud Run** | Hosts the FastAPI app and the streaming endpoints; scales to zero, no sign-in |
+| **Cloud Build / Artifact Registry** | `gcloud run deploy --source` builds the container |
+| **BigQuery** | `pipeline/bigquery/classify.sql` codes complaint stories with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics |
+
+## Fictional and real data
+
+- **Real:** CFPB complaint statistics and complaint stories, RBI Ombudsman rates, Indian banks' published complaint figures, the Apple Card enforcement action.
+- **Fictional:** Northwind Electronics, its laptop and its payment terms (the lenders and their complaint signals are real); "Example Lending Co." and "FlexiPay" in `samples/`; the personas Maya and Sam.
 
 ## Data
 
@@ -81,7 +117,7 @@ Model: `GEMINI_MODEL` (default `gemini-3.8-flash`; Gemini 2.5 is closed to new p
 PROJECT_ID=your-project ./deploy.sh
 ```
 
-This enables the APIs, creates a service account with the Vertex AI User role, and deploys from source to Cloud Run in `asia-southeast1`. Gemini is called through Vertex AI with the service's own identity, so no API key is stored.
+Step-by-step for Cloud Shell, including fixes for common errors: [docs/DEPLOY.md](docs/DEPLOY.md). This enables the APIs, creates a service account with the Vertex AI User role, and deploys from source to Cloud Run in `asia-southeast1`. Gemini is called through Vertex AI with the service's own identity, so no API key is stored.
 
 ## For AI agents
 
@@ -97,6 +133,8 @@ and gets `human_review` with the disclosure "Purchase disputes left unresolved: 
 ## Limits
 
 - Complaint data is issuer-level, not per card.
+- Leaflets are kept in memory (last 200) on a single Cloud Run instance; a restart forgets them and the pharmacist asks you to make the leaflet again.
+- Each run makes several Gemini calls, so heavy simultaneous use can hit Gemini quota; the page then shows the error. There is no retry in this version.
 - Complaints are unverified and self-selected; signals show disproportion, not cause or probability.
 - The hand-labelled set has a single annotator.
 - Not financial advice.
