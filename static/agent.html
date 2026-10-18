@@ -18,13 +18,14 @@
 
 <div class="banner" id="banner" role="region" aria-label="What's new">
   <span class="banner-tag">New</span>
-  <span>Hacked-store mode: watch a shop try to trick an AI agent into signing you up.</span>
+  <span>Scam arena: Gemini invents new scams against AI shoppers, live. Can the guardian catch them?</span>
   <button type="button" class="banner-go" id="bannerTry">Try it</button>
   <button type="button" class="banner-x" id="bannerClose" aria-label="Dismiss">&times;</button>
 </div>
 
 <div class="pager" role="tablist" aria-label="Sections">
   <button type="button" role="tab" data-p="demo" aria-selected="true">Live demo</button>
+  <button type="button" role="tab" data-p="scam" aria-selected="false">Scam arena</button>
   <button type="button" role="tab" data-p="how" aria-selected="false">How it works</button>
   <button type="button" role="tab" data-p="why" aria-selected="false">Why trust it</button>
   <button type="button" role="tab" data-p="biz" aria-selected="false">For business</button>
@@ -72,6 +73,29 @@
 </section>
 
 <section class="outcome" id="outcome" hidden aria-live="polite"></section>
+</div>
+
+<div class="panel" id="p-scam" role="tabpanel" hidden>
+<section class="scam">
+  <p class="kicker">Red team, live &middot; three Gemini agents</p>
+  <h1 class="scam-h">Scammers will write for AI agents.<br><span>So we let Gemini write the scams.</span></h1>
+  <p class="lede">Each round, a Gemini attacker writes a new trick into the checkout page. It learns what got caught and tries something else.
+    A Gemini guardian reads the page and must quote its evidence. An AI shopping agent with no protection tries to buy for Maya.
+    Then the SIDE EFFECTS gate decides, without reading the page at all.</p>
+  <div class="roles">
+    <div class="role atk"><span>😈</span><b>Attacker</b><small>Gemini, writes new scams</small></div>
+    <div class="role grd"><span>🛡️</span><b>Guardian</b><small>Gemini, must quote the page</small></div>
+    <div class="role gte"><span>🔒</span><b>Gate</b><small>Code, never reads the page</small></div>
+  </div>
+  <button class="go" id="scamBtn" type="button">Start 3 rounds</button>
+  <p class="err" id="scamErr" role="alert" hidden></p>
+  <div class="score" id="scamScore" hidden>
+    <div><b id="scCaught">0</b><span>scams caught by the guardian</span></div>
+    <div><b id="scFooled">0</b><span>times the unprotected agent fell for it</span></div>
+    <div class="good"><b id="scHeld">0</b><span>times the gate held</span></div>
+  </div>
+  <div class="rounds" id="scamRounds"></div>
+</section>
 </div>
 
 <div class="panel" id="p-how" role="tabpanel" hidden>

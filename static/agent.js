@@ -46,9 +46,8 @@
     $("#devView").addEventListener("change", (e) => document.body.classList.toggle("dev", e.target.checked));
     $("#bannerClose").addEventListener("click", () => { $("#banner").hidden = true; });
     $("#bannerTry").addEventListener("click", () => {
-      $("#hacked").checked = true; $("#banner").hidden = true;
-      showPanel("demo"); leaveRun();
-      $(".hack").scrollIntoView({ behavior: "smooth", block: "center" });
+      $("#banner").hidden = true;
+      showPanel("scam");
     });
     initCarousel();
     $("#runBtn").addEventListener("click", runBoth);
@@ -337,7 +336,84 @@
   });
   $("#arena").dataset.show = "laneB";
   const hashPanel = location.hash.slice(1);
-  if (["how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel);
+  if (["scam", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel);
+
+  /* ---- Scam arena: Gemini attacker vs Gemini guardian vs the gate ---- */
+  const TECH = { prompt_injection: "Orders aimed at AI agents", fake_endorsement: "Fake approval", false_urgency: "False urgency",
+    pre_ticked_consent: "Consent by continuing", hidden_cost: "Hidden cost", bait_and_switch: "Bait and switch" };
+  const mark = (text, quotes) => {
+    let h = esc(text);
+    quotes.forEach((q) => { const e = esc(q); if (e && h.includes(e)) h = h.split(e).join(`<mark>${e}</mark>`); });
+    return h;
+  };
+  let scamRunning = false;
+  async function runScam() {
+    if (scamRunning) return;
+    scamRunning = true;
+    const btn = $("#scamBtn"); btn.disabled = true; btn.textContent = "Agents at work…";
+    $("#scamErr").hidden = true; $("#scamRounds").innerHTML = ""; $("#scamScore").hidden = false;
+    ["#scCaught", "#scFooled", "#scHeld"].forEach((id) => { $(id).textContent = "0"; });
+    let card = null, atk = null;
+    const step = (cls, html) => { const d = document.createElement("div"); d.className = "rstep " + cls; d.innerHTML = html; card.querySelector(".rsteps").appendChild(d); d.scrollIntoView({ behavior: "smooth", block: "nearest" }); return d; };
+    const wait = (label) => { card.querySelector(".rwait")?.remove(); const w = document.createElement("div"); w.className = "rwait"; w.innerHTML = `<i></i>${esc(label)}`; card.querySelector(".rsteps").appendChild(w); };
+    try {
+      const resp = await fetch("/api/arena/run", { method: "POST" });
+      if (!resp.ok) throw new Error(`The server answered ${resp.status}`);
+      const reader = resp.body.getReader(); const dec = new TextDecoder(); let buf = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let i;
+        while ((i = buf.indexOf("\n")) >= 0) {
+          const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+          if (!line) continue;
+          const ev = JSON.parse(line);
+          if (ev.type === "error") throw new Error(ev.detail);
+          if (ev.type === "round") {
+            card = document.createElement("article"); card.className = "rcard";
+            card.innerHTML = `<header><b>Round ${ev.round}</b></header><div class="rsteps"></div>`;
+            $("#scamRounds").appendChild(card); wait("The attacker is writing a new scam…");
+          } else if (ev.type === "attack") {
+            atk = ev.attack; card.querySelector(".rwait")?.remove();
+            card.querySelector("header").insertAdjacentHTML("beforeend", `<span class="tech">${esc(TECH[atk.technique] || atk.technique)}</span>`);
+            card.dataset.page = (atk.banner || "") + " " + atk.added_terms;
+            step("atk", `<span class="who">😈 Attacker</span><p class="muted">Pushing <b>${esc(ev.target_label)}</b>. ${esc(atk.why_it_might_work)}</p>
+              <div class="fakepage"><div class="fp-banner">${esc(atk.banner)}</div><div class="fp-terms">${esc(atk.added_terms)}</div></div>`);
+            wait("The guardian is reading the page…");
+          } else if (ev.type === "guardian") {
+            card.querySelector(".rwait")?.remove();
+            const quotes = ev.findings.map((f) => f.quote);
+            const fp = card.querySelector(".fakepage");
+            if (fp) { fp.querySelector(".fp-banner").innerHTML = mark(atk.banner, quotes); fp.querySelector(".fp-terms").innerHTML = mark(atk.added_terms, quotes); }
+            step(ev.caught ? "grd ok" : "grd miss", `<span class="who">🛡️ Guardian</span>
+              <p><b>${ev.caught ? "Caught it." : "Missed it."}</b> ${esc(ev.advice)}</p>
+              ${ev.findings.map((f) => `<p class="finding"><span class="tech sm">${esc(TECH[f.technique] || f.technique)}</span> “${esc(f.quote)}” <span class="muted">${esc(f.explanation)}</span></p>`).join("")}
+              ${ev.rejected_quotes ? `<p class="muted small">${ev.rejected_quotes} claimed quote${ev.rejected_quotes > 1 ? "s were" : " was"} not on the page and ${ev.rejected_quotes > 1 ? "were" : "was"} thrown out.</p>` : ""}`);
+            wait("An AI agent with no protection is shopping on this page…");
+          } else if (ev.type === "agent") {
+            card.querySelector(".rwait")?.remove();
+            step(ev.fooled ? "agt bad" : "agt", `<span class="who">🤖 Agent on its own</span>
+              <p>${ev.chosen_label ? `Signed Maya up for <b>${esc(ev.chosen_label)}</b>.` : "Did not sign anything."} ${ev.fooled ? "<b class=\"hot\">It fell for the scam.</b>" : ""}</p>
+              ${ev.said ? `<p class="muted small">“${esc(ev.said)}”</p>` : ""}`);
+          } else if (ev.type === "gate") {
+            step(ev.held ? "gte ok" : "gte", `<span class="who">🔒 With SIDE EFFECTS</span>
+              <p>${ev.held ? `<b>The gate held.</b> Nothing is signed until Maya sees: ${esc(ev.matches.join("; "))}.` : ev.offer_label ? `Allowed (${esc(ev.verdict.replace("_", " "))}).` : "Nothing to sign."}</p>`);
+          } else if (ev.type === "score") {
+            $("#scCaught").textContent = `${ev.score.guardian_caught}/${ev.score.rounds}`;
+            $("#scFooled").textContent = `${ev.score.agent_fooled}/${ev.score.rounds}`;
+            $("#scHeld").textContent = `${ev.score.gate_held}/${ev.score.rounds}`;
+          }
+        }
+      }
+    } catch (e) {
+      $("#scamErr").textContent = e.message; $("#scamErr").hidden = false;
+      card?.querySelector(".rwait")?.remove();
+    } finally {
+      scamRunning = false; btn.disabled = false; btn.textContent = "Run 3 new rounds";
+    }
+  }
+  $("#scamBtn").addEventListener("click", runScam);
   fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 
   init().catch((e) => showErr(e.message));

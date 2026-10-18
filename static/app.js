@@ -232,6 +232,9 @@ function render(lf) {
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
     <div class="bqlive" id="bqLive" hidden></div>
+    ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">Emerging side effects</span><span class="small muted">Gemini reads the newest complaints</span></div>
+      <p class="small">The numbers above come from statistics over many months. Gemini can read the newest complaint stories now and spot problems before they are big enough to count.</p>
+      <button type="button" class="radar-btn" id="radarBtn">Read the newest complaints</button><div id="radarOut"></div></div>` : ""}
     <button type="button" class="lf-next" data-go="effects">See the side effects ›</button>
     </div>
     <div class="lf-panel" data-t="effects" hidden>
@@ -281,6 +284,7 @@ function render(lf) {
   }));
   $("leaflet").hidden = false; $("pharmFab").hidden = false;
   if (p.matched_company) loadBigQuery(p.matched_company, p.product_type);
+  $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
   window.scrollTo({ top: 0, behavior: "smooth" });
   $("chat").innerHTML = "";
   $("suggest").innerHTML = ["Is this OK for a freelancer?", "What happens if I pay late?", "Can I dispute a purchase?", "How does it compare with Citi?"]
@@ -300,6 +304,26 @@ async function loadBigQuery(company, productType) {
       ${top ? `<p class="small muted">Most common:</p><ul class="bq-top">${top}</ul>` : ""}`;
     box.hidden = false;
   } catch (e) { /* BigQuery is an extra; the leaflet stands without it */ }
+}
+
+/* ---- emerging side effects: Gemini reads the newest complaint stories ---- */
+async function runRadar(company, productType) {
+  const btn = $("radarBtn"), out = $("radarOut");
+  btn.disabled = true; btn.textContent = "Gemini is reading…";
+  out.innerHTML = `<p class="small muted radar-wait"><i></i>Reading the newest complaint stories about ${esc(short(company))}…</p>`;
+  try {
+    const d = await (await fetch(`/api/radar?issuer=${encodeURIComponent(company)}&product_type=${encodeURIComponent(productType || "credit_card")}`)).json();
+    if (!d.available) { out.innerHTML = `<p class="small muted">${esc(d.reason || "Not available right now.")}</p>`; return; }
+    out.innerHTML = `<p class="small muted">Read ${d.stories_read} stories (${esc(d.source)}). ${d.new ? `<b>${d.new} not in our statistics yet.</b>` : ""}</p>` +
+      d.themes.map((t) => `<div class="theme${t.known ? "" : " new"}"><div class="theme-top"><b>${esc(t.label)}</b>
+        <span class="theme-n">${t.count} ${t.count > 1 ? "stories" : "story"}</span>${t.known ? `<span class="theme-k">Already on this leaflet</span>` : `<span class="theme-new">New</span>`}</div>
+        ${t.quote ? `<p class="theme-q">“${esc(t.quote)}”</p>` : ""}<p class="small muted">${esc(t.why_it_matters)} Latest: ${esc(t.latest)}.</p></div>`).join("") +
+      `<p class="small muted">Read by Gemini; each quote is checked word for word against the complaint, and counts are complaints Gemini pointed to that really exist. Unverified reports.</p>`;
+  } catch (e) {
+    out.innerHTML = `<p class="small muted">Could not read the complaints just now.</p>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Read them again";
+  }
 }
 
 /* ---- pharmacist ---- */

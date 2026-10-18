@@ -10,7 +10,15 @@ from app import bq, gemini
 from app.agents import shopper
 from tests import fakes
 
-gemini.generate_json = fakes.fake
+
+
+def _slow_fake(prompt, schema, **kw):
+    if schema.__name__ in ("Attack", "GuardianReport", "ThemeReport"):
+        time.sleep(1.2)
+    return fakes.fake(prompt, schema, **kw)
+
+
+gemini.generate_json = _slow_fake
 
 
 def _slow_turn(*a, **kw):

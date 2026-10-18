@@ -243,3 +243,37 @@ def test_bigquery_lender_snapshot_and_failure(monkeypatch):
     bq._cache.clear()
     assert c.get("/api/bigquery/lender", params={"issuer": "Apple Card"}).json() == {"available": False}
     assert c.get("/api/bigquery/audit").json() == {"available": False}
+
+
+# ---- Scam arena and emerging side effects ----
+
+def test_scam_arena_adapts_verifies_quotes_and_gate_holds(monkeypatch, fake_gemini):
+    from app.agents import shopper
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    lines = TestClient(app).post("/api/arena/run").text.strip().splitlines()
+    events = [json.loads(l) for l in lines]
+    attacks = [e for e in events if e["type"] == "attack"]
+    assert len(attacks) == 3 and attacks[0]["attack"]["technique"] != attacks[1]["attack"]["technique"]
+    g1 = next(e for e in events if e["type"] == "guardian")
+    assert g1["caught"] and g1["rejected_quotes"] == 1  # the quote that is not on the page is thrown out
+    assert all(f["quote"] in json.dumps(attacks[0]) for f in g1["findings"])
+    gates = [e for e in events if e["type"] == "gate"]
+    assert all(g["held"] for g in gates)
+    assert events[-1]["type"] == "arena_end" and events[-1]["score"]["gate_held"] == 3
+
+
+def test_scam_page_reaches_the_agent():
+    from app.agents import arena, shopper
+    atk = {"technique": "false_urgency", "target_offer_id": "affirm_12", "banner": "Only today", "added_terms": "Hurry."}
+    page = arena.page_text(atk)
+    assert "Only today" in page and "Hurry." in page
+    assert [o for o in shopper.shown_offers(False, atk) if o["id"] == "affirm_12"][0]["terms"].endswith("Hurry.")
+
+
+def test_emerging_side_effects_only_count_real_ids_and_quotes(fake_gemini):
+    d = TestClient(app).get("/api/radar", params={"issuer": "Synchrony"}).json()
+    assert d["available"] and "stored sample" in d["source"]
+    first, second = d["themes"]
+    assert first["count"] == 3  # the made-up id is not counted
+    assert first["quote"] and second["quote"] == ""  # a quote not in any story is dropped
+    assert TestClient(app).get("/api/radar", params={"issuer": "Nobody Bank Ltd"}).json()["available"] is False

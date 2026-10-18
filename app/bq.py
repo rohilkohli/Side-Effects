@@ -23,6 +23,7 @@ PUBLIC_TABLE = "bigquery-public-data.cfpb_complaints.complaint_database"
 DATASET = os.environ.get("BQ_DATASET", "side_effects")
 AUDIT_TABLE = "gate_decisions"
 MAX_BYTES = 3 * 1024**3  # refuse any query that would scan more than 3 GB
+NARRATIVE_MAX_BYTES = 12 * 1024**3  # complaint stories are the big column
 CACHE_SECONDS = 6 * 3600
 PRODUCT_FILTER = {"credit_card": "Credit card%"}  # other products: all of the lender's complaints
 
@@ -45,9 +46,9 @@ def client():
         return _client
 
 
-def _query(sql: str, params: list) -> list[dict]:
+def _query(sql: str, params: list, max_bytes: int = MAX_BYTES) -> list[dict]:
     from google.cloud import bigquery
-    cfg = bigquery.QueryJobConfig(query_parameters=params, maximum_bytes_billed=MAX_BYTES, use_query_cache=True)
+    cfg = bigquery.QueryJobConfig(query_parameters=params, maximum_bytes_billed=max_bytes, use_query_cache=True)
     job = client().query(sql, job_config=cfg)
     return [dict(r) for r in job.result(timeout=20)]
 
@@ -157,3 +158,36 @@ def audit_summary() -> dict:
         "recent": [{"ts": str(x["ts"]), "source": x["source"], "lender": x["issuer_matched"], "verdict": x["verdict"]}
                    for x in (r.get("recent") or [])],
     }
+
+
+NARRATIVES_SQL = f"""
+SELECT complaint_id, date_received, issue, SUBSTR(consumer_complaint_narrative, 1, 900) AS text
+FROM `{PUBLIC_TABLE}`
+WHERE company_name = @company AND product LIKE @product AND consumer_complaint_narrative IS NOT NULL
+ORDER BY date_received DESC
+LIMIT @n
+"""
+
+
+def latest_narratives(company: str, product_type: str = "credit_card", n: int = 40) -> list[dict] | None:
+    """The newest complaint stories about a lender, or None when BigQuery is off or fails."""
+    if not enabled() or not company:
+        return None
+    key = ("narratives", company, product_type, n)
+    hit = _cache.get(key)
+    if hit and time.time() - hit[0] < CACHE_SECONDS:
+        return hit[1]
+    from google.cloud import bigquery
+    try:
+        rows = _query(NARRATIVES_SQL, [
+            bigquery.ScalarQueryParameter("company", "STRING", company),
+            bigquery.ScalarQueryParameter("product", "STRING", PRODUCT_FILTER.get(product_type, "%")),
+            bigquery.ScalarQueryParameter("n", "INT64", n),
+        ], max_bytes=NARRATIVE_MAX_BYTES)
+    except Exception as e:
+        log.warning("BigQuery narratives failed: %s", e)
+        return None
+    out = [{"complaint_id": str(r["complaint_id"]), "date": str(r["date_received"]), "issue": r["issue"] or "",
+            "text": r["text"] or ""} for r in rows]
+    _cache[key] = (time.time(), out)
+    return out

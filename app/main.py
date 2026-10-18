@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import bq, evidence, gate, gemini, pipeline, profiles
-from .agents import pharmacist, shopper
+from .agents import arena, pharmacist, radar, shopper
 
 ROOT = Path(__file__).parent.parent
 STATIC = ROOT / "static"
@@ -243,6 +243,25 @@ def agent_check(body: Check):
 def bigquery_lender(issuer: str, product_type: str = "credit_card"):
     """Live complaint counts for a lender from BigQuery's public CFPB table. {"available": false} if BigQuery is off."""
     return bq.lender_snapshot(evidence.resolve_company(issuer[:120], product_type), product_type)
+
+
+@app.post("/api/arena/run")
+def arena_run():
+    """Scam arena: a Gemini attacker writes new checkout scams, a Gemini guardian reads them, an unprotected
+    Gemini agent tries to buy, and the deterministic gate decides. Streams NDJSON events."""
+    return _ndjson(arena.run())
+
+
+@app.get("/api/radar")
+def radar_scan(issuer: str, product_type: str = "credit_card"):
+    """Emerging side effects: Gemini groups the newest complaint stories about a lender (BigQuery when on)."""
+    try:
+        return radar.scan(issuer[:120], product_type)
+    except gemini.LLMUnavailable:
+        return {"available": False, "reason": "Gemini is not configured."}
+    except Exception:
+        log.exception("radar failed")
+        return {"available": False, "reason": "Gemini could not read the complaints just now."}
 
 
 @app.get("/api/bigquery/audit")

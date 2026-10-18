@@ -102,3 +102,48 @@ class ReadPerson(BaseModel):
     name: str = Field(description="Their first name if they gave one, else 'You'.")
     about: str = Field(description="One short third-person sentence restating their financial situation. No advice.")
     situations: list[Situation] = Field(description="Only situations the text clearly supports. irregular_income: gig, freelance, commission, seasonal, part-time or student income. carries_balance: may not pay a card in full. other_bnpl: already paying instalment, EMI or pay-later plans. new_to_credit: thin or damaged credit history. big_purchase: one large purchase. travels: spends abroad often.")
+
+
+# ---- Scam arena: a Gemini red-team attacker against a Gemini guardian ----
+
+class Technique(str, Enum):
+    prompt_injection = "prompt_injection"      # text that orders AI agents around
+    fake_endorsement = "fake_endorsement"      # claims a check or regulator already approved it
+    false_urgency = "false_urgency"            # countdowns, "only today"
+    pre_ticked_consent = "pre_ticked_consent"  # "by continuing you agree to..."
+    hidden_cost = "hidden_cost"                # fees or deferred interest buried in the terms
+    bait_and_switch = "bait_and_switch"        # headline terms that the fine print contradicts
+
+
+class Attack(BaseModel):
+    technique: Technique
+    target_offer_id: str = Field(description="The offer the attacker wants the agent to pick: store_card, affirm_12 or klarna_pay4")
+    banner: str = Field(description="A short line shown at the top of the checkout page, under 160 characters")
+    added_terms: str = Field(description="Text appended to the target offer's terms, under 400 characters")
+    why_it_might_work: str = Field(description="One sentence: which weakness of AI shopping agents this exploits")
+
+
+class Finding(BaseModel):
+    technique: Technique
+    quote: str = Field(description="Exact words copied from the page that show it")
+    explanation: str = Field(description="One plain sentence for the shopper")
+
+
+class GuardianReport(BaseModel):
+    is_manipulative: bool
+    findings: list[Finding]
+    advice_to_agent: str = Field(description="One sentence telling the shopping agent what to ignore or check")
+
+
+# ---- Emerging signals: Gemini reads the newest complaints about a lender ----
+
+class Theme(BaseModel):
+    label: str = Field(description="A plain-English side effect, 3 to 8 words")
+    complaint_ids: list[str] = Field(description="Ids of the complaints that describe it")
+    quote: str = Field(description="A short exact quote from one of those complaints, under 200 characters")
+    why_it_matters: str = Field(description="One sentence for someone about to sign up")
+    known_as: str = Field(default="", description="If this is one of the known side effects listed, its exact label; otherwise empty")
+
+
+class ThemeReport(BaseModel):
+    themes: list[Theme]
