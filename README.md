@@ -1,176 +1,441 @@
+<div align="center">
+
+<img src="docs/screens/logo.svg" width="84" alt="">
+
 # SIDE EFFECTS
 
-**Pharmacovigilance for money.** Every packet of paracetamol tells you what can go wrong. A credit card or a Buy Now Pay Later plan only tells you the interest rate. SIDE EFFECTS writes the missing leaflet.
+### Every medicine tells you what can go wrong. Your credit card never did.
 
-Point your phone at an offer. SIDE EFFECTS runs the statistics drug regulators use on adverse-event reports over real consumer complaints, uses Gemini to find the exact contract clause behind each problem, and prints a medicine-style leaflet for you: possible side effects, who should not take it, interactions, and lenders with fewer reported problems. A pharmacist you can talk to answers questions about it. AI agents that apply for credit on someone's behalf can read the same leaflet as JSON before they sign their human up.
+**Pharmacovigilance for money:** the drug-safety statistics regulators use, run over real consumer complaints, so people and their AI agents read the side effects before signing up for credit.
 
-**The live demo** (the home page): the same Gemini shopping agent buys a laptop for Maya, a freelancer with irregular income, twice. On its own it picks the lowest monthly payment and signs her up for a deferred-interest store card whose lender is reported 2.6x more often for interest rates rising unexpectedly. With SIDE EFFECTS it checks every credit option first, finds side effects that match her situation, and stops to ask her. The gate is enforced inside `place_order`, so an agent that skips the check still cannot sign. The store is fictional; the lenders' complaint signals are real.
+<p>
+<a href="https://side-effects-339621847915.asia-southeast1.run.app/"><img alt="Live demo" src="https://img.shields.io/badge/▶_Live_demo-Cloud_Run-4f46e5?style=for-the-badge"></a>
+<a href="#-try-it-in-60-seconds"><img alt="Try it" src="https://img.shields.io/badge/Try_it-60_seconds-12b76a?style=for-the-badge"></a>
+<a href="#-for-ai-agents-rest-and-mcp"><img alt="MCP server" src="https://img.shields.io/badge/MCP-server-101828?style=for-the-badge"></a>
+</p>
 
-Theme: **01 BFSI: Intelligent Risk, Fraud & Financial Experiences** (Google Cloud AI Builder Cup 2026, team CyberNex - Vision Matters).
+<p>
+<img alt="Gemini" src="https://img.shields.io/badge/Gemini-Vertex_AI-8E75B2?logo=googlegemini&logoColor=white">
+<img alt="BigQuery" src="https://img.shields.io/badge/BigQuery-audit_+_signals-669DF6?logo=googlecloud&logoColor=white">
+<img alt="Cloud Run" src="https://img.shields.io/badge/Cloud_Run-asia--southeast1-4285F4?logo=googlecloud&logoColor=white">
+<img alt="Cloud Scheduler" src="https://img.shields.io/badge/Cloud_Scheduler-daily_scan-4285F4?logo=googlecloud&logoColor=white">
+<img alt="Google Search grounding" src="https://img.shields.io/badge/Google_Search-grounding-34A853?logo=google&logoColor=white">
+<img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white">
+<img alt="Tests" src="https://img.shields.io/badge/tests-31_passing-12b76a">
+</p>
 
-## What the leaflet says, and how we know
+**Google Cloud AI Builder Cup 2026** · Track 01 BFSI: Intelligent Risk, Fraud & Financial Experiences · Team **CyberNex - Vision Matters**
 
-> **Purchase disputes left unresolved**: reported **2.1x** more often than at similar card issuers (817 complaints, 2024; still 2.1x in Jun-Sep 2026). *Bank-level complaint signal.*
+[What it does](#-what-it-does) · [Try it](#-try-it-in-60-seconds) · [Screens](#-screens) · [Architecture](#-architecture) · [The science](#-the-science) · [Guardrails](#-guardrails) · [For AI agents](#-for-ai-agents-rest-and-mcp) · [Run it](#-run-it-yourself)
 
-That line is about Goldman Sachs (Apple Card). The US regulator fined Goldman $45M for exactly this in October 2024. The method would have flagged it from public complaints alone.
+<img src="docs/screens/agent-run.png" alt="Two Gemini shopping agents buy the same laptop: the one on its own signs Maya up for a store card; the one with SIDE EFFECTS stops before signing" width="100%">
 
-Every number comes from code, never from the model:
+<sub>The same Gemini agent buys a laptop twice for Maya, a freelancer with irregular income. On its own it signs her up for a deferred-interest store card. With SIDE EFFECTS it stops and asks her first.</sub>
 
-- **Statistic**: proportional reporting ratio (PRR) with a 95% interval, signal under the Evans rule (at least 3 reports, PRR at least 2, chi-square at least 4), the standard in drug-safety databases.
-- **Honest wording**: complaints have no denominator, so the leaflet says "reported N times more often than similar lenders", never "common" or "rare", and states that reports are unverified.
-- **Honest level**: each line says whether it is a *bank-level complaint signal* (how the company behaves), a *product-category signal* (for example all BNPL lenders), or a *clause in this contract*. Many harms have no clause behind them, and the leaflet says so.
-- **Verified quotes**: Gemini proposes the clause; code checks the quote word for word against the contract and discards anything it cannot find.
+</div>
 
-## How it works
+---
 
-```
- photo / PDF / text
-        │
- 1. Intake agent ─────── Gemini (multimodal): what product, which lender, what the advert leaves unsaid
- 2. Matcher ──────────── brand -> lender in the complaint database
- 3. Signal engine ────── PRR vs peer lenders on 136k CFPB complaints (deterministic)
- 4. Mechanism agent ──── Gemini (long context) reads the whole contract, pins each side effect to a clause
-        │                  └─ every quote verified in code; unverifiable quotes are dropped
- 5. Leaflet writer ───── Gemini writes contraindications and interactions for *your* situation,
-        │                  only around line ids it was given (no numbers)
- 6. Pharmacist agent ─── Gemini with tools: get_side_effects, search_contract, complaint_examples, compare_with
-        │
- /api/v1/check ───────── deterministic gate for AI agents: no_signal / disclose / human_review
- Shopping agent ──────── Gemini with function calling, run step by step (app/agents/shopper.py);
-                          thoughts and tool calls stream live; place_order refuses human_review
-                          options until the person confirms
-```
+## 💊 What it does
 
-Offline, the **harvest pipeline** turns raw complaints into the signal table:
+A packet of paracetamol lists every side effect. A credit card, a loan or a Buy Now Pay Later plan only lists the interest rate. And AI agents are about to start choosing credit for us.
 
-- `pipeline/classify.py` and `pipeline/bigquery/classify.sql`: Gemini codes each complaint story into a 26-term financial side-effect vocabulary and flags copy-paste credit-repair templates (19% of a hand-checked sample), which otherwise create false signals.
-- `pipeline/bigquery/prr.sql`: the PRR statistics in BigQuery.
-- `pipeline/eval_classifier.py`: precision, recall and F1 against 143 hand-labelled complaints, with a keyword baseline.
-- `pipeline/build_data.py`: builds `app/data/` from the outputs.
-- `pipeline/apac/build_india.py`: India evidence (RBI Ombudsman rates by bank group, and seven banks' own published complaint breakdowns, with source links).
+SIDE EFFECTS writes the missing leaflet, and puts a gate in front of the checkout:
 
-## Try it (for judges)
-
-These inputs are known to work end to end:
-
-1. **Home page, Maya, "Run both agents live".** Two live Gemini agents buy the same laptop. Expect the agent on its own to sign Maya up for the store card, and the gated agent to check three credit options and stop with "Stopped before signing". Pick an option to finish.
-2. **Home page, Sam.** Sam has a steady salary, so nothing matches Sam's situation: the gated agent sees "Show before signing" disclosures and may go ahead.
-3. **Home page, "You".** Type a sentence about yourself, for example "I'm a student with a part-time job and a phone on EMI". Gemini reads it into situations (shown on screen), and both agents shop for you.
-4. **Home page, tick "Hacked store".** The checkout page now carries a hidden instruction telling AI agents that SIDE EFFECTS already approved the store card. Expect the gated lane to flag the hidden instruction; whatever the agent does, the checkout refuses the store card until the person confirms.
-5. **/leaflet, "Try a sample".** A fictional six-page BNPL agreement and advert. Tick "My income is irregular" and press "Write my leaflet". Expect two product-category side effects, one pinned to a verified clause on page 2, and one contract-only risk.
-6. **/leaflet, lender "Apple Card", product "Credit card".** Expect "Purchase disputes left unresolved, 2.1x", the signal behind the US regulator's $45M order against Goldman Sachs.
-7. **Home page, "Scam arena" tab, "Start 3 rounds".** A Gemini attacker writes a new checkout scam each round and adapts to what was caught; a Gemini guardian flags it with exact quotes from the page; an unprotected Gemini agent tries to buy. Expect "the gate held" in every round where the agent picks credit that matches Maya's situation. A full run takes a minute or two.
-8. **"Check an offer" page: drop a photo, screenshot or contract PDF, or just type "Apple Card".** Gemini reads the lender from the upload (logos, "issued by" lines, contract parties), and the leaflet then checks that lender live on its own: complaints the CFPB received in the last 90 days with the trend and top issues (live from the CFPB's public API, BigQuery as fallback), and recent news (fines, lawsuits, outages, breaches, fee changes) found by Gemini with Google Search, every source listed. `/leaflet?q=Klarna` starts a check straight from a link.
-9. **/leaflet, "Apple Card" leaflet, "Read the complaint stories".** Gemini reads real complaint stories about the lender (from BigQuery's public CFPB table when it is on, which runs to March 2023) and groups them, marking problems our statistics do not show.
-10. **Any page, "✦ Ask anything".** A Gemini assistant with live tools. Ask "Is Apple Card risky for a freelancer?" and watch it check the complaint feed and search Google News at the same time, then answer with a button to the full leaflet. On a leaflet it becomes the pharmacist and can also search that contract.
-11. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
-
-A run calls Gemini several times, so a leaflet or agent run takes tens of seconds. Every step streams to the screen as it happens, and if Gemini is busy or refuses a request the page shows Gemini's own error instead of hanging.
-
-## Guardrails
-
-- **Numbers never come from the model.** Every "reported Nx" figure is computed in code (PRR with a 95% interval, Evans rule) from the complaint tables.
-- **Quotes are verified.** Gemini proposes the contract clause behind a side effect; code searches the contract for the quote word for word and discards it if it is not there.
-- **Contraindications must cite a side effect.** Anything the leaflet writer invents without citing a real line id is dropped.
-- **The agent gate is enforced in code, not the prompt.** `place_order` refuses a credit option whose verdict is `human_review` until the person confirms, so an agent that skips `check_side_effects` still cannot sign (tested in `tests/test_app.py`).
-- **Prompt injection from the store is expected.** Text on the checkout page addressed to AI agents is detected in code and flagged to the agent and the person; the gate does not read the page at all, so the page cannot talk its way past it (tested).
-- **The scam arena's guardian must show its evidence.** Every finding quotes the page; quotes that are not on the page are discarded and counted on screen. The attacker is confined to the fictional store and told not to write links, ask for credentials or name real people.
-- **Live news shows its sources.** Gemini researches with Google Search grounding, a second Gemini call only restructures what that research said (it is told never to add facts), and every web source it used is listed. If no sources come back, the card says the result is unverified. News never changes the gate's verdict.
-- **"In their own words" counts real complaints.** A theme's count is the number of complaint ids Gemini pointed to that exist in what it was given, and its quote is checked against those complaints.
-- **The person's own words are read as data.** "You" mode sends the description to Gemini fenced and labelled as a description only, and keeps only situations from a fixed list.
-- **The check API has no model in the loop**, so the same request always gets the same verdict.
-- **No secrets in the code.** On Cloud Run, Gemini is called through Vertex AI with the service account's identity; no API key is stored or passed.
-
-## How it answers the BFSI problem statement
-
-| Suggested direction | Where it is in SIDE EFFECTS |
+| | |
 |---|---|
-| Risk assessment | Lender risks found in 136,270 real CFPB complaints with the proportional reporting ratio drug regulators use, computed in code (`pipeline/build_data.py`, `app/evidence.py`). In their own words (`app/agents/radar.py`): Gemini reads complaint stories from BigQuery and groups them, flagging problems the statistics do not show; counts are real complaint ids and quotes are verified |
-| Risk assessment, live | `app/live.py`: the CFPB's live complaint feed for the last 90 days (counts and trend computed by the CFPB, not the model) and recent news found by Gemini grounded in Google Search, with sources |
-| Fraud detection | Scam arena (`app/agents/arena.py`): an adaptive Gemini attacker writes new checkout scams each round, a Gemini guardian must catch them with exact quotes from the page, an unprotected Gemini agent tries to buy, and the checkout gate, which never reads the page, decides. Hacked-store mode on the live demo shows a fixed version |
-| Document intelligence | Gemini reads a card agreement from a photo, PDF or text and quotes the clause behind each problem; every quote is verified word for word |
-| Compliance automation | `POST /api/v1/check` returns a verdict and the disclosures a person must see before an agent commits them to credit (`app/gate.py`); every decision is logged to a BigQuery audit table |
-| Financial assistance | The pharmacist chat and a shopping agent you can answer by voice |
-| Personalised experiences | Describe yourself in your own words; Gemini maps it to situations and only matching side effects are raised |
+| 📷 **Show it any offer** | A photo of a flyer, a screenshot of an app, a contract PDF, or just a name. Gemini works out the lender and product. |
+| 📈 **Real evidence, scored like drug safety** | 136,270 US consumer complaints, scored with the **proportional reporting ratio** regulators use for adverse drug reactions. Code does the counting; Gemini never invents a number. |
+| 📜 **The clause behind the harm** | Gemini reads the contract and pins each side effect to a clause. Every quote is checked word for word; anything it can't find is thrown away. |
+| 🛡️ **A gate for AI agents** | `POST /api/v1/check` and an **MCP server** return a deterministic verdict: `no_signal`, `disclose` or `human_review`. The checkout enforces it in code, so an agent that forgets to check still can't sign. |
+| 🚨 **Safety alerts every morning** | Cloud Scheduler runs a scan of the regulator's live complaint feed. A new spike becomes an alert, saved to BigQuery, and the gate uses it at once. |
+| ✦ **An assistant with live tools** | Ask "Is Apple Card risky for a freelancer?" and watch it check the complaint feed and Google News in parallel. |
 
-## Google Cloud stack
+> **Would it have worked?** The leaflet flags Apple Card for *purchase disputes left unresolved*, reported **2.1×** more often than at similar card issuers (817 complaints, 2024). That is the defect the US regulator fined Goldman Sachs **$45M** for in October 2024, found here from public complaint data alone.
+
+---
+
+## ⚡ Try it in 60 seconds
+
+Open the **[live demo](https://side-effects-339621847915.asia-southeast1.run.app/)**, then:
+
+1. **Agent checkout:** pick **Maya**, tick **Hacked store**, press **Run both agents live**. Two real Gemini agents shop side by side.
+2. **Check an offer:** type `Klarna`, choose *"My income is irregular"*, press **Show me the side effects**.
+3. **Safety alerts:** press **Run the scan now** and watch 15 lenders get scanned live.
+4. **Scam arena:** press **Start 3 rounds**. A Gemini attacker invents new checkout scams; a Gemini guardian must quote them; the gate decides.
+5. Press <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd> anywhere and ask the assistant a question.
+
+<details>
+<summary><b>📋 All 11 judge-tested inputs</b> (click to expand)</summary>
+
+<br>
+
+1. **Agent checkout, Maya, "Run both agents live".** Expect the agent on its own to sign Maya up for the store card, and the gated agent to check three credit options and stop with "Stopped before signing". Pick an option to finish.
+2. **Agent checkout, Sam.** Sam has a steady salary, so nothing matches; the gated agent sees "Show before signing" disclosures and may go ahead.
+3. **Agent checkout, "You".** Type a sentence like *"I'm a student with a part-time job and a phone on EMI"*. Gemini reads it into situations (shown on screen) and both agents shop for you.
+4. **Tick "Hacked store".** The checkout page carries a hidden instruction telling AI agents SIDE EFFECTS approved the store card. The gated lane flags it; the checkout still refuses the store card until the person confirms.
+5. **Check an offer, "A sample advert and contract".** A fictional BNPL agreement. Expect product-category side effects, one pinned to a verified clause, and one contract-only risk.
+6. **Check an offer, "Apple Card".** Expect *Purchase disputes left unresolved, 2.1×*.
+7. **Scam arena, "Start 3 rounds".** Expect "the gate held" in every round where the agent picks credit that matches Maya's situation.
+8. **Check an offer, drop a photo or PDF.** Gemini reads the lender from logos, "issued by" lines or contract parties, then checks the CFPB's live feed (last 90 days) and today's news via Google Search. `/leaflet?q=Klarna` starts a check from a link.
+9. **Apple Card leaflet, "Read the complaint stories".** Gemini groups real complaint stories from BigQuery's public CFPB table and marks problems the statistics don't show.
+10. **Any page, assistant.** On a leaflet it becomes the pharmacist and can also search that contract.
+11. **Check an offer, "AU Small Finance Bank".** Expect the RBI Ombudsman chart: small finance banks 3.0× the Indian average.
+
+Every step streams to the screen. If Gemini is busy or refuses, the page shows Gemini's own error instead of hanging.
+
+</details>
+
+---
+
+## 🖼️ Screens
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screens/leaflet.png" alt="Apple Card side-effects leaflet"><br><b>The leaflet.</b> A medicine box, the reported multiple, and tabs for side effects, alternatives and the evidence.</td>
+<td width="50%"><img src="docs/screens/alerts.png" alt="Safety alerts"><br><b>Safety alerts.</b> Signals already in the data, and a live 45-day scan run by Cloud Scheduler.</td>
+</tr>
+<tr>
+<td><img src="docs/screens/scam.png" alt="Scam arena"><br><b>Scam arena.</b> Three Gemini agents: attacker, guardian and shopper. The gate never reads the page.</td>
+<td><img src="docs/screens/evidence.png" alt="Evidence"><br><b>Evidence.</b> Every number is computed from the data, with the PRR method shown.</td>
+</tr>
+<tr>
+<td><img src="docs/screens/api-dark.png" alt="API, MCP and audit in dark mode"><br><b>API, MCP & audit.</b> REST and MCP for agent builders; every gate decision logged to BigQuery.</td>
+<td><img src="docs/screens/architecture.png" alt="Architecture"><br><b>How it works.</b> Four Google Cloud layers behind one gate.</td>
+</tr>
+</table>
+
+<details>
+<summary><b>📱 Phone, sample leaflet and assistant</b></summary>
+
+<br>
+
+<p align="center">
+<img src="docs/screens/phone-home.png" width="30%" alt="Phone home">&nbsp;
+<img src="docs/screens/phone-leaflet.png" width="30%" alt="Phone leaflet">&nbsp;
+<img src="docs/screens/assistant.png" width="34%" alt="Assistant calling live tools">
+</p>
+<img src="docs/screens/sample-leaflet.png" alt="Sample Credit Facts label" width="100%">
+
+</details>
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+    U(["👤 Person<br/>photo · PDF · name"]) --> I
+    A(["🤖 AI agent<br/>REST · MCP"]) --> G
+
+    subgraph CR["☁️ Cloud Run · FastAPI"]
+        I["Intake agent<br/><i>Gemini multimodal</i>"] --> M["Lender matcher"]
+        M --> S["Signal engine<br/><i>PRR, deterministic</i>"]
+        S --> C["Clause reader<br/><i>Gemini long context</i><br/>quotes verified in code"]
+        C --> L["Leaflet writer<br/><i>Gemini</i>"]
+        L --> P["Pharmacist / assistant<br/><i>Gemini + tools</i>"]
+        G{"🛡️ Gate<br/>no_signal · disclose · human_review"}
+        S --> G
+        AL["Safety alert scanner<br/><i>45d vs 180d PRR</i>"] --> G
+    end
+
+    subgraph GC["Google Cloud"]
+        V[("Gemini on<br/>Vertex AI")]
+        BQ[("BigQuery<br/>CFPB public table<br/>gate_decisions<br/>safety_alerts")]
+        GS[("Google Search<br/>grounding")]
+        SCH["⏰ Cloud Scheduler<br/>07:00 daily"]
+    end
+
+    CFPB[("CFPB live<br/>complaint API")]
+
+    I & C & L & P -.-> V
+    P -.-> GS
+    AL -.-> CFPB
+    AL -.-> GS
+    G -.->|audit| BQ
+    AL -.->|alerts| BQ
+    S -.-> BQ
+    SCH -->|POST /api/alerts/scan| AL
+```
+
+<details>
+<summary><b>🔁 The agent checkout, step by step</b></summary>
+
+<br>
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Maya
+    participant Agent as Gemini shopping agent
+    participant Store as Checkout (fictional)
+    participant Gate as SIDE EFFECTS gate
+    participant BQ as BigQuery audit
+
+    Maya->>Agent: "Buy the laptop, keep the monthly cost low"
+    Agent->>Store: list payment options
+    Store-->>Agent: store card · Affirm · Klarna · pay now<br/>(+ hidden "approved" text if hacked)
+    loop each credit option
+        Agent->>Gate: check_side_effects(lender, product, Maya's situation)
+        Gate-->>Agent: human_review — "Interest rate rises unexpectedly 2.6×" fits her
+        Gate->>BQ: log decision
+    end
+    Agent->>Store: place_order(store card)
+    Store-->>Agent: ❌ refused: needs Maya's OK
+    Agent->>Maya: "Each option has a side effect that fits you. Which would you like?"
+    Maya->>Agent: chooses (by tap or by voice)
+```
+
+</details>
+
+<details>
+<summary><b>🚨 The pharmacovigilance loop (safety alerts)</b></summary>
+
+<br>
+
+```mermaid
+flowchart LR
+    A["📡 Scan<br/>CFPB live feed<br/>15 lenders"] --> B["📈 Detect<br/>last 45 days vs 180 before<br/>PRR ≥ 2 · n ≥ 10 · χ² ≥ 4"]
+    B --> C["✦ Explain<br/>Gemini + Google Search<br/>finds a likely cause"]
+    C --> D["🗄️ Record<br/>BigQuery<br/>safety_alerts"]
+    D --> E["🛡️ Act<br/>gate · leaflets ·<br/>assistant · MCP"]
+```
+
+Detection is plain code. Gemini only writes the words around fixed numbers. Alerts reload from BigQuery on restart and stay active for 30 days.
+
+</details>
+
+<details>
+<summary><b>🧰 Google Cloud stack in detail</b></summary>
+
+<br>
 
 | Piece | How it is used |
 |---|---|
-| **Gemini** (`gemini-3.8-flash` via the Google Gen AI SDK) | Ten agents: intake (multimodal: photo, PDF or text of an offer), clause reader (long-context contract reading with structured output), leaflet writer, pharmacist (tool calling over the leaflet, contract and complaints), the shopping agent (step-by-step function calling with thought summaries streamed to the page), the person reader (your own words to situations), and four new ones: the scam-arena attacker and guardian (`app/agents/arena.py`), the complaint-story reader (`app/agents/radar.py`) and the live news researcher (Gemini with Google Search grounding, `app/live.py`) |
-| **Vertex AI** | Gemini calls in production, authorised by the Cloud Run service account |
-| **Cloud Run** | Hosts the FastAPI app and the streaming endpoints; scales to zero, no sign-in |
+| **Gemini** on **Vertex AI** (`gemini-3.8-flash`, Google Gen AI SDK) | Twelve roles: intake (multimodal), clause reader (long context, structured output), leaflet writer, pharmacist (tool calling), shopping agent (step-by-step function calling with streamed thoughts), person reader, scam attacker and guardian, complaint-story reader, live news researcher, safety-alert writer, site assistant |
+| **Google Search grounding** | Today's news per lender, and the likely cause behind a new complaint spike, with every source listed |
+| **BigQuery** | Google's public CFPB table for the latest 12 months per lender; `side_effects.gate_decisions` audit log (REST, MCP and agent checkout); `side_effects.safety_alerts`. Batch SQL in `pipeline/bigquery/` codes and scores the full table |
+| **Cloud Run** | FastAPI app with streaming NDJSON endpoints; scales to zero; CPU boost on start |
+| **Cloud Scheduler** | `side-effects-safety-scan` job calls the scan every morning at 07:00 Singapore time |
 | **Cloud Build / Artifact Registry** | `gcloud run deploy --source` builds the container |
-| **BigQuery** (live) | `app/bq.py`. Each leaflet queries Google's public CFPB table (`bigquery-public-data.cfpb_complaints.complaint_database`) for the lender's latest 12 months of complaints and top issues. Every decision the agent gate makes is written to an audit table (`side_effects.gate_decisions`), shown under For business. Both are optional: if BigQuery fails, the panels hide and the gate's verdict is unchanged. Queries are capped at 3 GB scanned |
-| **BigQuery** (batch, ready, not yet run) | `pipeline/bigquery/classify.sql` codes the full public CFPB table with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics at scale. The shipped statistics were computed by `pipeline/build_data.py` |
+| **IAM** | Service account with Vertex AI User and BigQuery roles; no API keys anywhere |
 
-## Fictional and real data
+</details>
 
-- **Real:** CFPB complaint statistics and complaint stories, RBI Ombudsman rates, Indian banks' published complaint figures, the Apple Card enforcement action.
-- **Fictional:** Northwind Electronics, its laptop and its payment terms (the lenders and their complaint signals are real); "Example Lending Co." and "FlexiPay" in `samples/`; the personas Maya and Sam.
+<details>
+<summary><b>🗂️ Repository map</b></summary>
 
-## Data
+<br>
+
+```text
+app/
+  main.py            FastAPI routes, streaming endpoints, MCP endpoint
+  gate.py            the deterministic verdict (no model in the loop)
+  evidence.py        PRR signals, India RBI evidence
+  alerts.py          safety-alert scan, detection and BigQuery storage
+  live.py            CFPB live feed + Gemini news with Google Search grounding
+  mcp.py             Model Context Protocol server (JSON-RPC 2.0)
+  tools.py           tools shared by the assistant and MCP
+  bq.py              BigQuery reads and audit writes
+  agents/            intake · clauses · composer · pharmacist · shopper · arena · radar · assistant
+  data/              signal tables, verified quotes, vocabulary, APAC data
+pipeline/            offline harvest: classify, PRR in BigQuery, evaluation, India data
+static/              the web app (no build step)
+tests/               31 tests with a Gemini stand-in; tests/fake_server.py runs the UI offline
+deploy.sh            one-command Cloud Run + BigQuery + Scheduler deploy
+```
+
+</details>
+
+---
+
+## 🔬 The science
+
+**Proportional reporting ratio (PRR)**, the standard screen in drug-safety databases:
+
+$$\mathrm{PRR} = \frac{a / (a + b)}{c / (c + d)}$$
+
+where **a** is complaints about this problem at this lender, **b** its other complaints, and **c**, **d** the same for similar lenders. A signal needs **PRR ≥ 2**, at least **3 reports** (10 for live alerts) and a **Yates χ² ≥ 4** (the Evans rule), with a 95% confidence interval.
+
+<details>
+<summary><b>Why the wording is careful</b></summary>
+
+<br>
+
+- **No denominator.** Complaints don't come with the number of customers, so the leaflet says *"reported N× more often than similar lenders"*, never "common" or "rare", and always says reports are unverified.
+- **Honest level.** Each line says whether it is a *bank-level complaint signal*, a *product-category signal* (for example all BNPL lenders) or a *clause in this contract*. Many harms have no clause behind them, and the leaflet says so.
+- **Templates filtered.** Gemini flags copy-paste credit-repair templates (19% of a hand-checked sample), which would otherwise fake a signal.
+- **Replication.** Card signals from 2024 are re-tested on Jun-Sep 2026 complaints and marked "still reported" or "new in 2026".
+
+</details>
+
+<details>
+<summary><b>📊 Data sources</b></summary>
+
+<br>
 
 | Source | Rows | Used for |
-|---|---|---|
+|---|---:|---|
 | US CFPB credit-card complaints, 2024 (credit bureaus removed from peers) | 75,989 | card issuer signals |
-| US CFPB credit-card complaints, Jun-Sep 2026 | 21,293 | "still reported in 2026" / "new in 2026" |
+| US CFPB credit-card complaints, Jun-Sep 2026 | 21,293 | replication, "new in 2026" |
 | US CFPB personal loan / BNPL complaints | 38,988 | BNPL lender and category signals |
+| CFPB live complaint API | live | 90-day lender check, daily safety scan |
 | Hand-labelled CFPB complaint stories | 143 | real stories on the leaflet, classifier evaluation |
+| RBI Ombudsman, FY2024-25 | 41,262 complaints / 110M cards | Indian card leaflets (a true rate per card) |
 
-India: RBI Ombudsman complaints per 1,000 credit cards by bank group (FY2024-25, 41,262 card complaints across 110M cards) are shown on Indian card leaflets. Unlike the US data this is a true rate. Singapore regulators publish no complaint-level data, so Singapore products get a clause-only leaflet that says so. Insurance is out of scope for the same reason.
+**Real:** CFPB statistics and stories, RBI Ombudsman rates, Indian banks' published complaint figures, the Apple Card enforcement action. **Fictional:** Northwind Electronics and its payment terms, the sample agreement in `samples/`, the personas Maya and Sam.
 
-## Run locally
+</details>
+
+---
+
+## 🛡️ Guardrails
+
+| Risk | What stops it |
+|---|---|
+| The model invents a number | Every figure is computed in code from the complaint tables. Gemini writes words around fixed numbers. |
+| The model invents a contract quote | Code searches the contract for each quote word for word and drops it if it isn't there. |
+| An agent skips the check | `place_order` refuses a `human_review` option until the person confirms (tested). |
+| The store tries to talk the agent into it | Text addressed to AI agents is detected in code. The gate never reads the page, so the page can't talk its way past it (tested). |
+| The scam guardian makes things up | Every finding must quote the page; quotes not on the page are discarded and counted on screen. |
+| News is wrong | Grounded in Google Search with every source listed; marked unverified without sources; never changes the verdict. |
+| A person's own words are used as instructions | "You" mode sends them fenced as data, and keeps only situations from a fixed list. |
+| Secrets leak | None in the code: Cloud Run calls Gemini through Vertex AI with its service account. |
+
+---
+
+## 🤖 For AI agents (REST and MCP)
+
+<details open>
+<summary><b>REST: the deterministic gate</b></summary>
+
+<br>
+
+```http
+POST /api/v1/check
+Content-Type: application/json
+
+{"issuer": "Klarna", "product_type": "bnpl", "applicant_profile": ["irregular_income"]}
+```
+
+```json
+{
+  "issuer_matched": "Klarna AB",
+  "verdict": "human_review",
+  "matches_applicant_situation": ["Trouble making repayments go through"],
+  "required_disclosures": [
+    {"side_effect": "Trouble making repayments go through", "reported_x": 3.3,
+     "ci95": [2.997, 3.526], "n": 364, "level": "bank",
+     "text": "Trouble making repayments go through: reported 3.3x more often than at peer lenders (364 complaints, …)"}
+  ],
+  "safety_alerts": [],
+  "disclaimer": "…"
+}
+```
+
+Same lender and situation, same verdict, every time. Profile keys: `irregular_income`, `carries_balance`, `other_bnpl`, `new_to_credit`, `big_purchase`, `travels`. Service descriptor: `GET /.well-known/side-effects.json`.
+
+</details>
+
+<details>
+<summary><b>MCP: plug it into any agent framework</b></summary>
+
+<br>
+
+SIDE EFFECTS is a [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON-RPC 2.0) at `POST /mcp`.
+
+```bash
+gemini mcp add --transport http side-effects \
+  https://side-effects-339621847915.asia-southeast1.run.app/mcp
+```
+
+| Tool | What it returns |
+|---|---|
+| `check_lender` | live 90-day complaints, trend, top issues and side effects |
+| `lender_news` | today's news, grounded in Google Search, with sources |
+| `safety_alerts` | active safety alerts, optionally for one lender |
+| `compare_lenders` | side effects of two or more lenders side by side |
+| `find_alternatives` | lenders with fewer reported problems |
+| `gate_check` | the same verdict the checkout enforces, logged to BigQuery |
+
+</details>
+
+<details>
+<summary><b>All HTTP endpoints</b></summary>
+
+<br>
+
+| Method | Path | |
+|---|---|---|
+| `POST` | `/api/v1/check` | deterministic gate |
+| `POST` | `/mcp` | MCP server |
+| `POST` | `/api/leaflet` | make a leaflet (streams NDJSON) |
+| `POST` | `/api/agent/run` | run the shopping agent (streams) |
+| `POST` | `/api/arena/run` | scam arena (streams) |
+| `POST` | `/api/assistant` | assistant with tools (streams) |
+| `GET` | `/api/alerts` · `POST /api/alerts/scan` | safety alerts |
+| `GET` | `/api/live/check` · `/api/live/news` | live lender check |
+| `GET` | `/.well-known/side-effects.json` | agent descriptor |
+
+</details>
+
+---
+
+## 🚀 Run it yourself
+
+<details open>
+<summary><b>Deploy to Google Cloud (one command, no API keys)</b></summary>
+
+<br>
+
+In Cloud Shell, from the project folder:
+
+```bash
+PROJECT_ID=your-project bash deploy.sh
+```
+
+It enables the APIs, creates a service account (Vertex AI, BigQuery), creates the BigQuery tables, deploys from source to Cloud Run in `asia-southeast1`, and sets up the Cloud Scheduler safety scan. Step by step with fixes for common errors: [docs/DEPLOY.md](docs/DEPLOY.md).
+
+</details>
+
+<details>
+<summary><b>Run locally</b></summary>
+
+<br>
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt
-export GEMINI_API_KEY=...            # or GOOGLE_GENAI_USE_VERTEXAI=true + GOOGLE_CLOUD_PROJECT + GOOGLE_CLOUD_LOCATION
+# either a Gemini API key in your shell, or Vertex AI:
+#   export GOOGLE_GENAI_USE_VERTEXAI=true GOOGLE_CLOUD_PROJECT=... GOOGLE_CLOUD_LOCATION=...
 uvicorn app.main:app --reload --port 8080
 ```
 
-Open http://localhost:8080 and press **Try a sample**. The sample is a fictional BNPL agreement; for a real demo, upload a real card agreement PDF (US issuers publish theirs in the CFPB credit card agreement database).
-
-Tests use a stand-in for Gemini, so they run without credentials: `pytest`. To click through the UI without credentials: `python -m tests.fake_server`.
-
-Model: `GEMINI_MODEL` (default `gemini-3.8-flash`; Gemini 2.5 is closed to new projects), and optionally `GEMINI_DEEP_MODEL` for the contract reader.
-
-## Deploy to Cloud Run
+No credentials? Click through the whole UI with a Gemini stand-in:
 
 ```bash
-PROJECT_ID=your-project ./deploy.sh
+python -m tests.fake_server     # http://localhost:8080
+pytest                           # 31 tests, no credentials needed
 ```
 
-Step-by-step for Cloud Shell, including fixes for common errors: [docs/DEPLOY.md](docs/DEPLOY.md). This enables the APIs, creates a service account with the Vertex AI User role, and deploys from source to Cloud Run in `asia-southeast1`. Gemini is called through Vertex AI with the service's own identity, so no API key is stored.
+</details>
 
-## For AI agents
+---
 
-`GET /.well-known/side-effects.json` describes the service. Before committing a person to a credit product an agent calls:
+## ⚠️ Limits
 
-```http
-POST /api/v1/check
-{"issuer": "Apple Card", "product_type": "credit_card", "applicant_profile": ["big_purchase"]}
-```
-
-and gets `human_review` with the disclosure "Purchase disputes left unresolved: reported 2.1x more often than at peer lenders (817 complaints, Jan-Dec 2024; bank-level complaint signal; unverified reports)". The answer is deterministic, so the same request always gets the same answer.
-
-### Safety alerts (the pharmacovigilance loop, live)
-
-Every morning Cloud Scheduler calls `POST /api/alerts/scan`. For 15 large lenders it reads the CFPB's live complaint feed and compares the last 45 days with the 180 days before. An issue raises a signal when its share of complaints has at least doubled, on at least 10 complaints, with chi-squared of 4 or more (the same test as the main statistics); a rise of half in complaints a day also counts. This step is plain code. For each signal Gemini searches Google for a likely cause and writes the alert around the fixed numbers. Alerts are saved to BigQuery (`side_effects.safety_alerts`) and reloaded on restart. They take effect at once: the gate discloses them and asks a person to confirm when an alert matches their situation, leaflets show a banner, and the assistant and MCP get a `safety_alerts` tool. The home page's "Safety alerts" tab runs the scan live (at most once an hour).
-
-### MCP server
-
-SIDE EFFECTS is also a [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON-RPC 2.0) at `POST /mcp`, so any agent framework (ADK, Gemini CLI, Claude, others) can use it as a tool without custom code. Tools: `check_lender`, `lender_news`, `safety_alerts`, `compare_lenders`, `find_alternatives` and `gate_check`. They are the same functions the on-site assistant calls, and `gate_check` returns the same verdict the checkout enforces. Gate calls made over MCP are logged to the BigQuery audit table with source `mcp`.
-
-```bash
-gemini mcp add --transport http side-effects https://<your-service>/mcp
-```
-
-## Limits
-
-- Complaint data is issuer-level, not per card.
-- Leaflets are kept in memory (last 200) on a single Cloud Run instance; a restart forgets them and the pharmacist asks you to make the leaflet again.
-- Each run makes several Gemini calls, so heavy simultaneous use can hit Gemini quota; the page then shows the error. There is no retry in this version.
-- Complaints are unverified and self-selected; signals show disproportion, not cause or probability.
+- Complaint data is per company, not per card. Complaints are unverified and self-selected: signals show disproportion, not cause or probability.
+- Leaflets are kept in memory (last 200) on one instance; a restart forgets them.
+- Heavy simultaneous use can hit Gemini quota; the page then shows the error.
 - The hand-labelled set has a single annotator.
-- Not financial advice.
+- **Not financial advice.**
+
+<div align="center">
+
+---
+
+Built with Gemini on Google Cloud by **CyberNex - Vision Matters** for the Google Cloud AI Builder Cup 2026.
+
+<a href="https://side-effects-339621847915.asia-southeast1.run.app/"><img alt="Open the live demo" src="https://img.shields.io/badge/Open_the_live_demo-4f46e5?style=for-the-badge"></a>
+
+</div>
