@@ -28,7 +28,7 @@
 
 [What it does](#-what-it-does) · [Try it](#-try-it-in-60-seconds) · [Screens](#-screens) · [Architecture](#-architecture) · [The science](#-the-science) · [Guardrails](#-guardrails) · [For AI agents](#-for-ai-agents-rest-and-mcp) · [Run it](#-run-it-yourself)
 
-<img src="docs/screens/agent-run.png" alt="Two Gemini shopping agents buy the same laptop: the one on its own signs Maya up for a store card; the one with SIDE EFFECTS stops before signing" width="100%">
+<img src="docs/screens/agent-stopped.jpg" alt="Two Gemini shopping agents buy the same laptop in a hacked store: the one with SIDE EFFECTS stops before signing Maya up for the store card" width="100%">
 
 <sub>The same Gemini agent buys a laptop twice for Maya, a freelancer with irregular income. On its own it signs her up for a deferred-interest store card. With SIDE EFFECTS it stops and asks her first.</sub>
 
@@ -97,46 +97,30 @@ Every step streams to the screen. If Gemini is busy or refuses, the page shows G
 
 ## 🖼️ Screens
 
+Stills from the demo video, recorded on the live Cloud Run deployment with real Gemini.
+
 <table>
 <tr>
-<td width="50%"><img src="docs/screens/leaflet.png" alt="Apple Card side-effects leaflet"><br><b>The leaflet.</b> A medicine box, the reported multiple, and tabs for side effects, alternatives and the evidence.</td>
-<td width="50%"><img src="docs/screens/alerts.png" alt="Safety alerts"><br><b>Safety alerts.</b> Signals already in the data, and a live 45-day scan run by Cloud Scheduler.</td>
+<td width="50%"><img src="docs/screens/agent-checkout.jpg" alt="Agent checkout"><br><b>Agent checkout.</b> Pick who the agent shops for, and whether the store is hacked.</td>
+<td width="50%"><img src="docs/screens/gate-check.jpg" alt="Gate check at the checkout"><br><b>The gate at the checkout.</b> Every credit offer is checked; the store card's side effects fit Maya, so it needs her OK.</td>
 </tr>
 <tr>
-<td><img src="docs/screens/scam.png" alt="Scam arena"><br><b>Scam arena.</b> Three Gemini agents: attacker, guardian and shopper. The gate never reads the page.</td>
-<td><img src="docs/screens/evidence.png" alt="Evidence"><br><b>Evidence.</b> Every number is computed from the data, with the PRR method shown.</td>
+<td><img src="docs/screens/order-placed.jpg" alt="Order placed"><br><b>The person decides.</b> Maya picks her own debit card, and the decision is logged to BigQuery.</td>
+<td><img src="docs/screens/leaflet-trace.jpg" alt="Leaflet with pipeline trace"><br><b>The leaflet and its trace.</b> Five stages with real timings, 0 hallucinated numbers, and a live <i>What if</i>.</td>
 </tr>
 <tr>
-<td><img src="docs/screens/api-dark.png" alt="API, MCP and audit in dark mode"><br><b>API, MCP & audit.</b> REST and MCP for agent builders; every gate decision logged to BigQuery.</td>
-<td><img src="docs/screens/architecture.png" alt="Architecture"><br><b>How it works.</b> Four Google Cloud layers behind one gate.</td>
+<td><img src="docs/screens/side-effects.jpg" alt="Side effects"><br><b>Side effects.</b> Each one with how much more often it is reported than at similar lenders.</td>
+<td><img src="docs/screens/unknown-lender.jpg" alt="Unknown lender researched"><br><b>Lenders we don't have yet.</b> Gemini researches who lends, the regulator and red flags, with sources.</td>
 </tr>
 <tr>
-<td><img src="docs/screens/voice-mode.png" alt="Voice Mode"><br><b>Voice Mode.</b> Listening (STT), tool lookup, PRR and clause check, speaking (TTS), shown live.</td>
-<td><img src="docs/screens/trace.png" alt="Pipeline trace"><br><b>Pipeline trace.</b> Five stages with timings; click one for exactly what it produced.</td>
+<td><img src="docs/screens/voice-mode.jpg" alt="Voice Mode"><br><b>Voice Mode.</b> Speech in, tools and the gate, then the answer spoken by Cloud Text-to-Speech.</td>
+<td><img src="docs/screens/scam-arena.jpg" alt="Scam arena"><br><b>Scam arena.</b> A Gemini attacker writes new scams, a Gemini guardian quotes them, and the gate holds.</td>
 </tr>
 <tr>
-<td><img src="docs/screens/what-if.png" alt="What if"><br><b>What if?</b> Change the situation and the gate re-runs live through <code>/api/v1/check</code>.</td>
-<td><img src="docs/screens/advert-vs-contract.png" alt="Advert vs contract"><br><b>Advert vs contract.</b> "No hidden fees", next to the clauses verified word for word.</td>
-</tr>
-<tr>
-<td><img src="docs/screens/regions.png" alt="Regional data"><br><b>Regional data.</b> US CFPB signals, or India's RBI Ombudsman complaints per card.</td>
-<td><img src="docs/screens/playground.png" alt="API playground"><br><b>API playground.</b> A real <code>/api/v1/check</code> request, its JSON and latency.</td>
+<td><img src="docs/screens/evidence.jpg" alt="Evidence"><br><b>Evidence.</b> The PRR method, and regional data from the US CFPB and India's RBI Ombudsman.</td>
+<td><img src="docs/screens/api-audit.jpg" alt="API playground and BigQuery audit"><br><b>API, MCP &amp; audit.</b> Try the gate live; every decision is on the record in BigQuery.</td>
 </tr>
 </table>
-
-<details>
-<summary><b>📱 Phone, sample leaflet and assistant</b></summary>
-
-<br>
-
-<p align="center">
-<img src="docs/screens/phone-home.png" width="30%" alt="Phone home">&nbsp;
-<img src="docs/screens/phone-leaflet.png" width="30%" alt="Phone leaflet">&nbsp;
-<img src="docs/screens/assistant.png" width="34%" alt="Assistant calling live tools">
-</p>
-<img src="docs/screens/sample-leaflet.png" alt="Sample Credit Facts label" width="100%">
-
-</details>
 
 ---
 
