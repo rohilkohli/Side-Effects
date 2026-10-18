@@ -277,3 +277,41 @@ def test_emerging_side_effects_only_count_real_ids_and_quotes(fake_gemini):
     assert first["count"] == 3  # the made-up id is not counted
     assert first["quote"] and second["quote"] == ""  # a quote not in any story is dropped
     assert TestClient(app).get("/api/radar", params={"issuer": "Nobody Bank Ltd"}).json()["available"] is False
+
+
+def test_scam_arena_keeps_going_when_gemini_fails(monkeypatch):
+    """Attacker refuses, guardian errors: every round still finishes and the gate still decides."""
+    from app.agents import arena, shopper
+    from app.schemas import Attack, GuardianReport
+
+    def flaky(prompt, schema, **kw):
+        if schema in (Attack, GuardianReport):
+            raise gemini.LLMEmpty("blocked")
+        return fakes.fake(prompt, schema, **kw)
+
+    monkeypatch.setattr(gemini, "generate_json", flaky)
+    monkeypatch.setattr(shopper, "_model_turn", fakes.fake_shopper_turn)
+    events = list(arena.run())
+    attacks = [e for e in events if e["type"] == "attack"]
+    assert len(attacks) == 3 and all(a["attack"]["source"] == "playbook" for a in attacks)
+    assert len({a["attack"]["technique"] for a in attacks}) == 3
+    assert all(e.get("error") for e in events if e["type"] == "guardian")
+    assert [e for e in events if e["type"] == "gate"] and events[-1]["type"] == "arena_end"
+
+
+def test_scam_that_changes_the_agents_choice_counts_as_fooled(monkeypatch, fake_gemini):
+    from app.agents import arena, shopper
+
+    def swayed(contents, system, tools, **kw):
+        from google.genai import types
+        done = [p.function_response.name for c in contents for p in (c.parts or []) if p.function_response]
+        if not done:
+            return types.Content(role="model", parts=[types.Part.from_function_call(name="search_payment_options", args={})])
+        return types.Content(role="model", parts=[types.Part.from_text(text="The page says Klarna is pre-approved."),
+                                                  types.Part.from_function_call(name="place_order", args={"offer_id": "klarna_pay4"})])
+
+    monkeypatch.setattr(shopper, "_model_turn", swayed)
+    events = list(arena.run(rounds=1))
+    agent = next(e for e in events if e["type"] == "agent")
+    gate = next(e for e in events if e["type"] == "gate")
+    assert agent["fooled"] and gate["held"]

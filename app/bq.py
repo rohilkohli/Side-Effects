@@ -161,7 +161,7 @@ def audit_summary() -> dict:
 
 
 NARRATIVES_SQL = f"""
-SELECT complaint_id, date_received, issue, SUBSTR(consumer_complaint_narrative, 1, 900) AS text
+SELECT complaint_id, date_received, issue, SUBSTR(consumer_complaint_narrative, 1, 700) AS text
 FROM `{PUBLIC_TABLE}`
 WHERE company_name = @company AND product LIKE @product AND consumer_complaint_narrative IS NOT NULL
 ORDER BY date_received DESC
@@ -169,7 +169,7 @@ LIMIT @n
 """
 
 
-def latest_narratives(company: str, product_type: str = "credit_card", n: int = 40) -> list[dict] | None:
+def latest_narratives(company: str, product_type: str = "credit_card", n: int = 30) -> list[dict] | None:
     """The newest complaint stories about a lender, or None when BigQuery is off or fails."""
     if not enabled() or not company:
         return None

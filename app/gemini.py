@@ -22,6 +22,30 @@ class LLMUnavailable(RuntimeError):
     pass
 
 
+class LLMEmpty(RuntimeError):
+    """Gemini answered with nothing usable (for example a blocked or empty response)."""
+
+
+RETRY_CODES = {429, 500, 502, 503, 504}
+
+
+def with_retries(call, attempts: int = 3):
+    """Run a Gemini call, retrying briefly when the service is busy or the answer is empty."""
+    import time
+    from google.genai import errors
+
+    for i in range(attempts):
+        try:
+            return call()
+        except errors.APIError as e:
+            if e.code not in RETRY_CODES or i == attempts - 1:
+                raise
+        except LLMEmpty:
+            if i == attempts - 1:
+                raise
+        time.sleep(1.5 * (i + 1))
+
+
 @lru_cache
 def client():
     from google import genai
@@ -40,19 +64,24 @@ def generate_json(prompt: list | str, schema: type[BaseModel], *, model: str | N
     tuned for their default and can loop at low temperatures."""
     from google.genai import types
 
-    resp = client().models.generate_content(
-        model=model or FAST_MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            system_instruction=system,
-            temperature=temperature,
-            response_mime_type="application/json",
-            response_schema=schema,
-        ),
-    )
-    if resp.parsed is None:
+    def call():
+        resp = client().models.generate_content(
+            model=model or FAST_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                temperature=temperature,
+                response_mime_type="application/json",
+                response_schema=schema,
+            ),
+        )
+        if resp.parsed is not None:
+            return resp.parsed
+        if not resp.text:
+            raise LLMEmpty(f"Gemini returned no {schema.__name__}")
         return schema.model_validate_json(resp.text)
-    return resp.parsed
+
+    return with_retries(call)
 
 
 def part_from_bytes(data: bytes, mime: str):

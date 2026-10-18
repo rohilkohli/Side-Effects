@@ -69,7 +69,7 @@ def answer(leaflet: dict, pages: list[dict], history: list[dict], question: str)
 
     contents = [types.Content(role=h["role"], parts=[types.Part.from_text(text=h["text"])]) for h in history[-10:]]
     contents.append(types.Content(role="user", parts=[types.Part.from_text(text=question)]))
-    resp = gemini.client().models.generate_content(
+    resp = gemini.with_retries(lambda: gemini.client().models.generate_content(
         model=gemini.FAST_MODEL,
         contents=contents,
         config=types.GenerateContentConfig(
@@ -77,5 +77,5 @@ def answer(leaflet: dict, pages: list[dict], history: list[dict], question: str)
             tools=build_tools(leaflet, pages),
             automatic_function_calling=types.AutomaticFunctionCallingConfig(maximum_remote_calls=6),
         ),
-    )
+    ))
     return resp.text or "Sorry, I couldn't find an answer to that in the leaflet."

@@ -60,7 +60,7 @@ These inputs are known to work end to end:
 5. **/leaflet, "Try a sample".** A fictional six-page BNPL agreement and advert. Tick "My income is irregular" and press "Write my leaflet". Expect two product-category side effects, one pinned to a verified clause on page 2, and one contract-only risk.
 6. **/leaflet, lender "Apple Card", product "Credit card".** Expect "Purchase disputes left unresolved, 2.1x", the signal behind the US regulator's $45M order against Goldman Sachs.
 7. **Home page, "Scam arena" tab, "Start 3 rounds".** A Gemini attacker writes a new checkout scam each round and adapts to what was caught; a Gemini guardian flags it with exact quotes from the page; an unprotected Gemini agent tries to buy. Expect "the gate held" in every round where the agent picks credit that matches Maya's situation. A full run takes a minute or two.
-8. **/leaflet, "Apple Card" leaflet, "Read the newest complaints".** Gemini groups the newest complaint stories about the lender (from BigQuery when it is on) and marks which ones our statistics have not caught yet.
+8. **/leaflet, "Apple Card" leaflet, "Read the complaint stories".** Gemini reads real complaint stories about the lender (from BigQuery's public CFPB table when it is on, which runs to March 2023) and groups them, marking problems our statistics do not show.
 9. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
 
 A run calls Gemini several times, so a leaflet or agent run takes tens of seconds. Every step streams to the screen as it happens, and if Gemini is busy or refuses a request the page shows Gemini's own error instead of hanging.
@@ -73,7 +73,7 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 - **The agent gate is enforced in code, not the prompt.** `place_order` refuses a credit option whose verdict is `human_review` until the person confirms, so an agent that skips `check_side_effects` still cannot sign (tested in `tests/test_app.py`).
 - **Prompt injection from the store is expected.** Text on the checkout page addressed to AI agents is detected in code and flagged to the agent and the person; the gate does not read the page at all, so the page cannot talk its way past it (tested).
 - **The scam arena's guardian must show its evidence.** Every finding quotes the page; quotes that are not on the page are discarded and counted on screen. The attacker is confined to the fictional store and told not to write links, ask for credentials or name real people.
-- **Emerging side effects count real complaints.** A theme's count is the number of complaint ids Gemini pointed to that exist in what it was given, and its quote is checked against those complaints.
+- **"In their own words" counts real complaints.** A theme's count is the number of complaint ids Gemini pointed to that exist in what it was given, and its quote is checked against those complaints.
 - **The person's own words are read as data.** "You" mode sends the description to Gemini fenced and labelled as a description only, and keeps only situations from a fixed list.
 - **The check API has no model in the loop**, so the same request always gets the same verdict.
 - **No secrets in the code.** On Cloud Run, Gemini is called through Vertex AI with the service account's identity; no API key is stored or passed.
@@ -82,7 +82,7 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 
 | Suggested direction | Where it is in SIDE EFFECTS |
 |---|---|
-| Risk assessment | Lender risks found in 136,270 real CFPB complaints with the proportional reporting ratio drug regulators use, computed in code (`pipeline/build_data.py`, `app/evidence.py`). Emerging side effects (`app/agents/radar.py`): Gemini reads the newest complaint stories from BigQuery and groups them; counts are real complaint ids and quotes are verified |
+| Risk assessment | Lender risks found in 136,270 real CFPB complaints with the proportional reporting ratio drug regulators use, computed in code (`pipeline/build_data.py`, `app/evidence.py`). In their own words (`app/agents/radar.py`): Gemini reads complaint stories from BigQuery and groups them, flagging problems the statistics do not show; counts are real complaint ids and quotes are verified |
 | Fraud detection | Scam arena (`app/agents/arena.py`): an adaptive Gemini attacker writes new checkout scams each round, a Gemini guardian must catch them with exact quotes from the page, an unprotected Gemini agent tries to buy, and the checkout gate, which never reads the page, decides. Hacked-store mode on the live demo shows a fixed version |
 | Document intelligence | Gemini reads a card agreement from a photo, PDF or text and quotes the clause behind each problem; every quote is verified word for word |
 | Compliance automation | `POST /api/v1/check` returns a verdict and the disclosures a person must see before an agent commits them to credit (`app/gate.py`); every decision is logged to a BigQuery audit table |
@@ -93,7 +93,7 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 
 | Piece | How it is used |
 |---|---|
-| **Gemini** (`gemini-3.8-flash` via the Google Gen AI SDK) | Nine agents: intake (multimodal: photo, PDF or text of an offer), clause reader (long-context contract reading with structured output), leaflet writer, pharmacist (tool calling over the leaflet, contract and complaints), the shopping agent (step-by-step function calling with thought summaries streamed to the page), the person reader (your own words to situations), and three new ones: the scam-arena attacker and guardian (`app/agents/arena.py`) and the emerging-side-effects reader (`app/agents/radar.py`) |
+| **Gemini** (`gemini-3.8-flash` via the Google Gen AI SDK) | Nine agents: intake (multimodal: photo, PDF or text of an offer), clause reader (long-context contract reading with structured output), leaflet writer, pharmacist (tool calling over the leaflet, contract and complaints), the shopping agent (step-by-step function calling with thought summaries streamed to the page), the person reader (your own words to situations), and three new ones: the scam-arena attacker and guardian (`app/agents/arena.py`) and the complaint-story reader (`app/agents/radar.py`) |
 | **Vertex AI** | Gemini calls in production, authorised by the Cloud Run service account |
 | **Cloud Run** | Hosts the FastAPI app and the streaming endpoints; scales to zero, no sign-in |
 | **Cloud Build / Artifact Registry** | `gcloud run deploy --source` builds the container |

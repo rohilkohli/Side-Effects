@@ -126,17 +126,23 @@ def _model_turn(contents: list, system: str, tools: list):
     """One Gemini step with automatic calling off, so each call can be shown and gated here."""
     from google.genai import types
 
-    resp = gemini.client().models.generate_content(
-        model=gemini.FAST_MODEL,
-        contents=contents,
-        config=types.GenerateContentConfig(
-            system_instruction=system,
-            tools=tools,
-            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
-            thinking_config=types.ThinkingConfig(include_thoughts=True),
-        ),
-    )
-    return resp.candidates[0].content
+    def call():
+        resp = gemini.client().models.generate_content(
+            model=gemini.FAST_MODEL,
+            contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                tools=tools,
+                automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+                thinking_config=types.ThinkingConfig(include_thoughts=True),
+            ),
+        )
+        content = resp.candidates[0].content if resp.candidates else None
+        if content is None or not content.parts:  # nothing more to say (or a blocked step): end the run cleanly
+            return types.Content(role="model", parts=[types.Part.from_text(text="")])
+        return content
+
+    return gemini.with_retries(call)
 
 
 def run(persona_key: str, gated: bool, *, custom: dict | None = None, hacked: bool = False,

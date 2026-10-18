@@ -1,5 +1,7 @@
 "use strict";
 const $ = (id) => document.getElementById(id);
+// CFPB replaces personal details with XXXX and wraps amounts in braces; show that plainly.
+const story = (t) => esc(t).replace(/\{\$([\d.,]+)\}/g, "$$$1").replace(/X{2}\/X{2}\/(X{4}|\d{4})/g, '<i class="redact">[date]</i>').replace(/X{2,}/g, '<i class="redact">[redacted]</i>');
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const STEPS = {
@@ -34,9 +36,10 @@ async function init() {
 }
 
 function showFile(input, label, drop) {
+  const empty = $(label).textContent;
   input.addEventListener("change", () => {
-    const names = [...input.files].map((f) => f.name).join(", ");
-    if (names) { $(label).textContent = names; $(drop).classList.add("has"); }
+    const names = [...(input.files || [])].map((f) => f.name).join(", ");
+    $(label).textContent = names || empty; $(drop).classList.toggle("has", !!names);
   });
 }
 showFile($("images"), "imagesName", "photoDrop");
@@ -126,7 +129,7 @@ function sideEffect(l) {
     : `${(l.share_company * 100).toFixed(1)}% of complaints about BNPL lenders are about this, vs ${(l.share_peers * 100).toFixed(1)}% at other lenders (${l.n.toLocaleString()} reports).`;
   const recent = l.recent ? ` In ${esc(l.recent.period)} it was ${l.recent.reported_x}× (${l.recent.n} reports).` : "";
   const stories = (l.stories || []).map((s) =>
-    `<div class="story">“${esc(s.text)}”<div class="meta">Real complaint to the US CFPB, ${esc(s.date)}, #${esc(s.complaint_id)}</div></div>`).join("");
+    `<div class="story">“${story(s.text)}”<div class="meta">Real complaint to the US CFPB, ${esc(s.date)}, #${esc(s.complaint_id)}</div></div>`).join("");
   return `<div class="se ${l.relevant_to_you ? "you" : ""}">
     <button aria-expanded="false"><div class="se-head"><span class="se-name">${esc(l.label)}</span>
       <span class="se-x">${l.reported_x}× <small>more often than similar lenders</small></span></div>
@@ -232,9 +235,9 @@ function render(lf) {
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
     <div class="bqlive" id="bqLive" hidden></div>
-    ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">Emerging side effects</span><span class="small muted">Gemini reads the newest complaints</span></div>
-      <p class="small">The numbers above come from statistics over many months. Gemini can read the newest complaint stories now and spot problems before they are big enough to count.</p>
-      <button type="button" class="radar-btn" id="radarBtn">Read the newest complaints</button><div id="radarOut"></div></div>` : ""}
+    ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">In their own words</span><span class="small muted">Gemini reads real complaint stories</span></div>
+      <p class="small">The numbers above are statistics. Gemini can read the actual stories people wrote about this lender, group them by what went wrong, and point out problems our statistics don't show.</p>
+      <button type="button" class="radar-btn" id="radarBtn">Read the complaint stories</button><div id="radarOut"></div></div>` : ""}
     <button type="button" class="lf-next" data-go="effects">See the side effects ›</button>
     </div>
     <div class="lf-panel" data-t="effects" hidden>
@@ -287,7 +290,10 @@ function render(lf) {
   $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
   window.scrollTo({ top: 0, behavior: "smooth" });
   $("chat").innerHTML = "";
-  $("suggest").innerHTML = ["Is this OK for a freelancer?", "What happens if I pay late?", "Can I dispute a purchase?", "How does it compare with Citi?"]
+  const firstEffect = [...lf.side_effects, ...lf.contract_only].map((x) => x.label)[0];
+  const alt = lf.alternatives[0] ? short(lf.alternatives[0].company).toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : null;
+  $("suggest").innerHTML = [firstEffect ? `What does "${firstEffect}" mean for me?` : "What should I watch out for?",
+    "What happens if I pay late?", alt ? `How does it compare with ${alt}?` : "Can I dispute a purchase?"]
     .map((q) => `<button type="button">${esc(q)}</button>`).join("");
 }
 
@@ -300,7 +306,8 @@ async function loadBigQuery(company, productType) {
     if (!d.available || !box) return;
     const top = d.top_issues.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("");
     box.innerHTML = `<div class="bq-head"><span class="bq-tag">Live from BigQuery</span><span class="small muted">${esc(d.source)}</span></div>
-      <p><b>${d.last_12_months.toLocaleString()}</b> complaints about ${esc(short(d.company))} in the 12 months to ${esc(d.latest_date)}.</p>
+      <p><b>${d.last_12_months.toLocaleString()}</b> complaints about ${esc(short(d.company))} in the 12 months to ${esc(new Date(d.latest_date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }))}.</p>
+      <p class="small muted">That is the newest month in Google's public copy of the CFPB database. The side effects above use newer CFPB data.</p>
       ${top ? `<p class="small muted">Most common:</p><ul class="bq-top">${top}</ul>` : ""}`;
     box.hidden = false;
   } catch (e) { /* BigQuery is an extra; the leaflet stands without it */ }
@@ -310,14 +317,14 @@ async function loadBigQuery(company, productType) {
 async function runRadar(company, productType) {
   const btn = $("radarBtn"), out = $("radarOut");
   btn.disabled = true; btn.textContent = "Gemini is reading…";
-  out.innerHTML = `<p class="small muted radar-wait"><i></i>Reading the newest complaint stories about ${esc(short(company))}…</p>`;
+  out.innerHTML = `<p class="small muted radar-wait"><i></i>Gemini is reading complaint stories about ${esc(short(company))}. This takes about 20 seconds…</p>`;
   try {
     const d = await (await fetch(`/api/radar?issuer=${encodeURIComponent(company)}&product_type=${encodeURIComponent(productType || "credit_card")}`)).json();
     if (!d.available) { out.innerHTML = `<p class="small muted">${esc(d.reason || "Not available right now.")}</p>`; return; }
-    out.innerHTML = `<p class="small muted">Read ${d.stories_read} stories (${esc(d.source)}). ${d.new ? `<b>${d.new} not in our statistics yet.</b>` : ""}</p>` +
+    out.innerHTML = `<p class="small muted">Read ${d.stories_read} stories (${esc(d.source)}). ${d.new ? `<b>${d.new} not in our statistics.</b>` : ""}</p>` +
       d.themes.map((t) => `<div class="theme${t.known ? "" : " new"}"><div class="theme-top"><b>${esc(t.label)}</b>
         <span class="theme-n">${t.count} ${t.count > 1 ? "stories" : "story"}</span>${t.known ? `<span class="theme-k">Already on this leaflet</span>` : `<span class="theme-new">New</span>`}</div>
-        ${t.quote ? `<p class="theme-q">“${esc(t.quote)}”</p>` : ""}<p class="small muted">${esc(t.why_it_matters)} Latest: ${esc(t.latest)}.</p></div>`).join("") +
+        ${t.quote ? `<p class="theme-q">“${story(t.quote)}”</p>` : ""}<p class="small muted">${esc(t.why_it_matters)} Latest: ${esc(t.latest)}.</p></div>`).join("") +
       `<p class="small muted">Read by Gemini; each quote is checked word for word against the complaint, and counts are complaints Gemini pointed to that really exist. Unverified reports.</p>`;
   } catch (e) {
     out.innerHTML = `<p class="small muted">Could not read the complaints just now.</p>`;
@@ -368,6 +375,8 @@ init();
 $("newLeaflet").addEventListener("click", () => {
   $("lfbar").hidden = true; $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
   $("intro").hidden = false; $("input").hidden = false;
+  ["flyerText", "contractText", "images", "contract"].forEach((id) => { $(id).value = ""; $(id).dispatchEvent(new Event("change")); });
+  document.querySelectorAll(".chip[aria-pressed='true']").forEach((c) => c.click());
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 $("editLeaflet").addEventListener("click", () => {

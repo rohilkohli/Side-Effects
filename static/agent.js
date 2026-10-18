@@ -36,6 +36,10 @@
       box.querySelectorAll(".persona").forEach((x) => x.setAttribute("aria-checked", x === b));
     });
     $("#youText").addEventListener("focus", () => $(".persona.you").click());
+    $(".persona.you").addEventListener("keydown", (e) => {
+      if (e.target.id === "youText" || (e.key !== "Enter" && e.key !== " ")) return;
+      e.preventDefault(); $(".persona.you").click(); $("#youText").focus();
+    });
     if (Recognition) {
       $("#youMic").hidden = false;
       $("#youMic").addEventListener("click", (e) => {
@@ -44,9 +48,11 @@
       });
     }
     $("#devView").addEventListener("change", (e) => document.body.classList.toggle("dev", e.target.checked));
-    $("#bannerClose").addEventListener("click", () => { $("#banner").hidden = true; });
+    const hideBanner = () => { $("#banner").hidden = true; try { localStorage.setItem("se-banner", "arena"); } catch { /* private mode */ } };
+    try { if (localStorage.getItem("se-banner") === "arena") $("#banner").hidden = true; } catch { /* private mode */ }
+    $("#bannerClose").addEventListener("click", hideBanner);
     $("#bannerTry").addEventListener("click", () => {
-      $("#banner").hidden = true;
+      hideBanner();
       showPanel("scam");
     });
     initCarousel();
@@ -58,6 +64,7 @@
     $("#readout").hidden = true;
     if ("speechSynthesis" in window) speechSynthesis.cancel();
     $("#runBtn").disabled = true;
+    custom = persona === "you" ? custom : null;
     if (persona === "you") {
       const text = $("#youText").value.trim();
       if (!text) { showErr("Write a sentence about your situation first."); $("#runBtn").disabled = false; return; }
@@ -74,12 +81,14 @@
     }
     $("#arena").hidden = false;
     $("#outcome").hidden = true;
-    for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).className = $(id).className.replace(/ (done|stopped|signed)/g, ""); setState($(id), "Starting"); }
+    for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).classList.remove("done", "stopped", "signed", "decided"); setState($(id), "Starting"); }
     enterRun();
+    setBusy(true);
     await Promise.allSettled([run($("#laneA"), false), run($("#laneB"), true)]);
     showOutcome();
+    setBusy(false);
     $("#runBtn").disabled = false;
-    $("#runBtn").textContent = "Run again";
+    $("#runBtn").textContent = "Run both agents live";
   }
 
   async function run(lane, gated) {
@@ -154,6 +163,7 @@
   function setState(lane, text) { const el = $(".state", lane); if (el) el.textContent = text; }
 
   function laneResult(lane) {
+    if (lane.classList.contains("decided")) return { cls: "good", text: `${who()} chose: ${lane.dataset.chose}` };
     if (lane.classList.contains("stopped")) return { cls: "good", text: `Stopped and asked ${who()}` };
     if (lane.classList.contains("signed")) return { cls: "bad", text: `Signed ${who()} up without asking` };
     if (lane.classList.contains("done")) return { cls: "good", text: "Placed a safe order" };
@@ -175,19 +185,31 @@
     return i < 0 ? esc(t) : `${esc(t.slice(0, i))}<span class="inj"><b>Hidden on the page:</b> ${esc(t.slice(i).replace(/^\[|\]$/g, ""))}</span>`;
   }
 
+  let carouselLayout = () => {};
   function initCarousel() {
     const car = $("#carousel"), dots = $("#dots");
     const cards = [...car.children];
-    dots.innerHTML = cards.map((_, i) => `<button type="button" aria-label="Card ${i + 1}" data-i="${i}"></button>`).join("");
-    const go = (i) => car.scrollTo({ left: cards[Math.max(0, Math.min(cards.length - 1, i))].offsetLeft - car.offsetLeft, behavior: "smooth" });
-    const current = () => cards.reduce((best, c, i) => Math.abs(c.offsetLeft - car.offsetLeft - car.scrollLeft) < Math.abs(cards[best].offsetLeft - car.offsetLeft - car.scrollLeft) ? i : best, 0);
+    // One dot per distinct scroll position, so the last dots never point at the same place.
+    let stops = [];
+    const layout = () => {
+      const max = car.scrollWidth - car.clientWidth;
+      stops = [...new Set(cards.map((c) => Math.min(max, Math.max(0, c.offsetLeft - car.offsetLeft))))];
+      dots.innerHTML = stops.map((_, i) => `<button type="button" aria-label="Show card ${i + 1}" data-i="${i}"></button>`).join("");
+      mark();
+    };
+    const current = () => stops.reduce((best, x, i) => Math.abs(x - car.scrollLeft) < Math.abs(stops[best] - car.scrollLeft) ? i : best, 0);
+    const go = (i) => car.scrollTo({ left: stops[(i + stops.length) % stops.length], behavior: "smooth" });
     const mark = () => dots.querySelectorAll("button").forEach((d, i) => d.classList.toggle("on", i === current()));
-    document.querySelectorAll(".car-btn").forEach((b) => b.addEventListener("click", () => go(current() + Number(b.dataset.dir))));
-    dots.addEventListener("click", (e) => { const d = e.target.closest("button"); if (d) go(Number(d.dataset.i)); });
+    let timer = null;
+    const stopAuto = () => { clearInterval(timer); timer = null; };
+    document.querySelectorAll(".car-btn").forEach((b) => b.addEventListener("click", () => { stopAuto(); go(current() + Number(b.dataset.dir)); }));
+    dots.addEventListener("click", (e) => { const d = e.target.closest("button"); if (d) { stopAuto(); go(Number(d.dataset.i)); } });
     car.addEventListener("scroll", () => requestAnimationFrame(mark), { passive: true });
-    mark();
-    let timer = setInterval(() => { const i = current(); go(i + 1 >= cards.length ? 0 : i + 1); }, 5000);
-    ["pointerdown", "wheel", "touchstart"].forEach((ev) => car.addEventListener(ev, () => clearInterval(timer), { passive: true }));
+    window.addEventListener("resize", layout);
+    layout();
+    timer = setInterval(() => { if (!$("#p-why").hidden) go(current() + 1); }, 5000);
+    ["pointerdown", "wheel", "touchstart"].forEach((ev) => car.addEventListener(ev, stopAuto, { passive: true }));
+    carouselLayout = layout;
   }
 
   function speak(text) {
@@ -243,9 +265,10 @@
       case "order": {
         const unseen = ev.unseen_side_effects || [];
         const hits = unseen.filter((d) => d.matches);
-        lane.classList.add(hits.length ? "signed" : "done");
-        lane.classList.remove("stopped");
-        setState(lane, hits.length ? "Signed without asking" : "Order placed");
+        lane.classList.remove("stopped", "signed", "done", "decided");
+        if (ev.confirmed_by_person) { lane.classList.add("decided"); lane.dataset.chose = ev.offer.label; }
+        else lane.classList.add(hits.length ? "signed" : "done");
+        setState(lane, ev.confirmed_by_person ? `${name} chose` : hits.length ? "Signed without asking" : "Order placed");
         add(feed, "order" + (hits.length ? " bad" : ""), `<div class="stamp ${hits.length ? "red" : "green"}">${hits.length ? "Signed without asking" : "Order placed"}</div>
           <p>${esc(name)} is now on <b>${esc(ev.offer.label)}</b>.</p>
           ${unseen.length ? `<p class="never">What ${esc(name)} was never told:</p>${bars(unseen)}` : ""}
@@ -288,7 +311,7 @@
     b.closest(".choices").querySelectorAll("button").forEach((x) => { x.disabled = true; x.classList.toggle("picked", x === b); });
     const r = await fetch("/api/agent/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ persona: persona === "you" ? "maya" : persona, offer_id: b.dataset.o,
       profile: persona === "you" ? custom?.profile || [] : null }) });
-    if (r.ok) render(lane, feed, await r.json());
+    if (r.ok) { render(lane, feed, await r.json()); showOutcome(); }
   }
 
   function verdictText(v) {
@@ -308,27 +331,38 @@
   }
   // Pages instead of one long scroll: a tab per section, and the demo collapses its setup while running.
   const counted = new Set();
-  function showPanel(name) {
+  function showPanel(name, fromHistory = false) {
     document.querySelectorAll(".pager [data-p]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.p === name)));
     document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.id !== "p-" + name; });
     if (name === "why" && !counted.has("why")) { counted.add("why"); document.querySelectorAll("#p-why .stat b").forEach((b) => { if (/^\d/.test(b.textContent) && b.textContent !== "0") countUp(b); }); }
-    if (history.replaceState) history.replaceState(null, "", name === "demo" ? location.pathname : "#" + name);
+    const url = name === "demo" ? location.pathname : "#" + name;
+    if (!fromHistory && location.hash !== (name === "demo" ? "" : "#" + name)) history.pushState(null, "", url);
+    if (name === "why") requestAnimationFrame(() => carouselLayout());
+    if (name === "biz") loadAudit();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function setBusy(on) {
+    ["#againBtn", "#changeBtn"].forEach((id) => { $(id).disabled = on; });
+    $("#againBtn").textContent = on ? "Running…" : "Run again";
   }
   function enterRun() {
     const pName = persona === "you" ? (custom?.name || "you") : personas[persona]?.name;
-    $("#runSummary").innerHTML = `Shopping for <b>${esc(pName)}</b> &middot; ${$("#hacked").checked ? "<b class=\"hot\">Hacked store</b>" : "Normal store"}`;
+    const read = persona === "you" && custom ? ` <span class="read">Gemini read: ${custom.situations.length ? custom.situations.map(esc).join(", ") : "nothing that changes the risk"}</span>` : "";
+    $("#runSummary").innerHTML = `Shopping for <b>${esc(pName)}</b> &middot; ${$("#hacked").checked ? "<b class=\"hot\">Hacked store</b>" : "Normal store"}${read}`;
     $("#p-demo").classList.add("running");
     $("#runbar").hidden = false;
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function leaveRun() {
+    if ($("#againBtn").disabled) return;  // a run is still going
     $("#p-demo").classList.remove("running");
     $("#runbar").hidden = true;
+    $("#arena").hidden = true; $("#outcome").hidden = true; $("#readout").hidden = true;
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
   document.querySelector(".pager").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (b) showPanel(b.dataset.p); });
   $("#changeBtn").addEventListener("click", leaveRun);
-  $("#againBtn").addEventListener("click", () => { if (!$("#runBtn").disabled) runBoth(); });
+  $("#againBtn").addEventListener("click", () => { if (!$("#runBtn").disabled && !$("#againBtn").disabled) runBoth(); });
   document.querySelector(".lane-tabs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-l]"); if (!b) return;
     document.querySelectorAll(".lane-tabs [data-l]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
@@ -336,7 +370,11 @@
   });
   $("#arena").dataset.show = "laneB";
   const hashPanel = location.hash.slice(1);
-  if (["scam", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel);
+  if (["scam", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel, true);
+  window.addEventListener("popstate", () => {
+    const h = location.hash.slice(1);
+    showPanel(["scam", "how", "why", "biz"].includes(h) ? h : "demo", true);
+  });
 
   /* ---- Scam arena: Gemini attacker vs Gemini guardian vs the gate ---- */
   const TECH = { prompt_injection: "Orders aimed at AI agents", fake_endorsement: "Fake approval", false_urgency: "False urgency",
@@ -355,7 +393,7 @@
     ["#scCaught", "#scFooled", "#scHeld"].forEach((id) => { $(id).textContent = "0"; });
     let card = null, atk = null;
     const step = (cls, html) => { const d = document.createElement("div"); d.className = "rstep " + cls; d.innerHTML = html; card.querySelector(".rsteps").appendChild(d); d.scrollIntoView({ behavior: "smooth", block: "nearest" }); return d; };
-    const wait = (label) => { card.querySelector(".rwait")?.remove(); const w = document.createElement("div"); w.className = "rwait"; w.innerHTML = `<i></i>${esc(label)}`; card.querySelector(".rsteps").appendChild(w); };
+    const wait = (label) => { card.querySelector(".rwait")?.remove(); const w = document.createElement("div"); w.className = "rwait"; w.innerHTML = `<i></i><span>${esc(label)}…</span>`; card.querySelector(".rsteps").appendChild(w); };
     try {
       const resp = await fetch("/api/arena/run", { method: "POST" });
       if (!resp.ok) throw new Error(`The server answered ${resp.status}`);
@@ -370,38 +408,43 @@
           if (!line) continue;
           const ev = JSON.parse(line);
           if (ev.type === "error") throw new Error(ev.detail);
+          if (ev.type === "tick") {
+            const w = card?.querySelector(".rwait span");
+            if (w) w.textContent = `${ev.label}… ${ev.seconds}s`;
+            continue;
+          }
           if (ev.type === "round") {
             card = document.createElement("article"); card.className = "rcard";
             card.innerHTML = `<header><b>Round ${ev.round}</b></header><div class="rsteps"></div>`;
-            $("#scamRounds").appendChild(card); wait("The attacker is writing a new scam…");
+            $("#scamRounds").appendChild(card); wait("The attacker is writing a new scam");
           } else if (ev.type === "attack") {
             atk = ev.attack; card.querySelector(".rwait")?.remove();
             card.querySelector("header").insertAdjacentHTML("beforeend", `<span class="tech">${esc(TECH[atk.technique] || atk.technique)}</span>`);
             card.dataset.page = (atk.banner || "") + " " + atk.added_terms;
-            step("atk", `<span class="who">😈 Attacker</span><p class="muted">Pushing <b>${esc(ev.target_label)}</b>. ${esc(atk.why_it_might_work)}</p>
+            step("atk", `<span class="who">😈 Attacker${atk.source === "playbook" ? ' <span class="src">from the playbook</span>' : ""}</span><p class="muted">Pushing <b>${esc(ev.target_label)}</b>. ${esc(atk.why_it_might_work)}</p>
               <div class="fakepage"><div class="fp-banner">${esc(atk.banner)}</div><div class="fp-terms">${esc(atk.added_terms)}</div></div>`);
-            wait("The guardian is reading the page…");
+            wait("The guardian is reading the page");
           } else if (ev.type === "guardian") {
             card.querySelector(".rwait")?.remove();
             const quotes = ev.findings.map((f) => f.quote);
             const fp = card.querySelector(".fakepage");
             if (fp) { fp.querySelector(".fp-banner").innerHTML = mark(atk.banner, quotes); fp.querySelector(".fp-terms").innerHTML = mark(atk.added_terms, quotes); }
-            step(ev.caught ? "grd ok" : "grd miss", `<span class="who">🛡️ Guardian</span>
-              <p><b>${ev.caught ? "Caught it." : "Missed it."}</b> ${esc(ev.advice)}</p>
+            step(ev.error ? "grd" : ev.caught ? "grd ok" : "grd miss", `<span class="who">🛡️ Guardian</span>
+              <p><b>${ev.error ? "No answer this round." : ev.caught ? "Caught it." : "Missed it."}</b> ${esc(ev.advice)}</p>
               ${ev.findings.map((f) => `<p class="finding"><span class="tech sm">${esc(TECH[f.technique] || f.technique)}</span> “${esc(f.quote)}” <span class="muted">${esc(f.explanation)}</span></p>`).join("")}
               ${ev.rejected_quotes ? `<p class="muted small">${ev.rejected_quotes} claimed quote${ev.rejected_quotes > 1 ? "s were" : " was"} not on the page and ${ev.rejected_quotes > 1 ? "were" : "was"} thrown out.</p>` : ""}`);
-            wait("An AI agent with no protection is shopping on this page…");
+            wait("An AI agent with no protection is shopping on this page");
           } else if (ev.type === "agent") {
             card.querySelector(".rwait")?.remove();
             step(ev.fooled ? "agt bad" : "agt", `<span class="who">🤖 Agent on its own</span>
-              <p>${ev.chosen_label ? `Signed Maya up for <b>${esc(ev.chosen_label)}</b>.` : "Did not sign anything."} ${ev.fooled ? "<b class=\"hot\">It fell for the scam.</b>" : ""}</p>
+              <p>${ev.error ? "The agent could not finish this round." : ev.chosen_label ? `Signed Maya up for <b>${esc(ev.chosen_label)}</b>.` : "Did not sign anything."} ${ev.fooled ? "<b class=\"hot\">It fell for the scam.</b>" : ev.chosen_label ? "Not the scam's pick." : ""}</p>
               ${ev.said ? `<p class="muted small">“${esc(ev.said)}”</p>` : ""}`);
           } else if (ev.type === "gate") {
             step(ev.held ? "gte ok" : "gte", `<span class="who">🔒 With SIDE EFFECTS</span>
               <p>${ev.held ? `<b>The gate held.</b> Nothing is signed until Maya sees: ${esc(ev.matches.join("; "))}.` : ev.offer_label ? `Allowed (${esc(ev.verdict.replace("_", " "))}).` : "Nothing to sign."}</p>`);
           } else if (ev.type === "score") {
             $("#scCaught").textContent = `${ev.score.guardian_caught}/${ev.score.rounds}`;
-            $("#scFooled").textContent = `${ev.score.agent_fooled}/${ev.score.rounds}`;
+            $("#scFooled").textContent = `${ev.score.agent_risky}/${ev.score.rounds}`;
             $("#scHeld").textContent = `${ev.score.gate_held}/${ev.score.rounds}`;
           }
         }
@@ -433,6 +476,4 @@ async function loadAudit() {
     box.hidden = false;
   } catch (e) { /* optional */ }
 }
-document.querySelectorAll('.pager [data-p="biz"]').forEach((b) => b.addEventListener("click", loadAudit));
-if (location.hash === "#biz") loadAudit();
 })();

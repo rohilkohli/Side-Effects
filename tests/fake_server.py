@@ -7,7 +7,7 @@ import time
 import uvicorn
 
 from app import bq, gemini
-from app.agents import shopper
+from app.agents import pharmacist, shopper
 from tests import fakes
 
 
@@ -36,6 +36,10 @@ bq.lender_snapshot = lambda company, product_type="credit_card": {
 bq.audit_summary = lambda: {"available": True, "table": "demo.side_effects.gate_decisions", "total": 42, "held": 17, "disclosed": 9,
                             "recent": [{"ts": "2026-10-18T05:30:00Z", "source": "checkout", "lender": "SYNCHRONY FINANCIAL", "verdict": "human_review"},
                                        {"ts": "2026-10-18T05:29:10Z", "source": "api", "lender": "Klarna", "verdict": "disclose"}]}
+
+pharmacist.answer = lambda leaflet, pages, history, question: (
+    "Stand-in answer for local testing: on the real site, Gemini answers from this leaflet, the contract and real complaints.")
+
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", port=8080)

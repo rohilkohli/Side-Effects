@@ -19,5 +19,9 @@
       b.textContent = icon();
     });
     nav.appendChild(b);
+    // Sticky bars sit right under the header, whose height changes when it wraps on a phone.
+    const setTop = () => root.style.setProperty("--top-h", nav.offsetHeight + "px");
+    setTop();
+    if ("ResizeObserver" in window) new ResizeObserver(setTop).observe(nav); else addEventListener("resize", setTop);
   });
 })();

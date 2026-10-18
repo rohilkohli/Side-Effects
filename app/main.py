@@ -191,8 +191,12 @@ def ask_pharmacist(body: Ask):
         raise HTTPException(404, "Leaflet expired; please make it again.")
     try:
         text = pharmacist.answer(leaflet, pipeline.CONTRACTS.get(body.leaflet_id, []), body.history, body.question[:1000])
-    except gemini.LLMUnavailable as e:
-        raise HTTPException(503, str(e))
+    except gemini.LLMUnavailable:
+        log.error("pharmacist: Gemini is not configured")
+        raise HTTPException(503, "The pharmacist is offline right now. The leaflet above still has everything we know.")
+    except Exception:
+        log.exception("pharmacist failed")
+        raise HTTPException(503, "The pharmacist is busy. Please ask again in a moment.")
     return {"answer": text}
 
 

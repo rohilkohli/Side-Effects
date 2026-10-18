@@ -1,4 +1,4 @@
-"""Emerging side effects: Gemini reads the newest complaint stories about a lender and groups them.
+"""In their own words: Gemini reads complaint stories about a lender and groups them.
 
 Pharmacovigilance does the same with fresh adverse-event reports: the statistics show known signals,
 and reading the latest reports finds problems before they are big enough to count. Every quote is
@@ -25,7 +25,7 @@ def _norm(s: str) -> str:
 def stories_for(company: str, product_type: str) -> tuple[list[dict], str]:
     live = bq.latest_narratives(company, product_type)
     if live:
-        return live, f"BigQuery, {bq.PUBLIC_TABLE}, newest {len(live)} stories"
+        return live, f"the newest {len(live)} in Google's public BigQuery copy of the CFPB database, up to {max(x['date'] for x in live)}"
     local = [{"complaint_id": q["complaint_id"], "date": q["date"], "issue": q["issue"], "text": q["text"]}
              for q in evidence.quotes()["quotes"] if q["company"] == company]
     return local, f"stored sample of {len(local)} CFPB stories"
@@ -40,7 +40,7 @@ def scan(issuer: str, product_type: str = "credit_card") -> dict:
         return {"available": False, "reason": "Not enough recent complaint stories to read."}
     known = [l["label"] for l in evidence.signals_for(company, product_type)["lines"]]
     by_id = {s["complaint_id"]: s for s in stories}
-    body = "\n\n".join(f"[id={s['complaint_id']} | {s['date']} | {s['issue']}]\n{s['text'][:900]}" for s in stories)
+    body = "\n\n".join(f"[id={s['complaint_id']} | {s['date']} | {s['issue']}]\n{s['text'][:700]}" for s in stories)
     got = gemini.generate_json(
         f"Lender: {company}\nKnown side effects from our statistics: {', '.join(known) or 'none'}\n\n"
         f"Complaint stories:\n<<<\n{body}\n>>>\n\nGroup them into at most 5 side effects, biggest first.",
