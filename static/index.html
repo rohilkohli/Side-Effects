@@ -9,12 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/static/mobile.css">
 <script src="/static/theme.js"></script>
 </head>
 <body>
 <header class="top">
   <a class="brand" href="/"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></a>
-  <nav class="tabs"><a href="/">AI agent demo</a><a class="on" href="/leaflet">Check an offer</a></nav>
+  <nav class="tabs"><a href="/"><span class="lg-only">AI agent demo</span><span class="sm-only">Agent demo</span></a><a class="on" href="/leaflet"><span class="lg-only">Check an offer</span><span class="sm-only">Check offer</span></a></nav>
 </header>
 
 <main>
@@ -74,8 +75,8 @@
 
   <div class="lfbar" id="lfbar" hidden>
     <span id="lfSummary"></span>
-    <button type="button" class="lfbar-btn" id="editLeaflet">Edit details</button>
-    <button type="button" class="lfbar-btn primary" id="newLeaflet">New leaflet</button>
+    <button type="button" class="lfbar-btn" id="editLeaflet"><span class="lg-only">Edit details</span><span class="sm-only">Edit</span></button>
+    <button type="button" class="lfbar-btn primary" id="newLeaflet"><span class="lg-only">New leaflet</span><span class="sm-only">New</span></button>
   </div>
 
   <section class="card progress" id="progress" hidden aria-live="polite">
@@ -86,7 +87,7 @@
   <article class="leaflet" id="leaflet" hidden></article>
 </main>
 
-<button class="pharm-fab" id="pharmFab" hidden>💬 Ask the pharmacist</button>
+<button class="pharm-fab" id="pharmFab" hidden aria-label="Ask the pharmacist">💬 <span class="lg-only">Ask the pharmacist</span><span class="sm-only">Ask</span></button>
 <aside class="pharm" id="pharm" hidden aria-label="Pharmacist">
   <header><strong>Pharmacist</strong><span class="muted small">Answers from this leaflet, the contract and real complaints</span><button class="x" id="pharmClose" aria-label="Close">×</button></header>
   <div class="chat" id="chat"></div>

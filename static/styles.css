@@ -400,3 +400,4 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--blue-sof
 .live-src a { color: var(--accent); }
 .bigdrop strong { color: var(--ink); }
 .about .muted { font-weight: 400; }
+.leaflet { overflow: clip; } /* clip, not hidden, so the section tabs can stay pinned while you scroll */

@@ -9,17 +9,18 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/agent.css">
+<link rel="stylesheet" href="/static/mobile.css">
 <script src="/static/theme.js"></script>
 </head>
 <body>
 <header class="top">
   <a class="brand" href="/"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></a>
-  <nav><a class="on" href="/">AI agent demo</a><a href="/leaflet">Check an offer</a></nav>
+  <nav><a class="on" href="/"><span class="lg-only">AI agent demo</span><span class="sm-only">Agent demo</span></a><a href="/leaflet"><span class="lg-only">Check an offer</span><span class="sm-only">Check offer</span></a></nav>
 </header>
 
 <div class="banner" id="banner" role="region" aria-label="What's new">
   <span class="banner-tag">New</span>
-  <span>Scam arena: Gemini invents new scams against AI shoppers, live. Can the guardian catch them?</span>
+  <span><span class="lg-only">Scam arena: Gemini invents new scams against AI shoppers, live. Can the guardian catch them?</span><span class="sm-only">New: Gemini invents scams against AI shoppers, live.</span></span>
   <button type="button" class="banner-go" id="bannerTry">Try it</button>
   <button type="button" class="banner-x" id="bannerClose" aria-label="Dismiss">&times;</button>
 </div>
@@ -134,7 +135,7 @@
     <div>
       <h2>For shops, banks and agent builders</h2>
       <p>One check before an AI agent commits someone to credit. Same lender and situation, same answer, every time. It also works when the agent forgets to ask, because the check lives in the checkout.</p>
-      <a class="biz-btn" href="/leaflet">Make a leaflet for any offer</a>
+      <a class="biz-btn" href="/leaflet">Check an offer</a>
     </div>
     <details class="devbox"><summary>Developer details</summary>
 <pre><code>POST /api/v1/check
