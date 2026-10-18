@@ -103,6 +103,7 @@ async function run() {
 
   $("goBtn").disabled = true;
   $("leaflet").hidden = true; window.SEAssist?.setLeaflet(null);
+  $("samplePreview").hidden = true;
   $("progress").hidden = false;
   $("steps").innerHTML = Object.entries(STEPS).map(([k, [who, what]]) =>
     `<li id="st-${k}"><span class="ic">○</span><div><div class="who">${who}</div><div class="what">${what}</div></div></li>`).join("");
@@ -425,7 +426,7 @@ if (startQ) { $("quick").value = startQ.slice(0, 80); setTimeout(run); }
 /* ---- fold the form away once a leaflet is made ---- */
 $("newLeaflet").addEventListener("click", () => {
   $("lfbar").hidden = true; $("leaflet").hidden = true; window.SEAssist?.setLeaflet(null);
-  $("intro").hidden = false; $("input").hidden = false;
+  $("intro").hidden = false; $("input").hidden = false; $("samplePreview").hidden = false;
   ["quick", "contractText", "issuer", "note", "productType"].forEach((id) => { $(id).value = ""; });
   files = []; showFiles(); liveSeq++; window.history.replaceState(null, "", "/leaflet");
   document.querySelectorAll(".chip[aria-pressed='true']").forEach((c) => c.click());

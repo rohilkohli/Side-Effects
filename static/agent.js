@@ -79,7 +79,7 @@
         <div class="sits">${custom.situations.length ? custom.situations.map((x) => `<span>${esc(x)}</span>`).join("") : "<span>Nothing that changes the risk</span>"}</div>`;
       $("#readout").hidden = false;
     }
-    $("#arena").hidden = false;
+    $("#arena").hidden = false; $("#demoPreview").hidden = true;
     $("#outcome").hidden = true;
     for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).classList.remove("done", "stopped", "signed", "decided"); setState($(id), "Starting"); }
     enterRun();
@@ -188,6 +188,7 @@
   let carouselLayout = () => {};
   function initCarousel() {
     const car = $("#carousel"), dots = $("#dots");
+    if (!car || !dots) return;  // Evidence is a grid now; nothing to scroll
     const cards = [...car.children];
     // One dot per distinct scroll position, so the last dots never point at the same place.
     let stops = [];
@@ -358,7 +359,7 @@
     if ($("#againBtn").disabled) return;  // a run is still going
     $("#p-demo").classList.remove("running");
     $("#runbar").hidden = true;
-    $("#arena").hidden = true; $("#outcome").hidden = true; $("#readout").hidden = true;
+    $("#arena").hidden = true; $("#outcome").hidden = true; $("#readout").hidden = true; $("#demoPreview").hidden = false;
     if ("speechSynthesis" in window) speechSynthesis.cancel();
   }
   document.querySelector(".pager").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (b) showPanel(b.dataset.p); });
@@ -489,8 +490,14 @@
     } catch { /* the scan button still works */ }
   }
   let alertScanning = false;
+  function alertTab(name) {
+    document.querySelectorAll(".seg [data-at]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.at === name)));
+    $("#at-known").hidden = name !== "known"; $("#at-live").hidden = name !== "live";
+  }
+  document.querySelector(".seg").addEventListener("click", (e) => { const b = e.target.closest("[data-at]"); if (b) alertTab(b.dataset.at); });
   async function runAlertScan() {
     if (alertScanning) return;
+    alertTab("live");
     alertScanning = true; const btn = $("#alertScan"); btn.disabled = true; btn.textContent = "Scanning…";
     const log = $("#scanLog"); log.hidden = false; log.innerHTML = "";
     const line = (html, cls = "") => { const li = document.createElement("li"); li.className = cls; li.innerHTML = html; log.appendChild(li); return li; };

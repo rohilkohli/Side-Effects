@@ -40,7 +40,7 @@
     side.innerHTML = `<a class="side-brand" href="/"><span class="pill" aria-hidden="true"></span><span>SIDE EFFECTS</span></a>
       <nav>${NAV.map((g) => `<div class="side-group">${g.group}</div>${g.items.map((i) =>
         `<a class="side-item" data-id="${i.id}" href="${i.href}">${svg(i.icon)}<span>${i.label}</span>${i.badge ? `<em>${i.badge}</em>` : ""}</a>`).join("")}`).join("")}</nav>
-      <div class="side-foot"><div class="side-card"><b>Built on Google Cloud</b><span>Gemini · Vertex AI · BigQuery · Cloud Run · Cloud Scheduler · Google Search</span></div></div>`;
+      <div class="side-foot"><div class="side-card"><b>Built on Google Cloud</b><span>Gemini on Vertex AI · BigQuery · Gemini document reading · Cloud Run · Cloud Scheduler · Google Search grounding</span></div></div>`;
     const scrim = document.createElement("div"); scrim.className = "side-scrim";
     document.body.prepend(side, scrim);
 
