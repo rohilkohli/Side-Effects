@@ -74,6 +74,17 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 - **The check API has no model in the loop**, so the same request always gets the same verdict.
 - **No secrets in the code.** On Cloud Run, Gemini is called through Vertex AI with the service account's identity; no API key is stored or passed.
 
+## How it answers the BFSI problem statement
+
+| Suggested direction | Where it is in SIDE EFFECTS |
+|---|---|
+| Risk assessment | Lender risks found in 136,270 real CFPB complaints with the proportional reporting ratio drug regulators use, computed in code (`pipeline/build_data.py`, `app/evidence.py`) |
+| Fraud detection | Hacked-store mode: a shop hides instructions aimed at AI agents; SIDE EFFECTS flags it and the checkout gate still refuses to sign (`app/agents/shopper.py`) |
+| Document intelligence | Gemini reads a card agreement from a photo, PDF or text and quotes the clause behind each problem; every quote is verified word for word |
+| Compliance automation | `POST /api/v1/check` returns a verdict and the disclosures a person must see before an agent commits them to credit (`app/gate.py`) |
+| Financial assistance | The pharmacist chat and a shopping agent you can answer by voice |
+| Personalised experiences | Describe yourself in your own words; Gemini maps it to situations and only matching side effects are raised |
+
 ## Google Cloud stack
 
 | Piece | How it is used |
@@ -82,7 +93,7 @@ A run calls Gemini several times, so a leaflet or agent run takes tens of second
 | **Vertex AI** | Gemini calls in production, authorised by the Cloud Run service account |
 | **Cloud Run** | Hosts the FastAPI app and the streaming endpoints; scales to zero, no sign-in |
 | **Cloud Build / Artifact Registry** | `gcloud run deploy --source` builds the container |
-| **BigQuery** | `pipeline/bigquery/classify.sql` codes complaint stories with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics |
+| **BigQuery** (ready, not yet run) | `pipeline/bigquery/classify.sql` codes the full public CFPB table with Gemini (`gemini-3.5-flash-lite`) and `prr.sql` computes the statistics at scale. The shipped statistics were computed by `pipeline/build_data.py` |
 
 ## Fictional and real data
 
