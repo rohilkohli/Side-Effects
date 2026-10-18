@@ -231,3 +231,72 @@ nav a.on { background: var(--panel); box-shadow: 0 1px 4px rgba(0, 0, 0, .12); f
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }
 .foot { max-width: 980px; margin: 96px auto 0; padding: 24px 16px 48px; color: var(--muted); font-size: .78rem; border-top: 1px solid var(--line); text-align: center; }
+
+/* ---- Product polish: banner, steps, theme toggle, developer view, how-it-works, carousel, business card, voice ---- */
+.banner { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 10px 16px; font-size: .88rem; text-align: center;
+  background: linear-gradient(90deg, rgba(255, 55, 95, .10), rgba(255, 159, 10, .12)); border-bottom: 1px solid var(--line); }
+.banner[hidden] { display: none; }
+.banner-tag { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #fff; background: linear-gradient(90deg, #ff375f, #ff9f0a); padding: 3px 9px; border-radius: 999px; }
+.banner-go { border: 0; background: none; color: var(--blue); font-weight: 600; cursor: pointer; padding: 0; }
+.banner-go::after { content: " ›"; }
+.banner-x { border: 0; background: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; line-height: 1; padding: 0 4px; }
+.step-title { font-size: .95rem; font-weight: 600; color: var(--muted); margin: 8px 0 12px; text-align: left; }
+.hack + .go { display: block; margin-left: auto; margin-right: auto; }
+.theme-toggle { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--panel-2); color: var(--ink); cursor: pointer; font-size: 1rem; display: grid; place-items: center;
+  transition: transform .4s var(--spring); }
+.theme-toggle:hover { transform: rotate(20deg) scale(1.06); }
+.top { gap: 10px; }
+.top nav { margin-left: auto; }
+
+.arena-bar { grid-column: 1 / -1; display: flex; justify-content: flex-end; }
+.mini-switch { display: inline-flex; align-items: center; gap: 10px; font-size: .85rem; color: var(--muted); cursor: pointer; }
+.mini-switch input { appearance: none; -webkit-appearance: none; width: 38px; height: 23px; border-radius: 999px; background: var(--line-2); position: relative; margin: 0; cursor: pointer; transition: background .25s; }
+.mini-switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .25); transition: transform .3s var(--spring); }
+.mini-switch input:checked { background: var(--green); }
+.mini-switch input:checked::after { transform: translateX(15px); }
+.dev-only { display: none; }
+body.dev .dev-only { display: inline-block; }
+.step-ico { font-size: .95rem; }
+.ev.tool { font-size: .85rem; }
+.inj b { font-family: var(--sans); }
+
+.how { max-width: 1180px; margin: 96px auto 0; padding: 0 16px; text-align: center; }
+.how h2, .why h2 { font-size: clamp(2rem, 4.5vw, 3rem); letter-spacing: -.04em; margin: 0 0 28px; }
+.how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; text-align: left; }
+.how-card { background: var(--panel); border-radius: 28px; padding: 30px 28px; box-shadow: var(--shadow), inset 0 0 0 1px var(--line); transition: transform .4s var(--spring); }
+.how-card:hover { transform: translateY(-4px); }
+.how-ico { font-size: 2rem; display: block; margin-bottom: 14px; }
+.how-card h3 { margin: 0 0 6px; font-size: 1.3rem; letter-spacing: -.03em; }
+.how-card p { margin: 0; color: var(--muted); }
+
+.why { display: block; }
+.why-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.why-head h2 { text-align: left; margin-bottom: 20px; }
+.car-nav { display: flex; gap: 8px; margin-bottom: 24px; }
+.car-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--panel); box-shadow: var(--shadow), inset 0 0 0 1px var(--line); font-size: 1.5rem; line-height: 1; cursor: pointer; color: var(--ink); transition: transform .3s var(--spring); }
+.car-btn:active { transform: scale(.92); }
+.carousel { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 32%); gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 4px 24px; }
+.carousel::-webkit-scrollbar { display: none; }
+.carousel .stat { scroll-snap-align: start; min-height: 220px; }
+@media (max-width: 700px) { .carousel { grid-auto-columns: 85%; } }
+.dots { display: flex; justify-content: center; gap: 8px; }
+.dots button { width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0; background: var(--line-2); cursor: pointer; transition: width .3s var(--ease), background .3s; }
+.dots button.on { width: 24px; background: var(--ink); }
+
+.api { max-width: 1180px; text-align: left; }
+.biz { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; background: var(--panel); border-radius: 32px; padding: 40px; box-shadow: var(--shadow-lg), inset 0 0 0 1px var(--line); }
+@media (max-width: 860px) { .biz { grid-template-columns: 1fr; padding: 28px; } }
+.biz h2 { text-align: left; }
+.biz p { margin: 0 0 20px; text-align: left; }
+.biz-btn { display: inline-block; background: var(--ink); color: var(--bg); border-radius: 999px; padding: 12px 22px; font-weight: 600; }
+.biz-btn:hover { text-decoration: none; opacity: .9; }
+.devbox summary { cursor: pointer; font-weight: 600; color: var(--blue); list-style: none; }
+.devbox summary::-webkit-details-marker { display: none; }
+.devbox summary::before { content: "›"; display: inline-block; margin-right: 8px; transition: transform .25s; }
+.devbox[open] summary::before { transform: rotate(90deg); }
+.devbox pre { margin-top: 14px; }
+
+.mic-btn { margin-top: 8px; border: 0; background: var(--blue-soft); color: var(--blue); border-radius: 999px; padding: 6px 14px; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.mic-btn.small { margin: 0 0 0 8px; padding: 3px 10px; font-size: .78rem; }
+.mic-btn.on { background: var(--red); color: #fff; animation: pulse 1s infinite; }
+.mic-btn[hidden] { display: none; }

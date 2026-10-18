@@ -3,11 +3,11 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
 const STEPS = {
-  read: ["Intake agent", "Gemini reads the offer"],
-  match: ["Matcher", "Finds the lender in complaint records"],
-  signal: ["Signal engine", "Drug-safety statistics on complaints"],
-  clauses: ["Mechanism agent", "Gemini pins each problem to a clause"],
-  compose: ["Leaflet writer", "Gemini writes it for you"],
+  read: ["Reading your offer", "Gemini looks at the photo, PDF or text"],
+  match: ["Finding the lender", "Matching it to public complaint records"],
+  signal: ["Checking 136,270 complaints", "The same test drug regulators use for side effects"],
+  clauses: ["Reading the contract", "Gemini finds the clause behind each problem"],
+  compose: ["Writing your leaflet", "In plain words, for your situation"],
 };
 const STATUS_LABEL = {
   persisting: "Still reported in 2026",
@@ -245,8 +245,9 @@ function render(lf) {
       ${lf.contract_pages ? `<li>Gemini read all ${lf.contract_pages} contract pages. Every quote above was checked word for word against the contract${lf.rejected_quotes ? `; ${lf.rejected_quotes} that could not be found were discarded` : ""}.</li>` : ""}
       <li>${esc(lf.evidence.disclaimer)}</li>
     </ul>
-    <p class="small"><strong>For AI agents applying for credit on someone's behalf:</strong> this leaflet is machine-readable.</p>
-    <div class="agentbox">GET /api/v1/leaflets/${esc(lf.id)}<br>POST /api/v1/check {"issuer": "${esc(p.matched_company || p.issuer_name)}", "product_type": "${esc(p.product_type)}", "applicant_profile": [...]}</div>
+    <details class="devbox"><summary>For developers and AI agents</summary>
+    <p class="small">This leaflet is machine-readable, so an agent applying for credit on someone's behalf can read it before signing.</p>
+    <div class="agentbox">GET /api/v1/leaflets/${esc(lf.id)}<br>POST /api/v1/check {"issuer": "${esc(p.matched_company || p.issuer_name)}", "product_type": "${esc(p.product_type)}", "applicant_profile": [...]}</div></details>
   `;
   $("leaflet").querySelectorAll(".se > button").forEach((b) => b.addEventListener("click", () => {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);

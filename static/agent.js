@@ -9,6 +9,8 @@
     place_order: "Placing the order",
     ask_person: "Handing the decision back",
   };
+  const TOOL_ICON = { search_payment_options: "🔎", check_side_effects: "💊", place_order: "🧾", ask_person: "✋" };
+  const OFFER_NAMES = { store_card: "Northwind Store Card", affirm_12: "Affirm monthly", klarna_pay4: "Klarna Pay in 4", pay_now: "Debit card" };
   let persona = "maya";
   let personas = {};
   let custom = null; // {name, about, profile} once Gemini has read "You"
@@ -25,7 +27,8 @@
       <div role="radio" tabindex="0" class="persona you" data-k="you" aria-checked="false">
         <span class="avatar" aria-hidden="true">?</span>
         <span><strong>You</strong><small>Describe your situation in a sentence. Gemini reads it, and both agents shop for you.</small>
-        <textarea id="youText" rows="3" maxlength="400" placeholder="e.g. I'm a student with a part-time job and a phone on EMI"></textarea></span>
+        <textarea id="youText" rows="3" maxlength="400" placeholder="e.g. I'm a student with a part-time job and a phone on EMI"></textarea>
+        <button type="button" class="mic-btn" id="youMic" hidden>🎤 Say it instead</button></span>
       </div>`;
     box.addEventListener("click", (e) => {
       const b = e.target.closest(".persona"); if (!b) return;
@@ -33,6 +36,20 @@
       box.querySelectorAll(".persona").forEach((x) => x.setAttribute("aria-checked", x === b));
     });
     $("#youText").addEventListener("focus", () => $(".persona.you").click());
+    if (Recognition) {
+      $("#youMic").hidden = false;
+      $("#youMic").addEventListener("click", (e) => {
+        e.stopPropagation(); $(".persona.you").click();
+        listen($("#youMic"), (said) => { $("#youText").value = said; });
+      });
+    }
+    $("#devView").addEventListener("change", (e) => document.body.classList.toggle("dev", e.target.checked));
+    $("#bannerClose").addEventListener("click", () => { $("#banner").hidden = true; });
+    $("#bannerTry").addEventListener("click", () => {
+      $("#hacked").checked = true; $("#banner").hidden = true;
+      $(".hack").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    initCarousel();
     $("#runBtn").addEventListener("click", runBoth);
   }
 
@@ -113,6 +130,27 @@
     }).join("")}</ul>`;
   }
 
+  // Voice: speak to the agent (Web Speech API, in Chrome and Safari).
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  function listen(btn, onText) {
+    if (!Recognition) return;
+    const rec = new Recognition();
+    rec.lang = navigator.language || "en-US"; rec.interimResults = false; rec.maxAlternatives = 1;
+    const label = btn.textContent;
+    btn.classList.add("on"); btn.textContent = "🎙 Listening…";
+    rec.onresult = (e) => onText(e.results[0][0].transcript);
+    rec.onerror = () => { btn.textContent = label; };
+    rec.onend = () => { btn.classList.remove("on"); if (btn.textContent === "🎙 Listening…") btn.textContent = label; };
+    rec.start();
+  }
+  function matchOption(said, options) {
+    const t = said.toLowerCase();
+    const keys = { pay_now: ["debit", "pay now", "pay in full", "full", "own card", "cash"], affirm_12: ["affirm", "monthly"],
+      klarna_pay4: ["klarna", "pay in four", "pay in 4"], store_card: ["store", "northwind", "synchrony"] };
+    const hit = options.find((o) => (keys[o.id] || []).some((k) => t.includes(k)));
+    return hit?.id;
+  }
+
   function setState(lane, text) { const el = $(".state", lane); if (el) el.textContent = text; }
 
   function laneResult(lane) {
@@ -134,7 +172,22 @@
 
   function termsHtml(t) {
     const i = t.indexOf("[Note for AI");
-    return i < 0 ? esc(t) : `${esc(t.slice(0, i))}<span class="inj">${esc(t.slice(i))}</span>`;
+    return i < 0 ? esc(t) : `${esc(t.slice(0, i))}<span class="inj"><b>Hidden on the page:</b> ${esc(t.slice(i).replace(/^\[|\]$/g, ""))}</span>`;
+  }
+
+  function initCarousel() {
+    const car = $("#carousel"), dots = $("#dots");
+    const cards = [...car.children];
+    dots.innerHTML = cards.map((_, i) => `<button type="button" aria-label="Card ${i + 1}" data-i="${i}"></button>`).join("");
+    const go = (i) => car.scrollTo({ left: cards[Math.max(0, Math.min(cards.length - 1, i))].offsetLeft - car.offsetLeft, behavior: "smooth" });
+    const current = () => cards.reduce((best, c, i) => Math.abs(c.offsetLeft - car.offsetLeft - car.scrollLeft) < Math.abs(cards[best].offsetLeft - car.offsetLeft - car.scrollLeft) ? i : best, 0);
+    const mark = () => dots.querySelectorAll("button").forEach((d, i) => d.classList.toggle("on", i === current()));
+    document.querySelectorAll(".car-btn").forEach((b) => b.addEventListener("click", () => go(current() + Number(b.dataset.dir))));
+    dots.addEventListener("click", (e) => { const d = e.target.closest("button"); if (d) go(Number(d.dataset.i)); });
+    car.addEventListener("scroll", () => requestAnimationFrame(mark), { passive: true });
+    mark();
+    let timer = setInterval(() => { const i = current(); go(i + 1 >= cards.length ? 0 : i + 1); }, 5000);
+    ["pointerdown", "wheel", "touchstart"].forEach((ev) => car.addEventListener(ev, () => clearInterval(timer), { passive: true }));
   }
 
   function speak(text) {
@@ -162,10 +215,14 @@
       case "say":
         add(feed, "say", esc(ev.text));
         break;
-      case "tool":
+      case "tool": {
         const args = Object.values(ev.args || {}).map((v) => JSON.stringify(v)).join(", ");
-        add(feed, "tool", `<code>${esc(ev.name)}(${esc(args.length > 48 ? args.slice(0, 46) + "…" : args)})</code><span>${esc(TOOL_LABEL[ev.name] || "")}</span>`);
+        const offer = ev.args?.offer_id && OFFER_NAMES[ev.args.offer_id];
+        add(feed, "tool", `<span class="step-ico" aria-hidden="true">${TOOL_ICON[ev.name] || "•"}</span>
+          <span>${esc(TOOL_LABEL[ev.name] || "Working")}${offer ? ": " + esc(offer) : ""}</span>
+          <code class="dev-only">${esc(ev.name)}(${esc(args.length > 48 ? args.slice(0, 46) + "…" : args)})</code>`);
         break;
+      }
       case "options":
         add(feed, "options", `<div class="store">${esc(ev.store)} &middot; ${esc(ev.item.name)} &middot; <b>${money(ev.item.price)}</b></div>
           <table>${ev.options.map((o) => `<tr><td>${esc(o.label)}<small>${termsHtml(o.terms)}</small></td><td>${o.monthly ? money(o.monthly) + "<small>/mo</small>" : "today"}</td></tr>`).join("")}</table>`);
@@ -200,10 +257,19 @@
         setState(lane, "Stopped before signing");
         add(feed, "ask", `<div class="stamp red">Stopped before signing</div>
           <p class="msg">${esc(ev.message)} <button type="button" class="say-again" aria-label="Read aloud">🔊</button></p>
-          <p class="choose">${esc(name)} decides:</p>
+          <p class="choose">${esc(name)} decides: <button type="button" class="mic-btn small" data-voice="1" ${Recognition ? "" : "hidden"}>🎤 Answer by voice</button></p>
           <div class="choices">${ev.options.map((o) => `<button type="button" data-o="${esc(o.id)}">${esc(o.label)}<small>${o.check ? verdictText(o.check.verdict) : "No new credit"}</small></button>`).join("")}</div>`)
           .addEventListener("click", (e) => {
             if (e.target.closest(".say-again")) { speak(ev.message); return; }
+            const vb = e.target.closest("[data-voice]");
+            if (vb) {
+              listen(vb, (said) => {
+                const pick = matchOption(said, ev.options);
+                const btn = pick && lane.querySelector(`.choices button[data-o="${pick}"]:not(:disabled)`);
+                if (btn) btn.click(); else vb.textContent = `🎤 Didn't catch an option in "${said}". Try again`;
+              });
+              return;
+            }
             choose(e, lane, feed);
           });
         speak(ev.message);
@@ -244,7 +310,7 @@
     const io = new IntersectionObserver((entries) => entries.forEach((e) => {
       if (!e.isIntersecting) return;
       e.target.classList.add("in");
-      e.target.querySelectorAll(".stat b").forEach(countUp);
+      e.target.querySelectorAll(".stat b").forEach((b) => { if (/^\d/.test(b.textContent) && b.textContent !== "0") countUp(b); });
       io.unobserve(e.target);
     }), { threshold: .2 });
     document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
