@@ -31,6 +31,11 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:${
   --role roles/run.builder --condition=None >/dev/null
 
 # Leaflets live in memory, so one instance keeps the pharmacist next to its leaflet.
+# Stamp the build for the page footer when deploying from a git clone (the zip already has app/VERSION).
+if git rev-parse --short HEAD >/dev/null 2>&1; then
+  echo "$(date -u +'%-d %b %H:%M') UTC · $(git rev-parse --short HEAD)" > app/VERSION
+fi
+
 gcloud run deploy side-effects \
   --source . \
   --region "$REGION" \
