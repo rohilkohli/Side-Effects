@@ -10,9 +10,10 @@ from pathlib import Path
 from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel
 
-from . import alerts, bq, evidence, gate, gemini, live, mcp, pipeline, profiles
+from . import alerts, bq, evidence, gate, gemini, live, mcp, pipeline, profiles, voice
 from .agents import arena, assistant, pharmacist, radar, shopper
 
 ROOT = Path(__file__).parent.parent
@@ -233,6 +234,54 @@ def ask_assistant(body: AssistantAsk):
         except Exception:
             log.exception("assistant failed")
             yield {"type": "error", "text": "The assistant is busy. Please ask again in a moment."}
+    return _ndjson(events())
+
+
+@app.post("/api/v1/voice")
+async def voice_agent(request: Request):
+    """Voice agent. JSON {"text", "history", "leaflet_id"} when the browser did speech-to-text, or a form with
+    an "audio" clip (MediaRecorder) that Gemini transcribes. Streams NDJSON: heard, tool calls, then final
+    {"text", "speech", "speak"} for the browser to show and read aloud."""
+    history, leaflet_id = [], None
+    if request.headers.get("content-type", "").startswith("multipart/"):
+        form = await request.form()
+        clip, text = form.get("audio"), str(form.get("text") or "")
+        leaflet_id = str(form.get("leaflet_id") or "") or None
+        try:
+            history = json.loads(str(form.get("history") or "[]"))
+        except ValueError:
+            history = []
+        if clip is not None and not text:
+            audio = await clip.read()
+            mime = (clip.content_type or "audio/webm").split(";")[0]
+            if not audio or len(audio) > voice.MAX_AUDIO_BYTES or mime not in voice.AUDIO_TYPES:
+                raise HTTPException(400, "Send a short audio clip (webm, ogg, mp4, mp3 or wav, under 4 MB).")
+            try:
+                text = await run_in_threadpool(voice.transcribe, audio, mime)
+            except gemini.LLMUnavailable:
+                raise HTTPException(503, "The voice agent is offline right now.")
+            except Exception:
+                log.exception("voice transcription failed")
+                raise HTTPException(502, "Gemini could not hear that clip. Please try again.")
+    else:
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "Send JSON with a text field, or a form with an audio clip.")
+        text, history, leaflet_id = str(body.get("text") or ""), body.get("history") or [], body.get("leaflet_id")
+    text = text.strip()[:1000]
+    if not text:
+        raise HTTPException(400, "We didn't catch a question. Please try again.")
+    history = [h for h in history if isinstance(h, dict)][-10:]
+
+    def events():
+        try:
+            yield from voice.run(text, history, leaflet_id)
+        except gemini.LLMUnavailable:
+            yield {"type": "error", "text": "The voice agent is offline right now."}
+        except Exception:
+            log.exception("voice agent failed")
+            yield {"type": "error", "text": "The voice agent is busy. Please ask again in a moment."}
     return _ndjson(events())
 
 

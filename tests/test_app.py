@@ -500,3 +500,26 @@ def test_gate_severity_and_action_follow_fixed_rules():
     assert any("Key Facts Statement" in a for a in au["recommended_action"])
     assert gate.check("Nobody Bank", "credit_card", [])["severity"] == "LOW"
     assert gate.check("Klarna", "bnpl", ["irregular_income", "other_bnpl"]) == klarna  # deterministic
+
+
+def test_voice_agent_answers_text_and_audio_and_returns_speakable_text(monkeypatch, fake_gemini):
+    from app import voice
+    from app.agents import assistant
+    _fake_live(monkeypatch)
+    monkeypatch.setattr(assistant, "_turn", fakes.fake_assistant_turn)
+    c = TestClient(app)
+    r = c.post("/api/v1/voice", json={"text": "Is Apple Card risky?", "history": []})
+    events = [json.loads(x) for x in r.text.strip().splitlines()]
+    assert events[0] == {"type": "heard", "text": "Is Apple Card risky?"}
+    assert any(e["type"] == "tool" and e["name"] == "check_lender" for e in events)
+    final = events[-1]
+    assert final["type"] == "final" and final["speak"] and "120 complaints" in final["text"]
+    assert "**" not in final["speech"] and "2.1 times" in final["speech"]
+    # Browsers without speech recognition send a clip; Gemini transcribes it on the server.
+    monkeypatch.setattr(voice, "transcribe", lambda audio, mime: "Is Klarna risky?")
+    r = c.post("/api/v1/voice", files={"audio": ("q.webm", b"\x1aE\xdf\xa3fake", "audio/webm")})
+    events = [json.loads(x) for x in r.text.strip().splitlines()]
+    assert events[0]["text"] == "Is Klarna risky?" and events[-1]["type"] == "final"
+    assert c.post("/api/v1/voice", files={"audio": ("q.exe", b"MZ", "application/octet-stream")}).status_code == 400
+    assert c.post("/api/v1/voice", json={"text": "  "}).status_code == 400
+    assert c.post("/api/v1/check", json={"issuer": "Klarna", "product_type": "bnpl"}).status_code == 200  # untouched

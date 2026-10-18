@@ -113,6 +113,7 @@
 
   window.SEAssist = {
     open, ask: (q) => { open(); ask(q); },
+    get leafletId() { return leafletId; },
     /* The leaflet page calls this when a leaflet opens (or with null when it closes). */
     setLeaflet(lf, questions) {
       leafletId = lf ? lf.id : null; history = [];

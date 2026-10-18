@@ -6,7 +6,7 @@ import time
 
 import uvicorn
 
-from app import bq, gemini, live
+from app import bq, gemini, live, voice
 from app.agents import assistant, pharmacist, shopper
 from tests import fakes
 
@@ -35,6 +35,7 @@ def _slow_assistant(*a, **kw):
 
 
 assistant._turn = _slow_assistant
+voice.transcribe = lambda audio, mime: "Is Klarna risky if my income is irregular?"
 
 # Made-up BigQuery answers, only so the BigQuery panels can be seen locally.
 bq.lender_snapshot = lambda company, product_type="credit_card": {

@@ -21,7 +21,7 @@
 <img alt="Cloud Scheduler" src="https://img.shields.io/badge/Cloud_Scheduler-daily_scan-4285F4?logo=googlecloud&logoColor=white">
 <img alt="Google Search grounding" src="https://img.shields.io/badge/Google_Search-grounding-34A853?logo=google&logoColor=white">
 <img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white">
-<img alt="Tests" src="https://img.shields.io/badge/tests-31_passing-12b76a">
+<img alt="Tests" src="https://img.shields.io/badge/tests-33_passing-12b76a">
 </p>
 
 **Google Cloud AI Builder Cup 2026** · Track 01 BFSI: Intelligent Risk, Fraud & Financial Experiences · Team **CyberNex - Vision Matters**
@@ -50,6 +50,7 @@ SIDE EFFECTS writes the missing leaflet, and puts a gate in front of the checkou
 | 🛡️ **A gate for AI agents** | `POST /api/v1/check` and an **MCP server** return a deterministic verdict: `no_signal`, `disclose` or `human_review`. The checkout enforces it in code, so an agent that forgets to check still can't sign. |
 | 🚨 **Safety alerts every morning** | Cloud Scheduler runs a scan of the regulator's live complaint feed. A new spike becomes an alert, saved to BigQuery, and the gate uses it at once. |
 | ✦ **An assistant with live tools** | Ask "Is Apple Card risky for a freelancer?" and watch it check the complaint feed and Google News in parallel. |
+| 🎙️ **A voice agent** | Tap the mic and ask out loud. Speech-to-text in the browser (or Gemini transcribes the clip), the same Gemini agent and gate answer, and the risk warning is read back to you. |
 
 > **Would it have worked?** The leaflet flags Apple Card for *purchase disputes left unresolved*, reported **2.1×** more often than at similar card issuers (817 complaints, 2024). That is the defect the US regulator fined Goldman Sachs **$45M** for in October 2024, found here from public complaint data alone.
 
@@ -64,6 +65,7 @@ Open the **[live demo](https://side-effects-339621847915.asia-southeast1.run.app
 3. **Safety alerts:** press **Run the scan now** and watch 15 lenders get scanned live.
 4. **Scam arena:** press **Start 3 rounds**. A Gemini attacker invents new checkout scams; a Gemini guardian must quote them; the gate decides.
 5. Press <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd> anywhere and ask the assistant a question.
+6. Tap the **🎙 Voice** button and ask *"Is Klarna risky if my income is irregular?"* out loud.
 
 <details>
 <summary><b>📋 All 11 judge-tested inputs</b> (click to expand)</summary>
@@ -241,7 +243,7 @@ app/
   data/              signal tables, verified quotes, vocabulary, APAC data
 pipeline/            offline harvest: classify, PRR in BigQuery, evaluation, India data
 static/              the web app (no build step)
-tests/               31 tests with a Gemini stand-in; tests/fake_server.py runs the UI offline
+tests/               33 tests with a Gemini stand-in; tests/fake_server.py runs the UI offline
 deploy.sh            one-command Cloud Run + BigQuery + Scheduler deploy
 ```
 
@@ -377,6 +379,7 @@ gemini mcp add --transport http side-effects \
 | `POST` | `/api/agent/run` | run the shopping agent (streams) |
 | `POST` | `/api/arena/run` | scam arena (streams) |
 | `POST` | `/api/assistant` | assistant with tools (streams) |
+| `POST` | `/api/v1/voice` | voice agent: JSON text or a multipart audio clip in; heard, tool calls, then `{text, speech, speak}` (streams) |
 | `GET` | `/api/alerts` · `POST /api/alerts/scan` | safety alerts |
 | `GET` | `/api/live/check` · `/api/live/news` | live lender check |
 | `GET` | `/.well-known/side-effects.json` | agent descriptor |
@@ -419,7 +422,7 @@ No credentials? Click through the whole UI with a Gemini stand-in:
 
 ```bash
 python -m tests.fake_server     # http://localhost:8080
-pytest                           # 31 tests, no credentials needed
+pytest                           # 33 tests, no credentials needed
 ```
 
 </details>
