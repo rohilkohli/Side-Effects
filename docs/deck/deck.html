@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SIDE EFFECTS - pitch deck</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: 1920px 1080px; margin: 0; }
+  :root { --bg:#0d1117; --panel:#151b24; --ink:#e9edf2; --muted:#9aa5b4; --line:#2a3442; --red:#ff5a5f; --amber:#ffc261; --green:#3ddc97; --blue:#7cb7ff; --paper:#fbfaf6;
+    --serif:"IBM Plex Serif",Georgia,serif; --sans:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#000; font-family:var(--sans); color:var(--ink); }
+  .s { width:1920px; height:1080px; background:var(--bg); position:relative; overflow:hidden; padding:96px 120px; page-break-after:always; display:flex; flex-direction:column; }
+  .s.light { background:var(--paper); color:#161b22; --muted:#5b6573; --line:#dcd8cf; --panel:#fff; --red:#c8262c; --amber:#8a5a00; --green:#137a4b; }
+  .k { color:var(--red); font-weight:600; letter-spacing:.14em; text-transform:uppercase; font-size:24px; margin:0 0 20px; }
+  h1 { font-family:var(--serif); font-size:96px; line-height:1.05; margin:0; font-weight:600; }
+  h2 { font-family:var(--serif); font-size:68px; line-height:1.1; margin:0 0 36px; font-weight:600; max-width:1500px; }
+  h2 em { color:var(--red); font-style:normal; }
+  p, li { font-size:32px; line-height:1.45; }
+  .muted { color:var(--muted); }
+  .foot { position:absolute; left:120px; right:120px; bottom:48px; display:flex; justify-content:space-between; color:var(--muted); font-size:20px; }
+  .brand { display:flex; align-items:center; gap:14px; font-weight:700; letter-spacing:.16em; font-size:22px; color:var(--ink); }
+  .light .brand { color:#161b22; }
+  .pill { display:inline-block; width:44px; height:18px; border-radius:9px; background:linear-gradient(90deg,var(--red) 50%,#fbfaf6 50%); border:2px solid currentColor; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:32px; }
+  .card { background:var(--panel); border:1.5px solid var(--line); border-radius:20px; padding:40px; }
+  .card h3 { font-size:36px; margin:0 0 10px; }
+  .card p { font-size:30px; line-height:1.45; margin:0; color:var(--muted); }
+  .big { font-family:var(--serif); font-weight:700; font-size:120px; line-height:1; color:var(--red); }
+  .shot { border-radius:16px; border:1.5px solid var(--line); display:block; max-width:100%; }
+  ul { margin:0; padding-left:1.1em; }
+  li { margin-bottom:14px; }
+  code { font-family:var(--mono); font-size:.85em; color:var(--blue); }
+  .tag { display:inline-block; font-size:20px; padding:4px 14px; border-radius:999px; border:1.5px solid var(--line); color:var(--muted); margin:0 8px 8px 0; }
+  table.arch { border-collapse:collapse; width:100%; font-size:24px; }
+  table.arch td { padding:14px 18px; border-top:1.5px solid var(--line); vertical-align:top; }
+  table.arch td:first-child { width:330px; font-weight:600; }
+  table.arch td.det { color:var(--green); }
+  table.arch td.ai { color:var(--blue); }
+  .bars { display:grid; gap:34px; margin-top:12px; }
+  .bar { display:grid; grid-template-columns:380px 1fr 260px; gap:24px; align-items:center; font-size:34px; }
+  .bar .t { height:56px; background:var(--line); border-radius:0 4px 4px 0; overflow:hidden; }
+  .bar .t i { display:block; height:100%; background:#8b97a8; border-radius:0 4px 4px 0; }
+  .bar.hi .t i { background:var(--red); }
+  .bar .v { font-variant-numeric:tabular-nums; }
+  .bar .v small { color:var(--muted); font-size:22px; }
+  .avg { font-size:26px; color:var(--muted); margin-top:18px; }
+</style>
+</head>
+<body>
+
+<!-- 1 Title -->
+<section class="s">
+  <div class="brand"><span class="pill"></span>SIDE EFFECTS</div>
+  <div style="margin-top:auto">
+    <p class="k">Theme 01 &middot; BFSI: Intelligent Risk, Fraud &amp; Financial Experiences</p>
+    <h1>Every medicine tells you<br>what can go wrong.<br><span style="color:var(--red)">Your credit never did.</span></h1>
+    <p class="muted" style="font-size:36px;margin-top:36px;max-width:1400px">Pharmacovigilance for money: the side-effects leaflet credit products should ship with, and a gate that stops AI agents signing people up before they have read it.</p>
+  </div>
+  <div class="foot"><span>Team CyberNex - Vision Matters</span><span>Google Cloud AI Builder Cup 2026</span></div>
+</section>
+
+<!-- 2 Problem -->
+<section class="s">
+  <p class="k">The problem</p>
+  <h2>People sign up for credit with no warning label, and soon <em>AI agents will sign for them</em>.</h2>
+  <div class="grid3" style="margin-top:20px">
+    <div class="card"><h3>The advert shows the upside</h3><p>"0% interest", "pay in 4", "no hidden fees". What goes wrong for real customers is never on the page.</p></div>
+    <div class="card"><h3>The evidence already exists</h3><p>Regulators publish hundreds of thousands of consumer complaints. Nobody turns them into a warning you see at the moment you sign.</p></div>
+    <div class="card"><h3>Agents make it faster</h3><p>Shopping agents and agent payment protocols are arriving. An agent told to "keep the monthly cost low" will pick the trap in milliseconds.</p></div>
+  </div>
+  <p class="muted" style="margin-top:auto">Medicine solved this decades ago: every packet carries a leaflet, and regulators mine adverse-event reports for signals. Finance has the same raw material and no leaflet.</p>
+</section>
+
+<!-- 3 Insight + proof -->
+<section class="s">
+  <p class="k">The insight</p>
+  <h2>Run drug-safety statistics on financial complaints.</h2>
+  <div class="grid2">
+    <div>
+      <ul>
+        <li><b>136,270</b> real US CFPB complaints about cards, personal loans and BNPL.</li>
+        <li>Gemini codes each story into 26 financial "side effects" and filters copy-paste templates (19% of a checked sample).</li>
+        <li>Proportional reporting ratio with a 95% interval and the Evans rule: the same signal test drug regulators use.</li>
+        <li>The leaflet says <b>"reported 2.1x more often than similar lenders"</b>, never "common" or "rare". Complaints are unverified, and the leaflet says so.</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color:var(--red)">
+      <p class="k" style="font-size:20px">Does it find real problems?</p>
+      <div class="big">2.1&times;</div>
+      <p style="font-size:30px;margin:16px 0 0;color:var(--ink)">Apple Card (Goldman Sachs): purchase disputes left unresolved, vs peer issuers. 817 complaints in 2024, still 2.1x in Jun-Sep 2026.</p>
+      <p style="margin-top:20px">The US CFPB ordered Goldman Sachs to pay $45M over exactly this in October 2024. Our method finds it from public complaints alone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 4 Hero demo -->
+<section class="s">
+  <p class="k">Live demo &middot; the same Gemini agent, twice</p>
+  <h2 style="margin-bottom:28px">Maya is a freelancer. She asks her agent to buy a laptop "with the lowest monthly cost".</h2>
+  <div class="grid2" style="gap:40px">
+    <div><p class="muted" style="font-size:24px;margin:0 0 12px">Agent on its own</p><img class="shot" src="deck-signed.png" style="max-height:600px"></div>
+    <div><p class="muted" style="font-size:24px;margin:0 0 12px">Agent + SIDE EFFECTS</p><img class="shot" src="deck-stopped.png" style="max-height:600px"></div>
+  </div>
+  <p class="muted" style="font-size:24px;margin-top:auto">The store and its terms are fictional; the lenders' complaint signals are real. The gate is enforced inside <code>place_order</code>: an agent that skips the check still cannot sign.</p>
+</section>
+
+<!-- 5 Leaflet -->
+<section class="s light">
+  <p class="k">For people: the leaflet</p>
+  <h2>Photograph any offer. Get the leaflet it should have come with.</h2>
+  <div class="grid2" style="grid-template-columns:1.25fr 1fr">
+    <img class="shot" src="deck-box.png">
+    <ul style="font-size:28px">
+      <li style="font-size:28px">Each line says what it is: a <b>bank-level</b> signal, a <b>product-category</b> signal, or a <b>clause in this contract</b>.</li>
+      <li style="font-size:28px">Gemini reads every page of the contract and pins the clause behind each side effect; code checks the quote word for word.</li>
+      <li style="font-size:28px">"Before you sign" warnings for <b>your</b> situation, interactions, and lenders without these signals ("consider a generic").</li>
+      <li style="font-size:28px">A pharmacist you can ask by voice, answering only from the leaflet, the contract and real complaints.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6 How it works -->
+<section class="s">
+  <p class="k">How it works</p>
+  <h2 style="margin-bottom:24px">Five Gemini agents around a deterministic core.</h2>
+  <table class="arch">
+    <tr><td>Intake agent</td><td class="ai">Gemini, multimodal: photo, PDF or text of an offer &rarr; product, lender, what the advert leaves unsaid</td></tr>
+    <tr><td>Signal engine</td><td class="det">Code: PRR vs peer lenders over 136k complaints, plus RBI rates for India. Every number comes from here.</td></tr>
+    <tr><td>Clause reader</td><td class="ai">Gemini, long context, structured output: pins each side effect to a clause &rarr; <span style="color:var(--green)">code verifies every quote</span></td></tr>
+    <tr><td>Leaflet writer</td><td class="ai">Gemini: contraindications and interactions for this person, citing only line ids it was given</td></tr>
+    <tr><td>Pharmacist</td><td class="ai">Gemini with tools: get_side_effects, search_contract, complaint_examples, compare_with</td></tr>
+    <tr><td>Shopping agent</td><td class="ai">Gemini function calling, run step by step; thoughts and tool calls stream to the page</td></tr>
+    <tr><td>Agent gate API</td><td class="det"><code>POST /api/v1/check</code> &rarr; no_signal / disclose / human_review. No model in the loop: same request, same answer.</td></tr>
+  </table>
+  <p class="muted" style="font-size:24px;margin-top:auto"><span style="color:var(--blue)">Blue</span> = Gemini. <span style="color:var(--green)">Green</span> = deterministic code. Offline, BigQuery runs Gemini over complaint stories and computes the statistics.</p>
+</section>
+
+<!-- 7 APAC -->
+<section class="s">
+  <p class="k">Built for APAC: India first</p>
+  <h2>India publishes complaints per card, so we can show true rates.</h2>
+  <p class="muted" style="font-size:26px;margin:0 0 12px">Credit-card complaints to the RBI Ombudsman per 1,000 cards in force, by bank group, Apr 2024-Mar 2025</p>
+  <div class="bars">
+    <div class="bar hi"><span>Small finance banks</span><span class="t"><i style="width:100%"></i></span><span class="v">1.14 <small>3.0&times; avg</small></span></div>
+    <div class="bar"><span>Foreign banks</span><span class="t"><i style="width:80.9%"></i></span><span class="v">0.92 <small>2.5&times; avg</small></span></div>
+    <div class="bar"><span>Private sector banks</span><span class="t"><i style="width:36.8%"></i></span><span class="v">0.42 <small>1.1&times; avg</small></span></div>
+    <div class="bar"><span>Public sector banks</span><span class="t"><i style="width:10%"></i></span><span class="v">0.11 <small>0.3&times; avg</small></span></div>
+  </div>
+  <p class="avg">India average 0.375 per 1,000 cards across 110M cards. Indian card leaflets also show the bank's own published top complaint grounds (seven banks loaded).</p>
+  <p class="muted" style="font-size:24px;margin-top:auto">Next markets need complaint data to be published: Australia (AFCA) is next; Singapore publishes none today, so Singapore products get a contract-only leaflet that says so.</p>
+</section>
+
+<!-- 8 Gen AI is core + guardrails -->
+<section class="s">
+  <p class="k">Why Gen AI, and how we keep it honest</p>
+  <h2>Gemini does the reading. Code does the counting.</h2>
+  <div class="grid2">
+    <div class="card"><h3 style="color:var(--blue)">Only Gen AI can</h3>
+      <ul style="margin-top:12px"><li style="font-size:32px">Read a photo of a flyer and a 40-page contract in any layout</li>
+      <li style="font-size:32px">Turn free-text complaint stories into a side-effect vocabulary, and spot templates</li>
+      <li style="font-size:32px">Explain a clause in plain words for this person's situation</li>
+      <li style="font-size:32px">Act as an agent: plan, call tools, stop and ask</li></ul></div>
+    <div class="card"><h3 style="color:var(--green)">Guardrails in code</h3>
+      <ul style="margin-top:12px"><li style="font-size:32px">No number ever comes from the model</li>
+      <li style="font-size:32px">Clause quotes verified word for word; unfound quotes discarded</li>
+      <li style="font-size:32px">Warnings must cite a real side-effect line, or they are dropped</li>
+      <li style="font-size:32px">The gate lives in the checkout, not the prompt</li>
+      <li style="font-size:32px">No API keys: Vertex AI via the Cloud Run service identity</li></ul></div>
+  </div>
+</section>
+
+<!-- 9 Impact -->
+<section class="s">
+  <p class="k">Who it helps</p>
+  <h2>One evidence base, three ways in.</h2>
+  <div class="grid3">
+    <div class="card"><h3>People</h3><p>A leaflet for any card, BNPL plan or loan, written for their situation, before they sign. Free, in the browser, from a photo.</p></div>
+    <div class="card"><h3>AI agent builders</h3><p>One API call before an agent commits a person to credit. A machine-readable verdict and the disclosures to show. The safety layer agentic commerce is missing.</p></div>
+    <div class="card"><h3>Banks and regulators</h3><p>The same signals are an early warning: the Apple Card dispute problem was visible in public complaints. Lenders can fix a side effect before it becomes an enforcement action.</p></div>
+  </div>
+  <p style="margin-top:auto;font-size:30px">Freelancers, gig workers and people already juggling pay-later plans get hurt most by repayment and interest surprises. They are who the "Before you sign" warnings are written for.</p>
+</section>
+
+<!-- 10 Feasibility + scale -->
+<section class="s">
+  <p class="k">Feasibility and path to production</p>
+  <h2>Working today on Google Cloud. Clear steps to scale.</h2>
+  <div class="grid2">
+    <div><p class="muted" style="font-size:24px;margin:0 0 10px">Built</p>
+      <ul><li style="font-size:28px">Cloud Run (scales to zero), Gemini on Vertex AI, BigQuery for the statistics</li>
+      <li style="font-size:28px">Live agent demo, leaflet, pharmacist, check API</li>
+      <li style="font-size:28px">12 automated tests, including "the gate holds when the agent skips the check"</li>
+      <li style="font-size:28px">US + India data, all sources cited</li></ul></div>
+    <div><p class="muted" style="font-size:24px;margin:0 0 10px">Next</p>
+      <ul><li style="font-size:28px">Ship the gate as an ADK tool and an agent-payments mandate check</li>
+      <li style="font-size:28px">Firestore for saved leaflets; scheduled BigQuery refresh as new complaints land</li>
+      <li style="font-size:28px">Card-level signals where regulators publish them; Australia next</li>
+      <li style="font-size:28px">Classifier evaluation at scale (143 hand-labelled stories today)</li></ul></div>
+  </div>
+  <p class="muted" style="font-size:24px;margin-top:auto">Honest limits: complaint data is issuer-level and unverified; signals show disproportion, not probability. Not financial advice.</p>
+</section>
+
+<!-- 11 Close -->
+<section class="s">
+  <div class="brand"><span class="pill"></span>SIDE EFFECTS</div>
+  <div style="margin-top:auto">
+    <h1 style="font-size:84px">Before an agent signs you up for credit,<br><span style="color:var(--red)">it should read the leaflet.</span></h1>
+    <div style="margin-top:56px;font-size:30px;line-height:1.9">
+      <div><span class="muted">Live prototype</span>&nbsp;&nbsp;__LIVE__</div>
+      <div><span class="muted">Code</span>&nbsp;&nbsp;__REPO__</div>
+      <div><span class="muted">Demo video</span>&nbsp;&nbsp;__VIDEO__</div>
+    </div>
+  </div>
+  <div class="foot"><span>Team CyberNex - Vision Matters &middot; Theme 01 BFSI</span><span>Built with Gemini on Google Cloud</span></div>
+</section>
+
+</body>
+</html>
