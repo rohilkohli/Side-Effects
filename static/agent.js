@@ -370,10 +370,11 @@
   });
   $("#arena").dataset.show = "laneB";
   const hashPanel = location.hash.slice(1);
-  if (["scam", "how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel, true);
+  if (["check", "scam", "how", "why", "biz"].includes(hashPanel.split("=")[0])) showPanel(hashPanel.split("=")[0], true);
+  if (hashPanel.startsWith("check=")) setTimeout(() => { $("#lcName").value = decodeURIComponent(hashPanel.slice(6)); runCheck(); });
   window.addEventListener("popstate", () => {
     const h = location.hash.slice(1);
-    showPanel(["scam", "how", "why", "biz"].includes(h) ? h : "demo", true);
+    showPanel(["check", "scam", "how", "why", "biz"].includes(h) ? h : "demo", true);
   });
 
   /* ---- Scam arena: Gemini attacker vs Gemini guardian vs the gate ---- */
@@ -457,6 +458,62 @@
     }
   }
   $("#scamBtn").addEventListener("click", runScam);
+
+  /* ---- Check a lender: live complaints + news (Gemini with Google Search) + our signals ---- */
+  const KIND = { enforcement: "Regulator", lawsuit: "Lawsuit", outage: "Outage", data_breach: "Data breach", fees_or_terms: "Fees or terms", other: "News" };
+  const spin = (t) => `<p class="lc-wait"><i></i>${esc(t)}</p>`;
+  let checkSeq = 0;
+  async function runCheck() {
+    const name = $("#lcName").value.trim(), type = $("#lcType").value;
+    if (!name) { $("#lcName").focus(); return; }
+    const seq = ++checkSeq;
+    const q = `name=${encodeURIComponent(name)}&product_type=${type}`;
+    $("#lcOut").hidden = false;
+    $("#lcComplaints").innerHTML = `<h3>Complaints right now</h3>` + spin("Asking the regulator's live feed…");
+    $("#lcSignals").innerHTML = `<h3>Side effects we track</h3>` + spin("Looking up our statistics…");
+    $("#lcNews").innerHTML = `<h3>In the news <span class="bq-tag g">Gemini + Google Search</span></h3>` + spin("Gemini is searching the news. This takes about 15 seconds…");
+    fetch(`/api/live/check?${q}`).then((r) => r.json()).then((d) => { if (seq === checkSeq) showCheck(d); })
+      .catch(() => { $("#lcComplaints").innerHTML = `<h3>Complaints right now</h3><p class="muted">Couldn't reach the complaint feed.</p>`; });
+    fetch(`/api/live/news?${q}`).then((r) => r.json()).then((d) => { if (seq === checkSeq) showNews(d); })
+      .catch(() => { $("#lcNews").innerHTML = `<h3>In the news</h3><p class="muted">Couldn't search the news just now.</p>`; });
+  }
+  function showCheck(d) {
+    const c = d.complaints || {};
+    if (!d.company) {
+      $("#lcComplaints").innerHTML = `<h3>Complaints right now</h3><p class="muted">We couldn't find "${esc(d.name)}" in US complaint records. Try the bank's name, e.g. "Goldman Sachs" for Apple Card.</p>`;
+    } else if (!c.available) {
+      const a = d.archive || {};
+      $("#lcComplaints").innerHTML = `<h3>Complaints</h3><p class="muted">The regulator's live feed didn't answer just now.</p>` + (a.available
+        ? `<div class="lc-big"><b>${a.last_12_months.toLocaleString()}</b><span>complaints in the 12 months to ${esc(a.latest_date)}, from BigQuery's public copy</span></div>
+           <ul class="bq-top">${a.top_issues.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("")}</ul>` : "");
+    } else {
+      const ch = c.change_pct, arrow = ch == null ? "" : ch > 0 ? `<span class="up">▲ ${ch}%</span>` : ch < 0 ? `<span class="down">▼ ${Math.abs(ch)}%</span>` : `<span>no change</span>`;
+      $("#lcComplaints").innerHTML = `<h3>Complaints right now</h3>
+        <div class="lc-big"><b>${c.last_90_days.toLocaleString()}</b><span>complaints about ${esc(shortName(c.company))} in the last 90 days ${arrow ? `${arrow} <small>vs the 90 days before</small>` : ""}</span></div>
+        ${c.top_issues.length ? `<ul class="bq-top">${c.top_issues.map((i) => `<li><span>${esc(i.issue)}</span><b>${i.n.toLocaleString()}</b></li>`).join("")}</ul>` : ""}
+        <p class="small muted">${esc(c.source)}${c.latest_complaint ? `, newest complaint ${esc(c.latest_complaint)}` : ""}. Covers all the company's products; complaints are unverified.</p>`;
+    }
+    $("#lcSignals").innerHTML = `<h3>Side effects we track</h3>` + (d.signals.length
+      ? `<ul class="lc-sig">${d.signals.map((x) => `<li><span>${esc(x.label)}<small>${x.scope === "bank" ? "this lender" : "all similar products"}</small></span><b>${x.reported_x}&times;</b></li>`).join("")}</ul>
+         <p class="small muted">How much more often than similar lenders, from 136,270 complaints.</p>
+         <a class="lc-link" href="/leaflet">Make the full leaflet ›</a>`
+      : `<p class="muted">${d.company ? "Nothing reported unusually often compared with similar lenders." : "No statistics for this name."}</p>`);
+  }
+  function showNews(d) {
+    const box = $("#lcNews");
+    if (!d.available) { box.innerHTML = `<h3>In the news</h3><p class="muted">${esc(d.reason || "Not available right now.")}</p>`; return; }
+    box.innerHTML = `<h3>In the news <span class="bq-tag g">Gemini + Google Search</span></h3>
+      <p class="lc-sum">${esc(d.summary)}</p>
+      ${d.items.length ? `<ol class="lc-news">${d.items.map((i) => `<li><span class="tech sm k-${esc(i.kind)}">${esc(KIND[i.kind] || "News")}</span><b>${esc(i.headline)}</b> <span class="muted small">${esc(i.date)} · ${esc(i.source)}</span><p>${esc(i.what_it_means)}</p></li>`).join("")}</ol>` : ""}
+      ${d.sources.length ? `<details class="lc-src"><summary>${d.sources.length} source${d.sources.length > 1 ? "s" : ""} Gemini used</summary><ul>${d.sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join("")}</ul></details>` : `<p class="small muted">No web sources were returned, so treat this as unverified.</p>`}
+      <p class="small muted">Found and summarised by Gemini, grounded in Google Search. Read the sources before relying on it.</p>`;
+  }
+  const shortName = (n) => String(n).toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()).replace(/\b(Usa|Td|Us|Ab)\b/g, (m) => m.toUpperCase()).replace(/,? (N\.A\.|INC\.?|Inc\.?|NATIONAL ASSOCIATION|& CO\.|COMPANY|CORPORATION|FINANCIAL CORPORATION|HOLDINGS?,?)\b/gi, "").trim();
+  $("#lcForm").addEventListener("submit", (e) => { e.preventDefault(); runCheck(); });
+  $("#lcChips").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    $("#lcName").value = b.textContent; $("#lcType").value = b.dataset.t || "credit_card"; runCheck();
+  });
   fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 
   init().catch((e) => showErr(e.message));

@@ -147,3 +147,27 @@ class Theme(BaseModel):
 
 class ThemeReport(BaseModel):
     themes: list[Theme]
+
+
+# ---- Live check: news about a lender, found by Gemini with Google Search ----
+
+class NewsKind(str, Enum):
+    enforcement = "enforcement"        # a regulator's fine, order or investigation
+    lawsuit = "lawsuit"
+    outage = "outage"                  # payments, app or card failures
+    data_breach = "data_breach"
+    fees_or_terms = "fees_or_terms"    # rate, fee or terms changes that hit customers
+    other = "other"
+
+
+class NewsItem(BaseModel):
+    headline: str = Field(description="What happened, in under 15 plain words")
+    date: str = Field(description="When, as precise as the source allows, e.g. 2026-08 or 2026-08-14")
+    kind: NewsKind
+    what_it_means: str = Field(description="One sentence for someone deciding whether to sign up")
+    source: str = Field(description="The publication or regulator that reported it")
+
+
+class NewsReport(BaseModel):
+    items: list[NewsItem]
+    summary: str = Field(description="One or two plain sentences: is there anything a customer should know right now?")

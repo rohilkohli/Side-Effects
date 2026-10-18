@@ -1,7 +1,7 @@
 """A stand-in for Gemini that returns fixed, schema-valid answers (tests and UI screenshots only)."""
 import json
 
-from app.schemas import (Attack, Finding, GuardianReport, Technique, Theme, ThemeReport, ReadPerson, Situation, ClauseFindings, ClauseLink, ContractOnlyRisk, Contraindication, Interaction, LeafletText,
+from app.schemas import (NewsItem, NewsKind, NewsReport, Attack, Finding, GuardianReport, Technique, Theme, ThemeReport, ReadPerson, Situation, ClauseFindings, ClauseLink, ContractOnlyRisk, Contraindication, Interaction, LeafletText,
                          LineText, ProductCard, ProductType, StatedTerm)
 
 REAL_QUOTE = "While we review a dispute you must continue to pay your scheduled instalments."
@@ -39,6 +39,12 @@ def fake(prompt, schema, **kw):
     if schema is ReadPerson:
         return ReadPerson(name="Priya", about="Priya is a student with a part-time job and a phone on EMI.",
                           situations=[Situation.irregular_income, Situation.other_bnpl])
+    if schema is NewsReport:
+        if "found nothing" in text:
+            return NewsReport(items=[], summary="Nothing relevant in the last 12 months.")
+        return NewsReport(summary="Stand-in summary: one regulator action in the last year.", items=[
+            NewsItem(headline="Regulator orders refunds over disputed purchases", date="2025-11", kind=NewsKind.enforcement,
+                     what_it_means="Disputes have been a known problem; keep records of purchases.", source="Stand-in News")])
     if schema is Attack:
         if "Round 1 " in text:
             return Attack(technique=Technique.fake_endorsement, target_offer_id="klarna_pay4",

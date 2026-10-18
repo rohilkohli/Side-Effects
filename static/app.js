@@ -234,6 +234,7 @@ function render(lf) {
     <div class="foryou"><strong>For you</strong> <span class="small muted">(${esc(lf.profile)})</span><br>${esc(lf.for_you)}</div>
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
+    ${p.matched_company ? `<a class="lc-jump" href="/#check=${encodeURIComponent(p.brand_name || p.issuer_name || p.matched_company)}">Check ${esc(p.brand_name || short(p.matched_company))} live: this month's complaints and news ›</a>` : ""}
     <div class="bqlive" id="bqLive" hidden></div>
     ${p.matched_company ? `<div class="radar" id="radar"><div class="bq-head"><span class="radar-tag">In their own words</span><span class="small muted">Gemini reads real complaint stories</span></div>
       <p class="small">The numbers above are statistics. Gemini can read the actual stories people wrote about this lender, group them by what went wrong, and point out problems our statistics don't show.</p>

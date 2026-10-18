@@ -124,7 +124,7 @@
 <!-- 6 How it works -->
 <section class="s">
   <p class="k">How it works</p>
-  <h2 style="margin-bottom:24px">Nine Gemini agents around a deterministic core.</h2>
+  <h2 style="margin-bottom:24px">Ten Gemini agents around a deterministic core.</h2>
   <table class="arch">
     <tr><td>Intake agent</td><td class="ai">Gemini, multimodal: photo, PDF or text of an offer &rarr; product, lender, what the advert leaves unsaid</td></tr>
     <tr><td>Signal engine</td><td class="det">Code: PRR vs peer lenders over 136k complaints, plus RBI rates for India. Every number comes from here.</td></tr>
@@ -135,6 +135,7 @@
     <tr><td>Agent gate API</td><td class="det"><code>POST /api/v1/check</code> &rarr; no_signal / disclose / human_review. No model in the loop: same request, same answer.</td></tr>
     <tr><td>Scam arena</td><td class="ai">Gemini attacker writes new checkout scams and adapts each round; Gemini guardian must quote the page &rarr; <span style="color:var(--green)">code verifies every quote</span></td></tr>
     <tr><td>In their own words</td><td class="ai">Gemini reads complaint stories from BigQuery and groups them &rarr; <span style="color:var(--green)">counts are real complaint ids, quotes verified</span></td></tr>
+    <tr><td>Live check</td><td class="ai">Gemini + Google Search finds a lender's recent fines, lawsuits and outages, with sources &rarr; <span style="color:var(--green)">CFPB live feed counts this month's complaints</span></td></tr>
     <tr><td>BigQuery</td><td class="det">Live: each lender's latest complaints from the public CFPB table, and an audit table of every gate decision.</td></tr>
   </table>
   <p class="muted" style="font-size:24px;margin-top:auto"><span style="color:var(--blue)">Blue</span> = Gemini. <span style="color:var(--green)">Green</span> = deterministic code. Next: BigQuery SQL that runs Gemini over every complaint story is in the repo.</p>
@@ -214,7 +215,7 @@
     <tr><td>Financial assistance</td><td>A pharmacist you can talk to, and a shopping agent you can answer by voice.</td></tr>
     <tr><td>Personalised experiences</td><td>Describe yourself in your own words; Gemini maps it to situations, and only the side effects that fit you are raised.</td></tr>
   </table>
-  <p class="muted" style="font-size:24px;margin-top:auto">Google Cloud: Gemini on Vertex AI (nine agents), BigQuery (live lender lookups on the public CFPB table + gate audit trail), Cloud Run, Cloud Build.</p>
+  <p class="muted" style="font-size:24px;margin-top:auto">Google Cloud: Gemini on Vertex AI (ten agents, Google Search grounding), BigQuery (live lender lookups on the public CFPB table + gate audit trail), Cloud Run, Cloud Build.</p>
 </section>
 
 <!-- 10 Feasibility + scale -->
@@ -225,7 +226,7 @@
     <div><p class="muted" style="font-size:24px;margin:0 0 10px">Built</p>
       <ul><li style="font-size:28px">Cloud Run (scales to zero), Gemini on Vertex AI, BigQuery for live complaint lookups and the gate's audit trail</li>
       <li style="font-size:28px">Live agent demo, leaflet, pharmacist, check API</li>
-      <li style="font-size:28px">22 automated tests, including "the gate holds when the agent skips the check"</li>
+      <li style="font-size:28px">25 automated tests, including "the gate holds when the agent skips the check"</li>
       <li style="font-size:28px">US + India data, all sources cited</li></ul></div>
     <div><p class="muted" style="font-size:24px;margin:0 0 10px">Next</p>
       <ul><li style="font-size:28px">Ship the gate as an ADK tool and an agent-payments mandate check</li>

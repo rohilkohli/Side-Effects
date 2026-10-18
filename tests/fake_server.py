@@ -6,7 +6,7 @@ import time
 
 import uvicorn
 
-from app import bq, gemini
+from app import bq, gemini, live
 from app.agents import pharmacist, shopper
 from tests import fakes
 
@@ -39,6 +39,15 @@ bq.audit_summary = lambda: {"available": True, "table": "demo.side_effects.gate_
 
 pharmacist.answer = lambda leaflet, pages, history, question: (
     "Stand-in answer for local testing: on the real site, Gemini answers from this leaflet, the contract and real complaints.")
+
+# Made-up live answers (no network here), only so the Check a lender tab can be seen locally.
+live._cfpb = lambda params: ({"hits": {"total": {"value": 1180 if "date_received_max" in params else 1527}, "hits": [
+    {"_source": {"date_received": "2026-10-09T18:11:45.000Z"}}]},
+    "aggregations": {"issue": {"issue": {"buckets": [{"key": "Problem with a purchase shown on your statement", "doc_count": 576},
+                                                      {"key": "Incorrect information on your report", "doc_count": 217},
+                                                      {"key": "Managing an account", "doc_count": 152}]}}}})
+live._grounded_research = lambda name, company, product_type: (
+    "Stand-in research note about " + name, [{"title": "stand-in.example", "url": "https://example.com/"}], ["stand-in query"])
 
 
 if __name__ == "__main__":

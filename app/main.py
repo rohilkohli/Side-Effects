@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import bq, evidence, gate, gemini, pipeline, profiles
+from . import bq, evidence, gate, gemini, live, pipeline, profiles
 from .agents import arena, pharmacist, radar, shopper
 
 ROOT = Path(__file__).parent.parent
@@ -266,6 +266,20 @@ def radar_scan(issuer: str, product_type: str = "credit_card"):
     except Exception:
         log.exception("radar failed")
         return {"available": False, "reason": "Gemini could not read the complaints just now."}
+
+
+@app.get("/api/live/check")
+def live_check(name: str, product_type: str = "credit_card"):
+    """Our complaint statistics for a lender plus the CFPB's live complaint feed (last 90 days)."""
+    return live.check(name.strip()[:80], product_type)
+
+
+@app.get("/api/live/news")
+def live_news(name: str, product_type: str = "credit_card"):
+    """Recent news about a lender: Gemini with Google Search, with every source listed."""
+    if not name.strip():
+        raise HTTPException(400, "Type a lender's name.")
+    return live.news(name, product_type)
 
 
 @app.get("/api/bigquery/audit")

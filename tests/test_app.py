@@ -315,3 +315,53 @@ def test_scam_that_changes_the_agents_choice_counts_as_fooled(monkeypatch, fake_
     agent = next(e for e in events if e["type"] == "agent")
     gate = next(e for e in events if e["type"] == "gate")
     assert agent["fooled"] and gate["held"]
+
+
+# ---- Live check ----
+
+def test_live_check_reads_the_cfpb_feed_and_trend(monkeypatch):
+    from app import live
+    live._cache.clear()
+    calls = []
+
+    def fake_cfpb(params):
+        calls.append(params)
+        n = 100 if "date_received_max" in params else 150
+        return {"hits": {"total": {"value": n}, "hits": [{"_source": {"date_received": "2026-10-09T18:11:45.000Z"}}]},
+                "aggregations": {"issue": {"issue": {"buckets": [{"key": "Managing an account", "doc_count": 40}]}}}}
+
+    monkeypatch.setattr(live, "_cfpb", fake_cfpb)
+    d = TestClient(app).get("/api/live/check", params={"name": "Apple Card"}).json()
+    c = d["complaints"]
+    assert d["company"] == "GOLDMAN SACHS BANK USA" and calls[0]["company"] == "GOLDMAN SACHS BANK USA"
+    assert c["last_90_days"] == 150 and c["previous_90_days"] == 100 and c["change_pct"] == 50
+    assert c["latest_complaint"] == "2026-10-09" and c["top_issues"][0]["n"] == 40
+
+
+def test_live_check_survives_a_dead_feed_and_unknown_names(monkeypatch):
+    from app import live
+    live._cache.clear()
+
+    def down(params):
+        raise OSError("timeout")
+
+    monkeypatch.setattr(live, "_cfpb", down)
+    c = TestClient(app)
+    assert c.get("/api/live/check", params={"name": "Apple Card"}).json()["complaints"]["available"] is False
+    unknown = c.get("/api/live/check", params={"name": "Totally Made Up Lender Zzz"}).json()
+    assert unknown["company"] is None and unknown["signals"] == []
+
+
+def test_live_news_is_grounded_and_structured(monkeypatch, fake_gemini):
+    from app import live
+    live._cache.clear()
+    monkeypatch.setattr(live, "_grounded_research", lambda n, c, p: ("note", [{"title": "reuters.com", "url": "https://x"}], ["q"]))
+    d = TestClient(app).get("/api/live/news", params={"name": "Apple Card"}).json()
+    assert d["available"] and d["grounded"] and d["items"][0]["kind"] == "enforcement" and d["sources"][0]["title"] == "reuters.com"
+
+    def boom(n, c, p):
+        raise RuntimeError("search down")
+
+    live._cache.clear()
+    monkeypatch.setattr(live, "_grounded_research", boom)
+    assert TestClient(app).get("/api/live/news", params={"name": "Apple Card"}).json()["available"] is False

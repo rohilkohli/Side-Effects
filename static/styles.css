@@ -347,3 +347,5 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--blue-sof
   .lfbar-btn { flex: 1; }
 }
 .redact { opacity: .55; font-style: normal; }
+.lc-jump { display: block; margin: 18px 0 0; padding: 14px 18px; border-radius: 16px; background: linear-gradient(90deg, rgba(66,133,244,.12), rgba(52,168,83,.12)); color: inherit; font-weight: 600; text-decoration: none; }
+.lc-jump:hover { background: linear-gradient(90deg, rgba(66,133,244,.2), rgba(52,168,83,.2)); }
