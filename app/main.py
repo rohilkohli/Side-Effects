@@ -46,6 +46,13 @@ def healthz():
     return {"ok": True}
 
 
+@app.get("/api/version")
+def version():
+    """Which build is live, so a redeploy can be confirmed from the page footer."""
+    v = ROOT / "app" / "VERSION"
+    return {"version": v.read_text().strip() if v.exists() else "dev"}
+
+
 @app.get("/")
 def index():
     return FileResponse(STATIC / "agent.html")

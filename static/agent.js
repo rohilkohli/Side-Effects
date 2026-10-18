@@ -47,6 +47,7 @@
     $("#bannerClose").addEventListener("click", () => { $("#banner").hidden = true; });
     $("#bannerTry").addEventListener("click", () => {
       $("#hacked").checked = true; $("#banner").hidden = true;
+      showPanel("demo"); leaveRun();
       $(".hack").scrollIntoView({ behavior: "smooth", block: "center" });
     });
     initCarousel();
@@ -75,7 +76,7 @@
     $("#arena").hidden = false;
     $("#outcome").hidden = true;
     for (const id of ["#laneA", "#laneB"]) { $(id + " .feed").innerHTML = ""; $(id).className = $(id).className.replace(/ (done|stopped|signed)/g, ""); setState($(id), "Starting"); }
-    $("#arena").scrollIntoView({ behavior: "smooth", block: "start" });
+    enterRun();
     await Promise.allSettled([run($("#laneA"), false), run($("#laneB"), true)]);
     showOutcome();
     $("#runBtn").disabled = false;
@@ -114,7 +115,7 @@
     li.className = "ev " + cls;
     li.innerHTML = html;
     feed.appendChild(li);
-    li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    feed.scrollTo({ top: feed.scrollHeight, behavior: "smooth" });
     return li;
   }
 
@@ -306,15 +307,38 @@
     };
     requestAnimationFrame(step);
   }
-  if ("IntersectionObserver" in window) {
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (!e.isIntersecting) return;
-      e.target.classList.add("in");
-      e.target.querySelectorAll(".stat b").forEach((b) => { if (/^\d/.test(b.textContent) && b.textContent !== "0") countUp(b); });
-      io.unobserve(e.target);
-    }), { threshold: .2 });
-    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
-  } else document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+  // Pages instead of one long scroll: a tab per section, and the demo collapses its setup while running.
+  const counted = new Set();
+  function showPanel(name) {
+    document.querySelectorAll(".pager [data-p]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.p === name)));
+    document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.id !== "p-" + name; });
+    if (name === "why" && !counted.has("why")) { counted.add("why"); document.querySelectorAll("#p-why .stat b").forEach((b) => { if (/^\d/.test(b.textContent) && b.textContent !== "0") countUp(b); }); }
+    if (history.replaceState) history.replaceState(null, "", name === "demo" ? location.pathname : "#" + name);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function enterRun() {
+    const pName = persona === "you" ? (custom?.name || "you") : personas[persona]?.name;
+    $("#runSummary").innerHTML = `Shopping for <b>${esc(pName)}</b> &middot; ${$("#hacked").checked ? "<b class=\"hot\">Hacked store</b>" : "Normal store"}`;
+    $("#p-demo").classList.add("running");
+    $("#runbar").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function leaveRun() {
+    $("#p-demo").classList.remove("running");
+    $("#runbar").hidden = true;
+  }
+  document.querySelector(".pager").addEventListener("click", (e) => { const b = e.target.closest("[data-p]"); if (b) showPanel(b.dataset.p); });
+  $("#changeBtn").addEventListener("click", leaveRun);
+  $("#againBtn").addEventListener("click", () => { if (!$("#runBtn").disabled) runBoth(); });
+  document.querySelector(".lane-tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-l]"); if (!b) return;
+    document.querySelectorAll(".lane-tabs [data-l]").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    $("#arena").dataset.show = b.dataset.l;
+  });
+  $("#arena").dataset.show = "laneB";
+  const hashPanel = location.hash.slice(1);
+  if (["how", "why", "biz"].includes(hashPanel)) showPanel(hashPanel);
+  fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 
   init().catch((e) => showErr(e.message));
 })();

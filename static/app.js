@@ -73,7 +73,7 @@ async function run() {
   $("progress").hidden = false;
   $("steps").innerHTML = Object.entries(STEPS).map(([k, [who, what]]) =>
     `<li id="st-${k}"><span class="ic">○</span><div><div class="who">${who}</div><div class="what">${what}</div></div></li>`).join("");
-  $("progress").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("progress").scrollIntoView({ behavior: "smooth", block: "center" });
 
   try {
     const resp = await fetch("/api/leaflet", { method: "POST", body: fd });
@@ -205,7 +205,16 @@ function render(lf) {
   const byId = Object.fromEntries([...lf.side_effects, ...lf.contract_only].map((l) => [l.id, l.label]));
   const cite = (ids) => ids.length ? ` <span class="small muted">(${ids.map((i) => esc(byId[i] || "")).join("; ")})</span>` : "";
 
+  const nEffects = lf.side_effects.length + lf.contract_only.length;
+  const hasAlt = lf.interactions.length || lf.alternatives.length;
   $("leaflet").innerHTML = boxHtml(lf) + `
+    <div class="lf-tabs" role="tablist" aria-label="Leaflet sections">
+      <button type="button" role="tab" data-t="overview" aria-selected="true">Overview</button>
+      <button type="button" role="tab" data-t="effects" aria-selected="false">Side effects${nEffects ? ` <span class="count">${nEffects}</span>` : ""}</button>
+      ${hasAlt ? `<button type="button" role="tab" data-t="alt" aria-selected="false">Alternatives</button>` : ""}
+      <button type="button" role="tab" data-t="how" aria-selected="false">How we know</button>
+    </div>
+    <div class="lf-panel" data-t="overview">
     <div class="lf-kicker">Package leaflet: information for the borrower</div>
     <div class="lf-sub">${esc(p.product_name)}${p.matched_company ? " · Lender in complaint records: " + esc(p.matched_company) : ""}</div>
     <div class="lf-box"><strong>Read all of this leaflet carefully before you sign.</strong>
@@ -222,6 +231,9 @@ function render(lf) {
     <div class="foryou"><strong>For you</strong> <span class="small muted">(${esc(lf.profile)})</span><br>${esc(lf.for_you)}</div>
     ${lf.contraindications.length ? `<ul class="contra">${lf.contraindications.map((c) => `<li><strong>${esc(c.condition)}</strong> ${esc(c.reason)}${cite(c.based_on)}</li>`).join("")}</ul>` : ""}
 
+    <button type="button" class="lf-next" data-go="effects">See the side effects ›</button>
+    </div>
+    <div class="lf-panel" data-t="effects" hidden>
     <h3><span class="num">3.</span>Possible side effects</h3>
     ${bank.length ? `<p class="small muted">Found in real complaints about this lender, compared with similar lenders. Tap one for the clause and real stories.</p>${bank.map(sideEffect).join("")}` : ""}
     ${klass.length ? `<p class="small muted" style="margin-top:16px">Reported across Buy Now Pay Later lenders as a group, compared with other lenders:</p>${klass.map(sideEffect).join("")}` : ""}
@@ -229,12 +241,16 @@ function render(lf) {
     ${lf.local_evidence ? localHtml(lf.local_evidence) : ""}
     ${lf.contract_only.length ? `<p class="small muted" style="margin-top:16px">Found only in the contract (no complaint statistics):</p>${lf.contract_only.map(contractOnly).join("")}` : ""}
 
+    </div>
+    <div class="lf-panel" data-t="alt" hidden>
     ${lf.interactions.length ? `<h3><span class="num">4.</span>Interactions</h3><ul>${lf.interactions.map((i) => `<li><strong>With ${esc(i.with_what)}:</strong> ${esc(i.effect)}${cite(i.based_on)}</li>`).join("")}</ul>` : ""}
 
     ${lf.alternatives.length ? `<h3><span class="num">5.</span>Consider a generic</h3>
       <p class="small muted">Similar lenders without these complaint signals. This is about complaint patterns only, not price or approval.</p>
       ${lf.alternatives.map((a) => `<div class="alt"><span>${esc(short(a.company))}</span><span class="small muted">${a.total_signals ? a.total_signals + " other signal" + (a.total_signals > 1 ? "s" : "") : "no signals"} · ${a.complaints.toLocaleString()} complaints</span></div>`).join("")}` : ""}
 
+    </div>
+    <div class="lf-panel" data-t="how" hidden>
     <h3><span class="num">6.</span>How we know</h3>
     <ul class="how">
       <li>${esc(lf.coverage)}</li>
@@ -248,12 +264,22 @@ function render(lf) {
     <details class="devbox"><summary>For developers and AI agents</summary>
     <p class="small">This leaflet is machine-readable, so an agent applying for credit on someone's behalf can read it before signing.</p>
     <div class="agentbox">GET /api/v1/leaflets/${esc(lf.id)}<br>POST /api/v1/check {"issuer": "${esc(p.matched_company || p.issuer_name)}", "product_type": "${esc(p.product_type)}", "applicant_profile": [...]}</div></details>
+    </div>
   `;
+  const tab = (name) => {
+    $("leaflet").querySelectorAll(".lf-tabs [data-t]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.t === name)));
+    $("leaflet").querySelectorAll(".lf-panel").forEach((p) => { p.hidden = p.dataset.t !== name; });
+  };
+  $("leaflet").querySelector(".lf-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (b) tab(b.dataset.t); });
+  $("leaflet").querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => { tab(b.dataset.go); $("leaflet").querySelector(".lf-tabs").scrollIntoView({ behavior: "smooth", block: "start" }); }));
+  $("intro").hidden = true; $("input").hidden = true; $("progress").hidden = true;
+  $("lfSummary").innerHTML = `Leaflet for <b>${esc(p.brand_name || p.product_name || "this offer")}</b>`;
+  $("lfbar").hidden = false;
   $("leaflet").querySelectorAll(".se > button").forEach((b) => b.addEventListener("click", () => {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
   }));
   $("leaflet").hidden = false; $("pharmFab").hidden = false;
-  $("leaflet").scrollIntoView({ behavior: "smooth", block: "start" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
   $("chat").innerHTML = "";
   $("suggest").innerHTML = ["Is this OK for a freelancer?", "What happens if I pay late?", "Can I dispute a purchase?", "How does it compare with Citi?"]
     .map((q) => `<button type="button">${esc(q)}</button>`).join("");
@@ -296,3 +322,14 @@ $("micBtn").addEventListener("click", () => {
 });
 
 init();
+
+/* ---- fold the form away once a leaflet is made ---- */
+$("newLeaflet").addEventListener("click", () => {
+  $("lfbar").hidden = true; $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
+  $("intro").hidden = false; $("input").hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+$("editLeaflet").addEventListener("click", () => {
+  $("input").hidden = false; $("input").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("ver").textContent = "Version " + v.version; }).catch(() => {});

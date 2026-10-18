@@ -70,6 +70,12 @@
     <p class="error" id="formError" role="alert" hidden></p>
   </section>
 
+  <div class="lfbar" id="lfbar" hidden>
+    <span id="lfSummary"></span>
+    <button type="button" class="lfbar-btn" id="editLeaflet">Edit details</button>
+    <button type="button" class="lfbar-btn primary" id="newLeaflet">New leaflet</button>
+  </div>
+
   <section class="card progress" id="progress" hidden aria-live="polite">
     <h2>Working on it</h2>
     <ol id="steps"></ol>
@@ -92,7 +98,7 @@
 
 <footer class="foot">
   SIDE EFFECTS reports what people complain about; it does not prove what a product will do to you, and it is not financial advice.
-  Built with Gemini on Google Cloud. <a href="/">See an AI agent get stopped</a> · <a href="/.well-known/side-effects.json">For AI agents</a>
+  Built with Gemini on Google Cloud. <a href="/">See an AI agent get stopped</a> · <a href="/.well-known/side-effects.json">For AI agents</a> <span class="ver" id="ver"></span>
 </footer>
 <script src="/static/app.js"></script>
 </body>

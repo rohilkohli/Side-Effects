@@ -23,6 +23,14 @@
   <button type="button" class="banner-x" id="bannerClose" aria-label="Dismiss">&times;</button>
 </div>
 
+<div class="pager" role="tablist" aria-label="Sections">
+  <button type="button" role="tab" data-p="demo" aria-selected="true">Live demo</button>
+  <button type="button" role="tab" data-p="how" aria-selected="false">How it works</button>
+  <button type="button" role="tab" data-p="why" aria-selected="false">Why trust it</button>
+  <button type="button" role="tab" data-p="biz" aria-selected="false">For business</button>
+</div>
+
+<div class="panel" id="p-demo" role="tabpanel">
 <section class="hero">
   <p class="kicker">Live demo &middot; two Gemini agents, one checkout</p>
   <h1>Your AI agent is about to sign you up for credit.<br><span>Who reads the side effects?</span></h1>
@@ -39,6 +47,16 @@
   <div class="readout" id="readout" hidden aria-live="polite"></div>
 </section>
 
+<div class="runbar" id="runbar" hidden>
+  <span id="runSummary"></span>
+  <button type="button" class="runbar-btn" id="changeBtn">Change</button>
+  <button type="button" class="runbar-btn primary" id="againBtn">Run again</button>
+</div>
+<div class="lane-tabs" role="tablist" aria-label="Which agent">
+  <button type="button" data-l="laneA" aria-selected="false">On its own</button>
+  <button type="button" data-l="laneB" aria-selected="true">With SIDE EFFECTS</button>
+</div>
+
 <section class="arena" id="arena" hidden>
   <div class="arena-bar">
     <label class="mini-switch"><input type="checkbox" id="devView"> <span>Show the agent's tool calls</span></label>
@@ -54,8 +72,10 @@
 </section>
 
 <section class="outcome" id="outcome" hidden aria-live="polite"></section>
+</div>
 
-<section class="how reveal">
+<div class="panel" id="p-how" role="tabpanel" hidden>
+<section class="how">
   <h2>How it protects you</h2>
   <div class="how-grid">
     <div class="how-card"><span class="how-ico">🛒</span><h3>Your agent shops</h3><p>It compares the ways to pay, like any shopping assistant would.</p></div>
@@ -64,7 +84,10 @@
   </div>
 </section>
 
-<section class="why reveal" aria-label="Why you can trust the warnings">
+</div>
+
+<div class="panel" id="p-why" role="tabpanel" hidden>
+<section class="why" aria-label="Why you can trust the warnings">
   <div class="why-head"><h2>Why you can trust the warnings</h2>
     <div class="car-nav"><button type="button" class="car-btn" data-dir="-1" aria-label="Previous">&#8249;</button><button type="button" class="car-btn" data-dir="1" aria-label="Next">&#8250;</button></div></div>
   <div class="carousel" id="carousel">
@@ -78,7 +101,10 @@
   <div class="dots" id="dots"></div>
 </section>
 
-<section class="api reveal">
+</div>
+
+<div class="panel" id="p-biz" role="tabpanel" hidden>
+<section class="api">
   <div class="biz">
     <div>
       <h2>For shops, banks and agent builders</h2>
@@ -97,9 +123,11 @@
   </div>
 </section>
 
+</div>
+
 <footer class="foot">
   Northwind Electronics and its payment terms are fictional. The lenders' complaint signals are real (CFPB Consumer Complaint Database, RBI Ombudsman).
-  Complaints are unverified reports, not proof of what a product will do to you, and this is not financial advice. Built with Gemini on Google Cloud.
+  Complaints are unverified reports, not proof of what a product will do to you, and this is not financial advice. Built with Gemini on Google Cloud. <span class="ver" id="ver"></span>
 </footer>
 <script src="/static/agent.js"></script>
 </body>
