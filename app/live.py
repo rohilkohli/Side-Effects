@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import re
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -24,16 +25,39 @@ CFPB_API = "https://www.consumerfinance.gov/data-research/consumer-complaints/se
 WINDOW_DAYS = 90
 CACHE_SECONDS = 3600
 _cache: dict[tuple, tuple[float, dict]] = {}
+_inflight: dict[tuple, threading.Event] = {}
+_lock = threading.Lock()
+# Looked up in the background when the service starts, so the first visitors don't wait for Google.
+POPULAR = [("Apple Card", "credit_card"), ("Klarna", "bnpl"), ("Capital One", "credit_card"),
+           ("Affirm", "bnpl"), ("Synchrony", "credit_card")]
 
 
 def _cached(key: tuple, make):
+    """Answer from the cache; if the same lookup is already running (say the page and the assistant asked
+    together), wait for it instead of asking Google twice."""
     hit = _cache.get(key)
     if hit and time.time() - hit[0] < CACHE_SECONDS:
         return hit[1]
-    out = make()
-    if out.get("available"):
-        _cache[key] = (time.time(), out)
-    return out
+    with _lock:
+        running = _inflight.get(key)
+        mine = running is None
+        if mine:
+            running = _inflight[key] = threading.Event()
+    if not mine:
+        running.wait(timeout=60)
+        hit = _cache.get(key)
+        if hit:
+            return hit[1]
+    try:
+        out = make()
+        if out.get("available"):
+            _cache[key] = (time.time(), out)
+        return out
+    finally:
+        if mine:
+            with _lock:
+                _inflight.pop(key, None)
+            running.set()
 
 
 def _cfpb(params: dict) -> dict:
@@ -133,15 +157,29 @@ def news(name: str, product_type: str = "credit_card") -> dict:
         items.sort(key=lambda i: i["date"], reverse=True)
         return {"available": True, "name": name, "items": items, "summary": got.summary.strip()[:400],
                 "sources": sources, "searched": queries, "grounded": bool(sources)}
-    return _cached(("news", name.lower(), product_type), make)
+    # Keyed by the lender when we know it, so "Apple Card" and "apple card " share one search.
+    return _cached(("news", (company or name).lower(), product_type), make)
 
 
-def check(name: str, product_type: str = "credit_card") -> dict:
-    """What SIDE EFFECTS knows about a lender: our statistics, plus the live complaint feed."""
-    company = evidence.resolve_company(name, product_type)
+def check(name: str, product_type: str = "credit_card", lender: str = "") -> dict:
+    """What SIDE EFFECTS knows about a lender: our statistics, plus the live complaint feed.
+    lender is the company behind a brand when known (Goldman Sachs for Apple Card); either name may match."""
+    company = (lender and evidence.resolve_company(lender, product_type)) or evidence.resolve_company(name, product_type)
     sig = evidence.signals_for(company, product_type) if company else {"lines": []}
     feed = complaints(company) if company else {"available": False}
     archive = bq.lender_snapshot(company, product_type) if company and not feed.get("available") else {"available": False}
     return {"name": name, "company": company, "product_type": product_type,
             "signals": [{"label": l["label"], "reported_x": l["reported_x"], "scope": l["scope"]} for l in sig["lines"]][:5],
             "complaints": feed, "archive": archive}
+
+
+def prewarm() -> None:
+    """Fill the cache for the most-asked lenders in the background. Never raises."""
+    def work():
+        for name, ptype in POPULAR:
+            try:
+                check(name, ptype)
+                news(name, ptype)
+            except Exception as e:
+                log.info("prewarm %s skipped: %s", name, e)
+    threading.Thread(target=work, daemon=True, name="prewarm").start()

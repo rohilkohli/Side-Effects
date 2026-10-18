@@ -34,5 +34,5 @@ gcloud run deploy side-effects \
   --region "$REGION" \
   --service-account "$SA" \
   --allow-unauthenticated \
-  --memory 1Gi --timeout 900 --max-instances 1 \
+  --memory 1Gi --timeout 900 --max-instances 1 --cpu-boost \
   --set-env-vars "GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${VERTEX_LOCATION},GEMINI_MODEL=${MODEL},BIGQUERY_ENABLED=true"

@@ -1,0 +1,60 @@
+/* SIDE EFFECTS assistant, shared by both pages. Works with either page's colour tokens. */
+.sa, .sa-fab { --sa-accent: var(--accent, var(--blue)); --sa-paper: var(--panel, var(--paper)); --sa-soft: var(--panel-2, var(--bg)); }
+.sa-fab { position: fixed; right: 20px; bottom: 20px; z-index: 40; display: flex; align-items: center; gap: 8px; border: 0; cursor: pointer;
+  padding: 14px 20px 14px 16px; border-radius: 999px; font: inherit; font-weight: 600; font-size: .98rem; color: #fff;
+  background: linear-gradient(135deg, #4285f4, #9b72cb 55%, #d96570); box-shadow: 0 10px 30px rgba(66,133,244,.35); transition: transform .3s cubic-bezier(.2,1.4,.4,1); }
+.sa-fab:hover { transform: translateY(-2px) scale(1.03); }
+.sa-fab[hidden], .sa[hidden] { display: none; }
+.sa-spark { font-size: 1.1rem; line-height: 1; }
+.sa-spark.big { font-size: 2rem; background: linear-gradient(135deg, #4285f4, #9b72cb, #d96570); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sa { position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(420px, calc(100vw - 40px)); height: min(640px, calc(100vh - 40px));
+  display: flex; flex-direction: column; background: var(--sa-paper); color: var(--ink); border-radius: 26px; overflow: hidden;
+  box-shadow: 0 24px 70px rgba(0,0,0,.22), inset 0 0 0 1px var(--line); animation: sa-in .3s cubic-bezier(.2,1.2,.4,1) both; }
+@keyframes sa-in { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+.sa header { display: flex; align-items: center; gap: 10px; padding: 16px 12px 14px 20px; border-bottom: 1px solid var(--line); }
+.sa header div { flex: 1; min-width: 0; }
+.sa header strong { display: block; font-size: 1.05rem; }
+.sa header small { color: var(--muted); font-size: .8rem; }
+.sa-x { width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--sa-soft); color: var(--ink); font-size: 1.4rem; cursor: pointer; }
+.sa-chat { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; overscroll-behavior: contain; }
+.sa-hello { text-align: center; color: var(--muted); padding: 20px 8px; }
+.sa-hello p { margin: 8px 0 0; font-size: .92rem; line-height: 1.5; }
+.sa-hello b { color: var(--ink); }
+.sa-msg { max-width: 88%; font-size: .95rem; line-height: 1.45; }
+.sa-msg.user { align-self: flex-end; background: var(--sa-accent); color: #fff; padding: 10px 14px; border-radius: 20px 20px 6px 20px; }
+.sa-msg.model { align-self: stretch; max-width: 100%; }
+.sa-ans { background: var(--sa-soft); padding: 10px 14px; border-radius: 20px 20px 20px 6px; }
+.sa-ans p { margin: 0 0 8px; } .sa-ans p:last-child { margin: 0; }
+.sa-ans ul { margin: 4px 0 8px; padding-left: 18px; } .sa-ans li { margin: 2px 0; }
+.sa-err { color: var(--warn, var(--red-ink, #d70015)); }
+.sa-steps { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 4px; }
+.sa-steps:empty { display: none; }
+.sa-steps li { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); padding: 6px 10px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); animation: sa-in .25s both; }
+.sa-steps li > span:nth-child(2) { flex: 1; min-width: 0; }
+.sa-steps li.done { color: var(--ink); }
+.sa-steps small { color: var(--muted); }
+.sa-st { width: 16px; text-align: center; color: #1d9b4f; font-weight: 700; }
+.sa-st i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--line); border-top-color: #9b72cb; animation: sa-spin .8s linear infinite; }
+@keyframes sa-spin { to { transform: rotate(360deg); } }
+.sa-dots { display: inline-flex; gap: 4px; padding: 4px 0; }
+.sa-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: sa-dot 1s infinite ease-in-out; }
+.sa-dots i:nth-child(2) { animation-delay: .15s; } .sa-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes sa-dot { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+.sa-link { display: inline-block; margin-top: 8px; padding: 9px 16px; border-radius: 999px; background: var(--sa-accent); color: #fff; font-weight: 600; font-size: .9rem; text-decoration: none; }
+.sa-suggest { display: flex; gap: 6px; padding: 0 16px 10px; overflow-x: auto; scrollbar-width: none; }
+.sa-suggest::-webkit-scrollbar { display: none; }
+.sa-suggest button { flex: none; border: 0; background: var(--sa-soft); color: var(--sa-accent); font: inherit; font-size: .82rem; font-weight: 500; padding: 8px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.sa-form { display: flex; gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--line); }
+.sa-in { flex: 1; min-width: 0; font: inherit; font-size: 1rem; padding: 11px 16px; border-radius: 999px; border: 0; background: var(--sa-soft); color: var(--ink); outline: none; }
+.sa-in:focus { box-shadow: inset 0 0 0 2px var(--sa-accent); }
+.sa-mic, .sa-send { width: 44px; height: 44px; flex: none; border: 0; border-radius: 50%; cursor: pointer; font-size: 1.05rem; }
+.sa-mic { background: var(--sa-soft); }
+.sa-mic.on { background: #ff3b30; }
+.sa-send { background: var(--sa-accent); color: #fff; font-weight: 700; font-size: 1.2rem; }
+.sa-send:disabled { opacity: .5; }
+@media (max-width: 600px) {
+  .sa-fab { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); padding: 12px 16px 12px 14px; font-size: .9rem; }
+  .sa { inset: 0; width: 100%; height: 100%; height: 100dvh; border-radius: 0; padding-bottom: env(safe-area-inset-bottom); }
+  body.sa-open { overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) { .sa, .sa-fab, .sa-steps li { animation: none; transition: none; } }

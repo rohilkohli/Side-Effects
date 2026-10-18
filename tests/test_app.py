@@ -383,3 +383,62 @@ def test_live_news_is_grounded_and_structured(monkeypatch, fake_gemini):
     live._cache.clear()
     monkeypatch.setattr(live, "_grounded_research", boom)
     assert TestClient(app).get("/api/live/news", params={"name": "Apple Card"}).json()["available"] is False
+
+
+def _fake_live(monkeypatch):
+    from app import live
+    live._cache.clear()
+    monkeypatch.setattr(live, "_cfpb", lambda params: {"hits": {"total": {"value": 90 if "date_received_max" in params else 120},
+                                                                 "hits": [{"_source": {"date_received": "2026-10-09"}}]},
+                                                        "aggregations": {"issue": {"issue": {"buckets": []}}}})
+    monkeypatch.setattr(live, "_grounded_research", lambda name, company, pt: ("note", [{"title": "s", "url": "https://example.com/"}], ["q"]))
+
+
+def test_assistant_streams_each_tool_call_then_answers(monkeypatch, fake_gemini):
+    from app.agents import assistant
+    _fake_live(monkeypatch)
+    monkeypatch.setattr(assistant, "_turn", fakes.fake_assistant_turn)
+    r = TestClient(app).post("/api/assistant", json={"question": "Is Apple Card risky?", "history": []})
+    events = [json.loads(x) for x in r.text.strip().splitlines()]
+    kinds = [e["type"] for e in events]
+    assert kinds[:3] == ["tool", "tool", "tool"]  # the lookups start together, before any result
+    assert events[0]["label"] == "Checking complaints for Apple Card"
+    done = {e["name"]: e["summary"] for e in events if e["type"] == "tool_done"}
+    assert done["check_lender"].startswith("120 complaints in 90 days")
+    assert any(e["type"] == "link" and e["url"] == "/leaflet?q=Apple Card" for e in events)
+    assert events[-1]["type"] == "say" and "120 complaints" in events[-1]["text"]
+
+
+def test_mcp_server_lists_and_calls_the_same_tools(monkeypatch, fake_gemini):
+    _fake_live(monkeypatch)
+    c = TestClient(app)
+    init = c.post("/mcp", json={"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                                "params": {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "t"}}}).json()
+    assert init["result"]["protocolVersion"] == "2025-06-18" and "tools" in init["result"]["capabilities"]
+    assert c.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}).status_code == 202
+    tools_ = {t["name"]: t for t in c.post("/mcp", json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"}).json()["result"]["tools"]}
+    assert set(tools_) == {"check_lender", "lender_news", "compare_lenders", "find_alternatives", "gate_check"}
+    assert tools_["gate_check"]["inputSchema"]["properties"]["applicant_profile"]["type"] == "array"
+    out = c.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {
+        "name": "gate_check", "arguments": {"issuer": "Apple Card", "applicant_profile": ["big_purchase"]}}}).json()["result"]
+    assert out["isError"] is False and out["structuredContent"]["verdict"] == "human_review"  # same verdict as /api/v1/check
+    bad = c.post("/mcp", json={"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "nope"}}).json()
+    assert bad["error"]["code"] == -32602
+    assert c.get("/.well-known/side-effects.json").json()["mcp"]["path"] == "/mcp"
+
+
+def test_same_lookup_at_the_same_time_runs_once(monkeypatch):
+    import threading
+    from app import live
+    live._cache.clear()
+    runs = []
+
+    def slow():
+        runs.append(1)
+        threading.Event().wait(0.3)
+        return {"available": True, "n": len(runs)}
+
+    out = []
+    ts = [threading.Thread(target=lambda: out.append(live._cached(("t", "x"), slow))) for _ in range(3)]
+    [t.start() for t in ts]; [t.join() for t in ts]
+    assert len(runs) == 1 and all(o["n"] == 1 for o in out)

@@ -62,3 +62,9 @@
   .top nav a, nav.tabs a { padding: 8px 9px; font-size: .8rem; }
   .brand span:last-child { display: none; }
 }
+@media (max-width: 600px) {
+  /* On the agent demo the Run button owns the bottom of the screen, so the assistant is a round button. */
+  body:has(#p-demo) .sa-fab { width: 54px; height: 54px; padding: 0; justify-content: center; }
+  body:has(#p-demo) .sa-fab .sa-fab-t { display: none; }
+  body:has(#p-demo) .sa-spark { font-size: 1.4rem; }
+}

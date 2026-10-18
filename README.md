@@ -62,7 +62,8 @@ These inputs are known to work end to end:
 7. **Home page, "Scam arena" tab, "Start 3 rounds".** A Gemini attacker writes a new checkout scam each round and adapts to what was caught; a Gemini guardian flags it with exact quotes from the page; an unprotected Gemini agent tries to buy. Expect "the gate held" in every round where the agent picks credit that matches Maya's situation. A full run takes a minute or two.
 8. **"Check an offer" page: drop a photo, screenshot or contract PDF, or just type "Apple Card".** Gemini reads the lender from the upload (logos, "issued by" lines, contract parties), and the leaflet then checks that lender live on its own: complaints the CFPB received in the last 90 days with the trend and top issues (live from the CFPB's public API, BigQuery as fallback), and recent news (fines, lawsuits, outages, breaches, fee changes) found by Gemini with Google Search, every source listed. `/leaflet?q=Klarna` starts a check straight from a link.
 9. **/leaflet, "Apple Card" leaflet, "Read the complaint stories".** Gemini reads real complaint stories about the lender (from BigQuery's public CFPB table when it is on, which runs to March 2023) and groups them, marking problems our statistics do not show.
-10. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
+10. **Any page, "✦ Ask anything".** A Gemini assistant with live tools. Ask "Is Apple Card risky for a freelancer?" and watch it check the complaint feed and search Google News at the same time, then answer with a button to the full leaflet. On a leaflet it becomes the pharmacist and can also search that contract.
+11. **/leaflet, lender "AU Small Finance Bank", product "Credit card", advert text "AU LIT Credit Card, India. Lifetime free."** Expect the RBI Ombudsman chart: small finance banks 3.0x the Indian average.
 
 A run calls Gemini several times, so a leaflet or agent run takes tens of seconds. Every step streams to the screen as it happens, and if Gemini is busy or refuses a request the page shows Gemini's own error instead of hanging.
 
@@ -152,6 +153,14 @@ POST /api/v1/check
 ```
 
 and gets `human_review` with the disclosure "Purchase disputes left unresolved: reported 2.1x more often than at peer lenders (817 complaints, Jan-Dec 2024; bank-level complaint signal; unverified reports)". The answer is deterministic, so the same request always gets the same answer.
+
+### MCP server
+
+SIDE EFFECTS is also a [Model Context Protocol](https://modelcontextprotocol.io) server (Streamable HTTP, JSON-RPC 2.0) at `POST /mcp`, so any agent framework (ADK, Gemini CLI, Claude, others) can use it as a tool without custom code. Tools: `check_lender`, `lender_news`, `compare_lenders`, `find_alternatives` and `gate_check`. They are the same functions the on-site assistant calls, and `gate_check` returns the same verdict the checkout enforces. Gate calls made over MCP are logged to the BigQuery audit table with source `mcp`.
+
+```bash
+gemini mcp add --transport http side-effects https://<your-service>/mcp
+```
 
 ## Limits
 

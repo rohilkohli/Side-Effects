@@ -3,15 +3,17 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import bq, evidence, gate, gemini, live, pipeline, profiles
-from .agents import arena, pharmacist, radar, shopper
+from . import bq, evidence, gate, gemini, live, mcp, pipeline, profiles
+from .agents import arena, assistant, pharmacist, radar, shopper
 
 ROOT = Path(__file__).parent.parent
 STATIC = ROOT / "static"
@@ -19,7 +21,18 @@ SAMPLES = ROOT / "samples"
 MAX_UPLOAD = 20 * 1024 * 1024
 
 log = logging.getLogger("side_effects")
-app = FastAPI(title="SIDE EFFECTS", description="Pharmacovigilance for money: a side-effects leaflet for credit products.")
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    # Look up the most-asked lenders in the background so the first visitors don't wait for Google Search.
+    if os.environ.get("PREWARM", "true").lower() == "true" and os.environ.get("GOOGLE_GENAI_USE_VERTEXAI"):
+        live.prewarm()
+    yield
+
+
+app = FastAPI(title="SIDE EFFECTS", description="Pharmacovigilance for money: a side-effects leaflet for credit products.",
+              lifespan=lifespan)
 
 
 def _ndjson(events) -> StreamingResponse:
@@ -200,6 +213,45 @@ def ask_pharmacist(body: Ask):
     return {"answer": text}
 
 
+class AssistantAsk(BaseModel):
+    question: str
+    history: list[dict] = []
+    leaflet_id: str | None = None
+
+
+@app.post("/api/assistant")
+def ask_assistant(body: AssistantAsk):
+    """The site-wide Gemini assistant. Streams each tool call as it happens, then the answer."""
+    def events():
+        try:
+            yield from assistant.run(body.question[:1000], body.history, body.leaflet_id)
+        except gemini.LLMUnavailable:
+            yield {"type": "error", "text": "The assistant is offline right now."}
+        except Exception:
+            log.exception("assistant failed")
+            yield {"type": "error", "text": "The assistant is busy. Please ask again in a moment."}
+    return _ndjson(events())
+
+
+@app.post("/mcp")
+async def mcp_endpoint(request: Request):
+    """Model Context Protocol (Streamable HTTP): AI agents call the SIDE EFFECTS tools here."""
+    try:
+        body = await request.json()
+    except ValueError:
+        return JSONResponse({"jsonrpc": "2.0", "id": None, "error": {"code": -32700, "message": "Parse error"}}, 400)
+    if isinstance(body, list):
+        out = [r for r in (mcp.handle(m) for m in body) if r is not None]
+        return JSONResponse(out) if out else Response(status_code=202)
+    out = mcp.handle(body)
+    return JSONResponse(out) if out is not None else Response(status_code=202)
+
+
+@app.get("/mcp")
+def mcp_get():
+    return JSONResponse({"error": "Use POST with JSON-RPC 2.0 (MCP Streamable HTTP)."}, status_code=405, headers={"Allow": "POST"})
+
+
 # ---------------------------------------------------------------------------
 # Machine-readable leaflets for AI agents that apply for credit on someone's behalf.
 # ---------------------------------------------------------------------------
@@ -215,6 +267,7 @@ def descriptor():
                   "body": {"issuer": "string", "product_type": "credit_card|bnpl|personal_loan",
                            "applicant_profile": list(profiles.PROFILES)}},
         "leaflet": {"method": "GET", "path": "/api/v1/leaflets/{id}"},
+        "mcp": {"transport": "streamable-http", "path": "/mcp", "tools": [t["name"] for t in mcp.tool_list()]},
         "verdicts": {"no_signal": "no disproportionate complaint signal found",
                      "disclose": "show the listed side effects to the person before signing",
                      "human_review": "a side effect matches the person's situation; the person must confirm"},
@@ -269,9 +322,9 @@ def radar_scan(issuer: str, product_type: str = "credit_card"):
 
 
 @app.get("/api/live/check")
-def live_check(name: str, product_type: str = "credit_card"):
+def live_check(name: str, product_type: str = "credit_card", lender: str = ""):
     """Our complaint statistics for a lender plus the CFPB's live complaint feed (last 90 days)."""
-    return live.check(name.strip()[:80], product_type)
+    return live.check(name.strip()[:80], product_type, lender.strip()[:80])
 
 
 @app.get("/api/live/news")
@@ -289,3 +342,4 @@ def bigquery_audit():
 
 
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
+

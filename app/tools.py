@@ -1,0 +1,81 @@
+"""The SIDE EFFECTS tool set, shared by the Gemini assistant on the site and by the MCP endpoint.
+
+Every tool is a plain function with a docstring, so Gemini can call it (function calling) and other
+AI agents can call it over MCP. Each returns JSON-ready data built from our statistics, the
+regulator's live feed or Google Search; none of them lets a model make up a number.
+"""
+from __future__ import annotations
+
+from . import evidence, gate, live, profiles
+
+PRODUCT_TYPES = ("credit_card", "bnpl", "personal_loan")
+
+
+def _ptype(product_type: str | None) -> str:
+    return product_type if product_type in PRODUCT_TYPES else "credit_card"
+
+
+def check_lender(name: str, product_type: str = "credit_card") -> dict:
+    """Look up a lender or card by name (e.g. 'Apple Card', 'Klarna', 'Capital One'): which side effects are
+    reported unusually often compared with similar lenders, and how many complaints the US regulator received
+    about it in the last 90 days, with the trend and top issues. product_type is credit_card, bnpl or personal_loan."""
+    d = live.check(name[:80], _ptype(product_type))
+    c = d.get("complaints") or {}
+    return {"name": d["name"], "company_in_records": d["company"], "side_effects": d["signals"],
+            "complaints_last_90_days": c.get("last_90_days"), "change_vs_previous_90_days_pct": c.get("change_pct"),
+            "top_complaint_issues": c.get("top_issues", []), "newest_complaint": c.get("latest_complaint"),
+            "note": "reported_x means how many times more often than at similar lenders. Complaints are unverified."}
+
+
+def lender_news(name: str, product_type: str = "credit_card") -> dict:
+    """Recent news about a lender found with Google Search: regulator fines, lawsuits, outages, data breaches and
+    fee changes, with the sources. Slower than the other tools (about 10 seconds the first time)."""
+    d = live.news(name[:80], _ptype(product_type))
+    if not d.get("available"):
+        return {"available": False, "reason": d.get("reason")}
+    return {"summary": d["summary"], "items": d["items"], "sources": d["sources"][:6]}
+
+
+def compare_lenders(lender_a: str, lender_b: str, product_type: str = "credit_card") -> dict:
+    """Compare two lenders' side effects side by side, e.g. 'Apple Card' and 'Citi'."""
+    pt = _ptype(product_type)
+    a, b = evidence.resolve_company(lender_a, pt), evidence.resolve_company(lender_b, pt)
+    if not a or not b:
+        missing = [n for n, c in ((lender_a, a), (lender_b, b)) if not c]
+        return {"error": f"No complaint records for: {', '.join(missing)}."}
+    side = lambda c: [{"side_effect": l["label"], "reported_x": l["reported_x"]} for l in evidence.signals_for(c, pt)["lines"]]
+    return {"a": {"name": lender_a, "company": a, "side_effects": side(a)},
+            "b": {"name": lender_b, "company": b, "side_effects": side(b)}}
+
+
+def find_alternatives(name: str, product_type: str = "credit_card") -> dict:
+    """Similar lenders that do not share this lender's complaint signals (about complaint patterns only, not price)."""
+    pt = _ptype(product_type)
+    company = evidence.resolve_company(name, pt)
+    labels = [l["label"] for l in evidence.signals_for(company, pt)["lines"]] if company else []
+    return {"company": company, "its_side_effects": labels,
+            "alternatives": [{"company": a["company"], "complaints": a["complaints"], "other_signals": a["total_signals"],
+                              "clear_of": a["clear_of"]} for a in evidence.alternatives(company, pt, labels)]}
+
+
+def gate_check(issuer: str, product_type: str = "credit_card", applicant_profile: list[str] | None = None) -> dict:
+    """The deterministic SIDE EFFECTS gate an AI shopping agent must call before signing a person up for credit.
+    applicant_profile keys: irregular_income, carries_balance, other_bnpl, new_to_credit, big_purchase, travels.
+    Verdicts: no_signal, disclose (show the side effects first) or human_review (the person must confirm)."""
+    keys = [k for k in (applicant_profile or []) if k in profiles.PROFILES]
+    return gate.check(issuer[:80], _ptype(product_type), keys)
+
+
+def open_page(page: str, lender: str = "") -> dict:
+    """Send the person to a page of the site. page is one of: leaflet (a full side-effects leaflet for a lender or
+    offer; pass lender), agent_demo (two AI shopping agents, one protected), scam_arena (Gemini invents scams against
+    AI shoppers), evidence, business."""
+    urls = {"leaflet": "/leaflet" + (f"?q={lender[:80]}" if lender else ""), "agent_demo": "/", "scam_arena": "/#scam",
+            "evidence": "/#why", "business": "/#biz"}
+    return {"url": urls.get(page, "/"), "page": page}
+
+
+ALL = [check_lender, lender_news, compare_lenders, find_alternatives, gate_check, open_page]
+BY_NAME = {f.__name__: f for f in ALL}
+# Tools the assistant may use; MCP clients get the same set minus navigation, which only makes sense on the site.
+MCP_TOOLS = [f for f in ALL if f is not open_page]

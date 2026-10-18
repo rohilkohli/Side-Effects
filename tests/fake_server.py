@@ -7,7 +7,7 @@ import time
 import uvicorn
 
 from app import bq, gemini, live
-from app.agents import pharmacist, shopper
+from app.agents import assistant, pharmacist, shopper
 from tests import fakes
 
 
@@ -27,6 +27,14 @@ def _slow_turn(*a, **kw):
 
 
 shopper._model_turn = _slow_turn
+
+
+def _slow_assistant(*a, **kw):
+    time.sleep(0.6)
+    return fakes.fake_assistant_turn(*a, **kw)
+
+
+assistant._turn = _slow_assistant
 
 # Made-up BigQuery answers, only so the BigQuery panels can be seen locally.
 bq.lender_snapshot = lambda company, product_type="credit_card": {

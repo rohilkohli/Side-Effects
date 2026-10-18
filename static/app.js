@@ -21,7 +21,6 @@ const STATUS_LABEL = {
 
 let profileKeys = new Set();
 let leaflet = null;
-let history = [];
 
 async function init() {
   const meta = await fetch("/api/meta").then((r) => r.json());
@@ -103,7 +102,7 @@ async function run() {
   showError("");
 
   $("goBtn").disabled = true;
-  $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
+  $("leaflet").hidden = true; window.SEAssist?.setLeaflet(null);
   $("progress").hidden = false;
   $("steps").innerHTML = Object.entries(STEPS).map(([k, [who, what]]) =>
     `<li id="st-${k}"><span class="ic">○</span><div><div class="who">${who}</div><div class="what">${what}</div></div></li>`).join("");
@@ -125,6 +124,7 @@ async function run() {
 }
 
 function handle(ev) {
+  if (ev.step === "read" && ev.status === "done" && ev.product) startLiveEarly(ev.product);
   if (ev.step === "leaflet") { render(ev.leaflet); return; }
   if (ev.status === "error") { showError(ev.detail); return; }
   const li = $("st-" + ev.step); if (!li) return;
@@ -234,7 +234,7 @@ function boxHtml(lf) {
 }
 
 function render(lf) {
-  leaflet = lf; history = [];
+  leaflet = lf;
   const p = lf.product;
   const bank = lf.side_effects.filter((l) => l.scope === "bank");
   const klass = lf.side_effects.filter((l) => l.scope !== "bank");
@@ -320,31 +320,43 @@ function render(lf) {
   $("leaflet").querySelectorAll(".se > button").forEach((b) => b.addEventListener("click", () => {
     const open = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", open);
   }));
-  $("leaflet").hidden = false; $("pharmFab").hidden = false;
+  $("leaflet").hidden = false;
   if (liveName(p)) runLive(liveName(p), p.matched_company, p.product_type);
   $("radarBtn")?.addEventListener("click", () => runRadar(p.matched_company, p.product_type));
   window.scrollTo({ top: 0, behavior: "smooth" });
-  $("chat").innerHTML = "";
   const firstEffect = [...lf.side_effects, ...lf.contract_only].map((x) => x.label)[0];
   const alt = lf.alternatives[0] ? short(lf.alternatives[0].company).toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : null;
-  $("suggest").innerHTML = [firstEffect ? `What does "${firstEffect}" mean for me?` : "What should I watch out for?",
+  window.SEAssist?.setLeaflet(lf, [firstEffect ? `What does "${firstEffect}" mean for me?` : "What should I watch out for?",
     "What happens if I pay late?", alt ? `How does it compare with ${alt}?` : "Can I dispute a purchase?"]
-    .map((q) => `<button type="button">${esc(q)}</button>`).join("");
+    .filter(Boolean));
 }
 
 /* ---- live check of whatever lender Gemini read: the regulator's feed + Gemini with Google Search ---- */
 const liveName = (p) => p.brand_name || p.issuer_name || p.matched_company || "";
 const KIND = { enforcement: "Regulator", lawsuit: "Lawsuit", outage: "Outage", data_breach: "Data breach", fees_or_terms: "Fees or terms", other: "News" };
 const wait = (t) => `<p class="small muted radar-wait"><i></i>${esc(t)}</p>`;
-let liveSeq = 0;
-function runLive(name, company, productType) {
-  const seq = ++liveSeq, type = productType === "bnpl" ? "bnpl" : "credit_card";
+let liveSeq = 0, early = null;
+const liveType = (t) => (t === "bnpl" ? "bnpl" : "credit_card");
+// News is searched by the name people know (the brand); complaints are filed against the lender behind it.
+const liveFetch = (name, type, lender) => {
   const q = (n) => `name=${encodeURIComponent(n)}&product_type=${type}`;
+  return { name, type, check: fetch(`/api/live/check?${q(name)}&lender=${encodeURIComponent(lender || "")}`).then((r) => r.json()), news: fetch(`/api/live/news?${q(name)}`).then((r) => r.json()) };
+};
+// Start the live lookups the moment Gemini has read the lender, while the rest of the leaflet is still being written.
+function startLiveEarly(product) {
+  const name = liveName(product);
+  early = name ? liveFetch(name, liveType(product.product_type), product.issuer_name) : null;
+  early?.check.catch(() => {}); early?.news.catch(() => {});
+}
+function runLive(name, company, productType) {
+  const seq = ++liveSeq, type = liveType(productType);
+  const got = early && early.name === name && early.type === type ? early : liveFetch(name, type, company);
+  early = null;
   $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4>` + wait("Asking the regulator's live complaint feed…");
-  $("liveNews").innerHTML = `<h4>In the news <span class="g-tag">Gemini + Google Search</span></h4>` + wait("Gemini is searching today's news. About 15 seconds…");
-  fetch(`/api/live/check?${q(company || name)}`).then((r) => r.json()).then((d) => { if (seq === liveSeq) showComplaints(d); })
+  $("liveNews").innerHTML = `<h4>In the news <span class="g-tag">Gemini + Google Search</span></h4>` + wait("Gemini is searching today's news…");
+  got.check.then((d) => { if (seq === liveSeq) showComplaints(d); })
     .catch(() => { if (seq === liveSeq) $("liveComplaints").innerHTML = `<h4>Complaints this quarter</h4><p class="small muted">Couldn't reach the complaint feed just now.</p>`; });
-  fetch(`/api/live/news?${q(name)}`).then((r) => r.json()).then((d) => { if (seq === liveSeq) showNews(d); })
+  got.news.then((d) => { if (seq === liveSeq) showNews(d); })
     .catch(() => { if (seq === liveSeq) $("liveNews").innerHTML = `<h4>In the news</h4><p class="small muted">Couldn't search the news just now.</p>`; });
 }
 function showComplaints(d) {
@@ -392,42 +404,6 @@ async function runRadar(company, productType) {
   }
 }
 
-/* ---- pharmacist ---- */
-$("pharmFab").addEventListener("click", () => { $("pharm").hidden = false; $("pharmFab").hidden = true; $("askInput").focus(); });
-$("pharmClose").addEventListener("click", () => { $("pharm").hidden = true; $("pharmFab").hidden = false; });
-$("suggest").addEventListener("click", (e) => { if (e.target.tagName === "BUTTON") ask(e.target.textContent); });
-$("askForm").addEventListener("submit", (e) => { e.preventDefault(); const q = $("askInput").value.trim(); if (q) ask(q); });
-
-function bubble(role, text) {
-  const d = document.createElement("div"); d.className = "msg " + role; d.textContent = text;
-  $("chat").appendChild(d); $("chat").scrollTop = $("chat").scrollHeight; return d;
-}
-
-let spoke = false;
-async function ask(q, viaVoice = false) {
-  $("askInput").value = ""; bubble("user", q);
-  const pending = bubble("model", "…");
-  try {
-    const r = await fetch("/api/pharmacist", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ leaflet_id: leaflet.id, question: q, history }) });
-    const data = await r.json();
-    const text = r.ok ? data.answer : (data.detail || "Sorry, I can't answer right now.");
-    pending.textContent = text;
-    history.push({ role: "user", text: q }, { role: "model", text });
-    if ((viaVoice || spoke) && "speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-  } catch { pending.textContent = "Sorry, I can't answer right now."; }
-}
-
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (!SR) $("micBtn").hidden = true;
-$("micBtn").addEventListener("click", () => {
-  const rec = new SR(); rec.lang = "en-US"; rec.interimResults = false;
-  $("micBtn").classList.add("on");
-  rec.onresult = (e) => { spoke = true; ask(e.results[0][0].transcript, true); };
-  rec.onend = () => $("micBtn").classList.remove("on");
-  rec.start();
-});
-
 init();
 
 // /leaflet?q=Apple+Card fills in the name and starts straight away (used by links from the agent demo).
@@ -436,7 +412,7 @@ if (startQ) { $("quick").value = startQ.slice(0, 80); setTimeout(run); }
 
 /* ---- fold the form away once a leaflet is made ---- */
 $("newLeaflet").addEventListener("click", () => {
-  $("lfbar").hidden = true; $("leaflet").hidden = true; $("pharmFab").hidden = true; $("pharm").hidden = true;
+  $("lfbar").hidden = true; $("leaflet").hidden = true; window.SEAssist?.setLeaflet(null);
   $("intro").hidden = false; $("input").hidden = false;
   ["quick", "contractText", "issuer", "note", "productType"].forEach((id) => { $(id).value = ""; });
   files = []; showFiles(); liveSeq++; window.history.replaceState(null, "", "/leaflet");

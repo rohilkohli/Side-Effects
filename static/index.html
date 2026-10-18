@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/static/assistant.css">
 <link rel="stylesheet" href="/static/mobile.css">
 <script src="/static/theme.js"></script>
 </head>
@@ -87,22 +88,12 @@
   <article class="leaflet" id="leaflet" hidden></article>
 </main>
 
-<button class="pharm-fab" id="pharmFab" hidden aria-label="Ask the pharmacist">💬 <span class="lg-only">Ask the pharmacist</span><span class="sm-only">Ask</span></button>
-<aside class="pharm" id="pharm" hidden aria-label="Pharmacist">
-  <header><strong>Pharmacist</strong><span class="muted small">Answers from this leaflet, the contract and real complaints</span><button class="x" id="pharmClose" aria-label="Close">×</button></header>
-  <div class="chat" id="chat"></div>
-  <div class="suggest" id="suggest"></div>
-  <form id="askForm">
-    <button type="button" class="mic" id="micBtn" aria-label="Ask by voice" title="Ask by voice">🎤</button>
-    <input id="askInput" placeholder="Is this OK for a freelancer?" autocomplete="off">
-    <button class="primary small" type="submit">Ask</button>
-  </form>
-</aside>
 
 <footer class="foot">
   SIDE EFFECTS reports what people complain about; it does not prove what a product will do to you, and it is not financial advice.
   Built with Gemini on Google Cloud. <a href="/">See an AI agent get stopped</a> · <a href="/.well-known/side-effects.json">For AI agents</a> <span class="ver" id="ver"></span>
 </footer>
 <script src="/static/app.js"></script>
+<script src="/static/assistant.js"></script>
 </body>
 </html>

@@ -109,3 +109,28 @@ def fake_shopper_turn(contents, system, tools, *, skip_check=False):
                                           "rates rising unexpectedly, and Affirm and Klarna are reported 2.5 and 3.3 times more "
                                           "often for trouble getting repayments through. Which would you like?",
                                "offer_ids": ["pay_now", "affirm_12", "store_card"]}))
+
+
+def fake_assistant_turn(contents, toolset):
+    """Scripted stand-in for the site assistant: look the lender up and search the news at once, then answer."""
+    from google.genai import types
+
+    question = next(p.text for c in reversed(contents) if c.role == "user" for p in (c.parts or []) if p.text)
+    done = [p.function_response for c in contents for p in (c.parts or []) if p.function_response]
+    lender = next((n for n in ("Apple Card", "Klarna", "Capital One", "Chase", "Affirm") if n.lower() in question.lower()), None)
+    if lender and not done:
+        return types.Content(role="model", parts=[
+            types.Part.from_function_call(name="check_lender", args={"name": lender}),
+            types.Part.from_function_call(name="lender_news", args={"name": lender}),
+            types.Part.from_function_call(name="open_page", args={"page": "leaflet", "lender": lender})])
+    if done:
+        found = done[0].response["result"]
+        n = found.get("complaints_last_90_days")
+        top = (found.get("side_effects") or [{}])[0]
+        text = (f"Stand-in answer: **{lender}** had {n:,} complaints to the US regulator in the last 90 days."
+                if n is not None else f"Stand-in answer: {lender} isn't in the US complaint records.")
+        if top.get("label"):
+            text += f"\n\n- {top['label']}: reported {top['reported_x']} times more often than at similar lenders"
+        return types.Content(role="model", parts=[types.Part.from_text(text=text)])
+    return types.Content(role="model", parts=[types.Part.from_text(
+        text="Stand-in answer: deferred interest means interest builds up in the background and is charged in full if the balance isn't paid off by the end of the promotion.")])
