@@ -68,6 +68,10 @@ body.app .top .brand, body.app .top > nav { display: none; }
 .top-ask svg { color: #9b72cb; flex: none; }
 .top-ask span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .top-ask kbd { font: 600 .72rem var(--sans); color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; background: var(--panel-2); }
+.top-voice { flex: none; display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px 0 12px; border: 0; border-radius: 10px; cursor: pointer;
+  font: 600 .85rem var(--sans); color: #fff; background: linear-gradient(135deg, #6d5dfc, #4f46e5 60%, #9b72cb); box-shadow: 0 4px 14px rgba(79, 70, 229, .3); }
+.top-voice i { width: 8px; height: 8px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 0 rgba(255, 255, 255, .7); animation: se-ping 2s ease-out infinite; }
+.top-voice:hover { filter: brightness(1.06); }
 body.app .theme-toggle { width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); flex: none; }
 body.app .theme-toggle:hover { transform: none; background: var(--panel-2); }
 
@@ -156,6 +160,7 @@ body.app .sa-msg.user { background: var(--accent); }
   body.app .top { gap: 8px; padding: 8px 12px; min-height: 56px; }
   .top-ask { width: auto; padding: 8px 10px; }
   .top-ask span, .top-ask kbd { display: none; }
+  .top-voice span { display: none; } .top-voice { padding: 0 12px; }
   .top-title { font-size: .95rem; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
   body.app .panel > section, body.app main { padding: 20px 16px 32px; }
   body.app .hero h1, body.app .scam-h, body.app .intro h1 { font-size: 1.45rem; }

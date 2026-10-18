@@ -53,9 +53,14 @@
     ask.type = "button"; ask.className = "top-ask";
     ask.innerHTML = `${svg("spark")}<span>Ask anything about a lender, a fee or a term</span><kbd>${mac ? "⌘" : "Ctrl"} K</kbd>`;
     ask.addEventListener("click", () => window.SEAssist?.open());
+    const voice = document.createElement("button");
+    voice.type = "button"; voice.className = "top-voice"; voice.title = "Voice Mode: speak to the agent, hear the answer";
+    voice.innerHTML = `<i aria-hidden="true"></i><span>Voice Mode</span>`;
+    voice.addEventListener("click", () => window.SEVoice?.open());
     top.prepend(menu, title);
     top.querySelector(".brand")?.after(ask);
     if (!top.querySelector(".brand")) title.after(ask);
+    ask.after(voice);
 
     const openMenu = (on) => document.body.classList.toggle("side-open", on);
     menu.addEventListener("click", () => openMenu(true));
@@ -76,6 +81,20 @@
       const tab = onAgentPage && document.querySelector(`.pager [data-p="${a.dataset.id}"]`);
       if (tab) { e.preventDefault(); tab.click(); }
     });
+    // Motion: staggered entrances, PRR gauges against the 1.0x baseline, view transitions.
+    if (document.startViewTransition) document.documentElement.classList.add("vt");
+    document.querySelectorAll(".bento, #at-known, .arch, #scamSample").forEach((box) => [...box.children].forEach((c, i) => c.style.setProperty("--i", i)));
+    const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("on"); io.unobserve(e.target); } })) : null;
+    window.SEGauges = (root = document) => root.querySelectorAll("[data-x]:not(.g-done)").forEach((el) => {
+      const x = parseFloat(el.dataset.x); if (!(x > 0)) return;
+      el.classList.add("g-done");
+      const g = document.createElement("span");
+      g.className = "gauge"; g.setAttribute("aria-hidden", "true"); g.dataset.tip = `${x}× · baseline 1.0× = similar lenders`;
+      g.style.setProperty("--w", Math.min(100, (x / 4) * 100) + "%"); g.innerHTML = "<i></i>";
+      if (el.matches(".sig-prr, .stat b")) { g.classList.add("in"); el.append(g); } else el.after(g);
+      io ? io.observe(g) : g.classList.add("on");
+    });
+    window.SEGauges();
     if (onAgentPage) {
       const sync = () => setActive(document.querySelector('.pager [aria-selected="true"]')?.dataset.p || "demo");
       new MutationObserver(sync).observe(document.querySelector(".pager"), { subtree: true, attributes: true, attributeFilter: ["aria-selected"] });

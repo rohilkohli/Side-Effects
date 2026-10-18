@@ -90,6 +90,27 @@ def meta():
     }
 
 
+@app.get("/api/regions")
+def regions():
+    """Regional regulatory data for the Evidence page: US CFPB datasets and India's RBI Ombudsman figures."""
+    import re
+    india = evidence.apac().get("IN", {})
+    datasets = evidence.dataset_notes()["datasets"]
+    sizes = {k: int(re.search(r"\d[\d,]{3,}", d["description"]).group().replace(",", "")) for k, d in datasets.items()}
+    # The strongest lender-level signal per company in each US dataset (pooled product groups left out).
+    top: dict[str, list] = {}
+    for r in sorted(evidence.store()["rows"], key=lambda r: -r["prr"]):
+        if not r.get("signal") or r["a"] < 30 or "POOLED" in r["company"]:
+            continue
+        rows = top.setdefault(r["dataset"], [])
+        if len(rows) < 6 and all(x["company"] != r["company"] for x in rows):
+            rows.append({"company": r["company"], "label": r["label"], "reported_x": round(r["prr"], 2), "n": r["a"], "chi2": r["chi2"]})
+    return {"us": {"datasets": {k: dict(d, complaints=sizes[k], top_signals=top.get(k, [])) for k, d in datasets.items()},
+                   "complaints": sum(sizes.values())},
+            "in": {k: india[k] for k in ("source", "india_per_1000_cards", "cards_in_force", "credit_card_groups",
+                                         "nbfc_card_complaints", "bank_disclosures") if k in india}}
+
+
 @app.get("/api/samples/{name}")
 def sample(name: str):
     path = SAMPLES / f"{name}.txt"
@@ -283,6 +304,67 @@ async def voice_agent(request: Request):
             log.exception("voice agent failed")
             yield {"type": "error", "text": "The voice agent is busy. Please ask again in a moment."}
     return _ndjson(events())
+
+
+async def _voice_audio(audio: bytes, mime: str) -> str:
+    mime = (mime or "audio/webm").split(";")[0]
+    if not audio or len(audio) > voice.MAX_AUDIO_BYTES or mime not in voice.AUDIO_TYPES:
+        raise HTTPException(400, "Send a short audio clip (webm, ogg, mp4, mp3 or wav, under 4 MB).")
+    try:
+        return await run_in_threadpool(voice.transcribe, audio, mime)
+    except gemini.LLMUnavailable:
+        raise HTTPException(503, "The voice agent is offline right now.")
+    except Exception:
+        log.exception("voice transcription failed")
+        raise HTTPException(502, "Gemini could not hear that clip. Please try again.")
+
+
+@app.post("/api/v1/voice/turn")
+async def voice_turn(request: Request):
+    """One voice turn as JSON: speech (a clip, base64 audio or the browser's transcript) in; the transcript, the
+    answer to show and to say, every tool called, the gate's verdict, follow-ups and Cloud TTS audio out.
+    Optional context: {active_lender, applicant_profile[], current_page, leaflet_id}."""
+    import base64
+    ctype = request.headers.get("content-type", "")
+    if ctype.startswith("multipart/") or ctype.startswith("application/x-www-form-urlencoded"):
+        form = await request.form()
+        fields = {k: form.get(k) for k in ("transcript", "context", "history")}
+        clip = form.get("audio")
+        body = {}
+        for k in ("context", "history"):
+            try:
+                body[k] = json.loads(str(fields[k] or ("{}" if k == "context" else "[]")))
+            except ValueError:
+                body[k] = {} if k == "context" else []
+        text = str(fields["transcript"] or "")
+        if not text and clip is not None and hasattr(clip, "read"):
+            text = await _voice_audio(await clip.read(), clip.content_type)
+    else:
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "Send JSON with a transcript (or audio_b64), or a form with an audio clip.")
+        if not isinstance(body, dict):
+            raise HTTPException(400, "Send a JSON object.")
+        text = str(body.get("transcript") or body.get("text") or "")
+        if not text and body.get("audio_b64"):
+            try:
+                audio = base64.b64decode(str(body["audio_b64"]).split(",")[-1], validate=True)
+            except ValueError:
+                raise HTTPException(400, "audio_b64 is not valid base64.")
+            text = await _voice_audio(audio, str(body.get("audio_mime") or "audio/webm"))
+    text = text.strip()[:1000]
+    if not text:
+        raise HTTPException(400, "We didn't catch a question. Please try again.")
+    ctx = body.get("context") if isinstance(body.get("context"), dict) else {}
+    history = [h for h in (body.get("history") or []) if isinstance(h, dict)][-10:]
+    try:
+        return await run_in_threadpool(voice.turn, text, history, ctx)
+    except gemini.LLMUnavailable:
+        raise HTTPException(503, "The voice agent is offline right now.")
+    except Exception:
+        log.exception("voice turn failed")
+        raise HTTPException(502, "The voice agent is busy. Please ask again in a moment.")
 
 
 @app.get("/api/alerts")

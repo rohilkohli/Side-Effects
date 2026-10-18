@@ -58,3 +58,6 @@
   body.sa-open { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .sa, .sa-fab, .sa-steps li { animation: none; transition: none; } }
+.sa header .sa-hd { flex: none; display: flex; align-items: center; gap: 8px; }
+.sa-voice { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 7px 12px; font: 600 .78rem var(--sans, system-ui); cursor: pointer; white-space: nowrap; }
+.sa-voice:hover { border-color: #9b8afb; color: #4f46e5; }

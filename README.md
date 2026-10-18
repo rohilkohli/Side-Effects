@@ -21,7 +21,7 @@
 <img alt="Cloud Scheduler" src="https://img.shields.io/badge/Cloud_Scheduler-daily_scan-4285F4?logo=googlecloud&logoColor=white">
 <img alt="Google Search grounding" src="https://img.shields.io/badge/Google_Search-grounding-34A853?logo=google&logoColor=white">
 <img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white">
-<img alt="Tests" src="https://img.shields.io/badge/tests-34_passing-12b76a">
+<img alt="Tests" src="https://img.shields.io/badge/tests-37_passing-12b76a">
 </p>
 
 **Google Cloud AI Builder Cup 2026** · Track 01 BFSI: Intelligent Risk, Fraud & Financial Experiences · Team **CyberNex - Vision Matters**
@@ -51,7 +51,10 @@ SIDE EFFECTS writes the missing leaflet, and puts a gate in front of the checkou
 | 🛡️ **A gate for AI agents** | `POST /api/v1/check` and an **MCP server** return a deterministic verdict: `no_signal`, `disclose` or `human_review`. The checkout enforces it in code, so an agent that forgets to check still can't sign. |
 | 🚨 **Safety alerts every morning** | Cloud Scheduler runs a scan of the regulator's live complaint feed. A new spike becomes an alert, saved to BigQuery, and the gate uses it at once. |
 | ✦ **An assistant with live tools** | Ask "Is Apple Card risky for a freelancer?" and watch it check the complaint feed and Google News in parallel. |
-| 🎙️ **A voice agent** | Tap the mic and ask out loud. Speech-to-text in the browser (or Gemini transcribes the clip), the same Gemini agent and gate answer, and the risk warning is read back to you. |
+| 🎙️ **Voice Mode** | One click from the top bar. A live pipeline shows each step: **Listening (STT) → Intake & Tool Lookup → PRR & Clause Check → Speaking (TTS)**. Live mic waveform, words streaming in as you speak, the gate's verdict as a badge, a 16-bar equalizer while it answers, mute and barge-in (tap the mic to interrupt). Spoken with Google Cloud Text-to-Speech on Cloud Run. |
+| 🧭 **A trace you can open** | Every leaflet carries a 5-stage **multi-agent pipeline trace** (Intake, Evidence/PRR, Clause verifier, Composer, Deterministic gate) with timings and each stage's real output, plus a count of **hallucinated numbers**: any number in Gemini's words that isn't in the data. |
+| 🔁 **What if?** | Toggle your situation on a leaflet (or the Klarna sample) and the gate re-runs live through `/api/v1/check`: warnings that fit you move to the top and the verdict flips between **PASS** and **HELD FOR THE PERSON**. |
+| ⚖️ **Advert vs contract** | The advert's promises next to the verified contract clauses, with complaint ratios, side by side. |
 
 > **Would it have worked?** The leaflet flags Apple Card for *purchase disputes left unresolved*, reported **2.1×** more often than at similar card issuers (817 complaints, 2024). That is the defect the US regulator fined Goldman Sachs **$45M** for in October 2024, found here from public complaint data alone.
 
@@ -66,7 +69,8 @@ Open the **[live demo](https://side-effects-339621847915.asia-southeast1.run.app
 3. **Safety alerts:** press **Run the scan now** and watch 15 lenders get scanned live.
 4. **Scam arena:** press **Start 3 rounds**. A Gemini attacker invents new checkout scams; a Gemini guardian must quote them; the gate decides.
 5. Press <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd> anywhere and ask the assistant a question.
-6. Tap the **🎙 Voice** button and ask *"Is Klarna risky if my income is irregular?"* out loud.
+6. Press **Voice Mode** in the top bar and ask *"Is Klarna risky if my income is irregular?"* out loud, or tap a **Simulate a voice turn** chip.
+7. **Evidence:** switch **US (CFPB)** to **India & APAC (RBI Ombudsman)**. **API, MCP & audit:** press **Run Live /api/v1/check Request**.
 
 <details>
 <summary><b>📋 All 11 judge-tested inputs</b> (click to expand)</summary>
@@ -105,6 +109,18 @@ Every step streams to the screen. If Gemini is busy or refuses, the page shows G
 <tr>
 <td><img src="docs/screens/api-dark.png" alt="API, MCP and audit in dark mode"><br><b>API, MCP & audit.</b> REST and MCP for agent builders; every gate decision logged to BigQuery.</td>
 <td><img src="docs/screens/architecture.png" alt="Architecture"><br><b>How it works.</b> Four Google Cloud layers behind one gate.</td>
+</tr>
+<tr>
+<td><img src="docs/screens/voice-mode.png" alt="Voice Mode"><br><b>Voice Mode.</b> Listening (STT), tool lookup, PRR and clause check, speaking (TTS), shown live.</td>
+<td><img src="docs/screens/trace.png" alt="Pipeline trace"><br><b>Pipeline trace.</b> Five stages with timings; click one for exactly what it produced.</td>
+</tr>
+<tr>
+<td><img src="docs/screens/what-if.png" alt="What if"><br><b>What if?</b> Change the situation and the gate re-runs live through <code>/api/v1/check</code>.</td>
+<td><img src="docs/screens/advert-vs-contract.png" alt="Advert vs contract"><br><b>Advert vs contract.</b> "No hidden fees", next to the clauses verified word for word.</td>
+</tr>
+<tr>
+<td><img src="docs/screens/regions.png" alt="Regional data"><br><b>Regional data.</b> US CFPB signals, or India's RBI Ombudsman complaints per card.</td>
+<td><img src="docs/screens/playground.png" alt="API playground"><br><b>API playground.</b> A real <code>/api/v1/check</code> request, its JSON and latency.</td>
 </tr>
 </table>
 
@@ -216,6 +232,7 @@ Detection is plain code. Gemini only writes the words around fixed numbers. Aler
 | Piece | How it is used |
 |---|---|
 | **Gemini** on **Vertex AI** (`gemini-3.8-flash`, Google Gen AI SDK) | Twelve roles: intake (multimodal), clause reader (long context, structured output), leaflet writer, pharmacist (tool calling), shopping agent (step-by-step function calling with streamed thoughts), person reader, scam attacker and guardian, complaint-story reader, live news researcher, safety-alert writer, site assistant |
+| **Cloud Text-to-Speech** | Speaks the voice agent's answers (`tts_audio_b64`); the browser's own voice takes over if it is off |
 | **Google Search grounding** | Today's news per lender, and the likely cause behind a new complaint spike, with every source listed |
 | **BigQuery** | Google's public CFPB table for the latest 12 months per lender; `side_effects.gate_decisions` audit log (REST, MCP and agent checkout); `side_effects.safety_alerts`. Batch SQL in `pipeline/bigquery/` codes and scores the full table |
 | **Cloud Run** | FastAPI app with streaming NDJSON endpoints; scales to zero; CPU boost on start |
@@ -303,6 +320,8 @@ where **a** is complaints about this problem at this lender, **b** its other com
 | The scam guardian makes things up | Every finding must quote the page; quotes not on the page are discarded and counted on screen. |
 | News is wrong | Grounded in Google Search with every source listed; marked unverified without sources; never changes the verdict. |
 | A person's own words are used as instructions | "You" mode sends them fenced as data, and keeps only situations from a fixed list. |
+| Gemini slips a statistic into the leaflet's words | Code compares every number in the Composer's text with the numbers in its inputs; the trace shows the count (0 in tests, and a planted "87%" is caught). |
+| The voice agent says a number nobody computed | It answers from tools only (`check_lender`, `gate_check`, `safety_alerts`, `india_rbi_data`, ...); the spoken summary is the same text with markdown removed. |
 | The assistant sounds sure without evidence | For any "is this risky?" question it calls the gate and answers in four fixed parts: **risk severity** (copied from the gate), **signal**, **verbatim contract clauses** (or "no contract provided") and **recommended action**. |
 | Secrets leak | None in the code: Cloud Run calls Gemini through Vertex AI with its service account. |
 
@@ -365,6 +384,7 @@ gemini mcp add --transport http side-effects \
 | `compare_lenders` | side effects of two or more lenders side by side |
 | `find_alternatives` | lenders with fewer reported problems |
 | `gate_check` | the same verdict the checkout enforces, logged to BigQuery |
+| `india_rbi_data` | RBI Ombudsman complaints per 1,000 cards by Indian bank group, and a bank's own published complaint breakdown |
 
 </details>
 
@@ -381,6 +401,8 @@ gemini mcp add --transport http side-effects \
 | `POST` | `/api/agent/run` | run the shopping agent (streams) |
 | `POST` | `/api/arena/run` | scam arena (streams) |
 | `POST` | `/api/assistant` | assistant with tools (streams) |
+| `POST` | `/api/v1/voice/turn` | one voice turn as JSON: `transcript` (or multipart `audio`, or `audio_b64`) and optional `context` (`active_lender`, `applicant_profile`, `current_page`) in; `{transcript, reply_text, spoken_summary, tools_called, gate_verdict, suggested_followups, tts_audio_b64}` out |
+| `GET` | `/api/regions` | US CFPB datasets with their strongest signals, and India's RBI Ombudsman figures |
 | `POST` | `/api/v1/voice` | voice agent: JSON text or a multipart audio clip in; heard, tool calls, then `{text, speech, speak}` (streams) |
 | `GET` | `/api/alerts` · `POST /api/alerts/scan` | safety alerts |
 | `GET` | `/api/live/check` · `/api/live/news` · `/api/live/profile` | live lender check, news, and web research for unknown lenders |

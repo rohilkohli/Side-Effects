@@ -22,7 +22,8 @@
   panel.className = "sa"; panel.hidden = true; panel.setAttribute("aria-label", "SIDE EFFECTS assistant");
   panel.innerHTML = `
     <header><div><strong id="saTitle">Assistant</strong><small id="saSub">Gemini with live complaint data and Google Search</small></div>
-      <button type="button" class="sa-x" aria-label="Close">×</button></header>
+      <div class="sa-hd"><button type="button" class="sa-voice" title="Switch to Voice Mode (live STT → agent → TTS)">🎙 Voice Mode</button>
+      <button type="button" class="sa-x" aria-label="Close">×</button></div></header>
     <div class="sa-chat" aria-live="polite"><div class="sa-hello"><span class="sa-spark big" aria-hidden="true">✦</span>
       <p><b>Ask about any card, loan or pay-later plan.</b><br>I look things up live: complaints sent to the regulator, the side effects we track, and today's news. You'll see every lookup as it happens.</p></div></div>
     <div class="sa-suggest"></div>
@@ -33,7 +34,7 @@
   const $ = (s) => panel.querySelector(s);
   const chat = $(".sa-chat"), input = $(".sa-in");
 
-  let history = [], leafletId = null, busy = false, spoke = false;
+  let history = [], leafletId = null, leaflet = null, busy = false, spoke = false;
   const suggest = (list) => { $(".sa-suggest").innerHTML = list.map((q) => `<button type="button">${esc(q)}</button>`).join(""); };
   suggest(GENERAL);
 
@@ -41,6 +42,7 @@
   const close = () => { panel.hidden = true; fab.hidden = false; document.body.classList.remove("sa-open"); };
   fab.addEventListener("click", open);
   $(".sa-x").addEventListener("click", close);
+  $(".sa-voice").addEventListener("click", () => { close(); window.SEVoice?.open(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !panel.hidden) close(); });
   $(".sa-suggest").addEventListener("click", (e) => { if (e.target.tagName === "BUTTON") ask(e.target.textContent); });
   $(".sa-form").addEventListener("submit", (e) => { e.preventDefault(); const q = input.value.trim(); if (q) ask(q); });
@@ -114,9 +116,10 @@
   window.SEAssist = {
     open, ask: (q) => { open(); ask(q); },
     get leafletId() { return leafletId; },
+    get leaflet() { return leaflet; },
     /* The leaflet page calls this when a leaflet opens (or with null when it closes). */
     setLeaflet(lf, questions) {
-      leafletId = lf ? lf.id : null; history = [];
+      leafletId = lf ? lf.id : null; leaflet = lf || null; history = [];
       chat.innerHTML = "";
       $("#saTitle").textContent = lf ? "Pharmacist" : "Assistant";
       $("#saSub").textContent = lf ? `Knows this leaflet${lf.contract_pages ? ", its contract" : ""} and live complaint data` : "Gemini with live complaint data and Google Search";

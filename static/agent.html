@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/saas.css">
 <link rel="stylesheet" href="/static/voice.css">
+<link rel="stylesheet" href="/static/flows.css">
 <script src="/static/theme.js"></script>
 <script src="/static/shell.js"></script>
 </head>
@@ -157,7 +158,7 @@
   <div class="at-panel" id="at-known">
     <p class="small-note">Problems that already stand out in the complaint data the gate uses. Each one changes what the gate says today.</p>
     <details class="sig-card crit" open>
-      <summary><span class="sig-lvl">Critical</span><b>Apple Card (Goldman Sachs)</b><span class="sig-prr">2.1&times;</span><small>Purchase disputes left unresolved</small></summary>
+      <summary><span class="sig-lvl">Critical</span><b>Apple Card (Goldman Sachs)</b><span class="sig-prr" data-x="2.1">2.1&times;</span><small>Purchase disputes left unresolved</small></summary>
       <dl>
         <dt>Signal</dt><dd>Disputes were 2.1&times; more common at Goldman Sachs than at other card issuers in 2024 (817 complaints, &chi;&sup2; 565, p &lt; 0.001), and 2.1&times; again in 2026 Q3. 19% copy-paste templates removed from the checked sample.</dd>
         <dt>Matches</dt><dd>The defect the US regulator (CFPB) fined Goldman Sachs and Apple $89M for in 2024, including a $45M penalty for Goldman, found from public complaint data alone.</dd>
@@ -165,14 +166,14 @@
       </dl>
     </details>
     <details class="sig-card high">
-      <summary><span class="sig-lvl">High</span><b>Synchrony (store cards)</b><span class="sig-prr">2.6&times;</span><small>Interest rate rises unexpectedly</small></summary>
+      <summary><span class="sig-lvl">High</span><b>Synchrony (store cards)</b><span class="sig-prr" data-x="2.6">2.6&times;</span><small>Interest rate rises unexpectedly</small></summary>
       <dl>
         <dt>Signal</dt><dd>2.6&times; more often than other card issuers in 2024 (137 complaints, &chi;&sup2; 106), rising to 3.5&times; in 2026 Q3. "Charged more interest than expected" is 3.3&times;. Store cards often use deferred interest: miss the promo deadline and interest is charged from the purchase date.</dd>
         <dt>Gate action</dt><dd>Verdict <code>human_review</code> (held for the person) when the profile includes irregular income or carrying a balance.</dd>
       </dl>
     </details>
     <details class="sig-card watch">
-      <summary><span class="sig-lvl">Watch</span><b>Indian small finance banks</b><span class="sig-prr">3.0&times;</span><small>Complaints per card vs the national average</small></summary>
+      <summary><span class="sig-lvl">Watch</span><b>Indian small finance banks</b><span class="sig-prr" data-x="3.0">3.0&times;</span><small>Complaints per card vs the national average</small></summary>
       <dl>
         <dt>Signal</dt><dd>3.0&times; the complaints per card of the national average, from the RBI Ombudsman's 2024-25 annual report.</dd>
         <dt>Gate action</dt><dd>Leaflets for Indian cards show the bank group's complaint rate per card next to the US signals.</dd>
@@ -211,8 +212,8 @@
   <div class="why-head"><h2>Why you can trust the warnings</h2></div>
   <div class="bento" id="carousel">
     <div class="stat"><b>136,270</b><span>real US consumer complaints, read with Gemini and scored with the statistic drug regulators use.</span></div>
-    <div class="stat"><b>2.1&times;</b><span>Apple Card dispute complaints vs similar card issuers: the problem the US regulator fined Goldman Sachs $45M for, found from public data alone.</span></div>
-    <div class="stat"><b>3.0&times;</b><span>complaints per card at Indian small finance banks vs the national average (RBI Ombudsman, 2024-25).</span></div>
+    <div class="stat"><b data-x="2.1">2.1&times;</b><span>Apple Card dispute complaints vs similar card issuers: the problem the US regulator fined Goldman Sachs $45M for, found from public data alone.</span></div>
+    <div class="stat"><b data-x="3.0">3.0&times;</b><span>complaints per card at Indian small finance banks vs the national average (RBI Ombudsman, 2024-25).</span></div>
     <div class="stat"><b>19%</b><span>of complaints in a checked sample were copy-paste templates. Gemini filters them out so they can't fake a warning.</span></div>
     <div class="stat"><b>100%</b><span>of contract quotes are checked word for word against the contract. Anything that can't be found is thrown away.</span></div>
     <div class="stat"><b>0</b><span>numbers made up by AI. Every figure is computed from the data; Gemini reads, code counts.</span></div>
@@ -229,6 +230,10 @@
         <p><b>Safety alerts</b> compare the last 45 days with the 180 before, with the same thresholds. Code does every count; Gemini only writes the words.</p>
       </div>
     </div>
+  </div>
+  <div class="region" id="region" aria-live="polite">
+    <h3>Explore regional regulatory data</h3>
+    <p class="muted">Two regulators, two kinds of evidence: complaint shares in the US, complaints per card in India.</p>
   </div>
 </section>
 
@@ -256,9 +261,34 @@
   https://&lt;this-site&gt;/mcp
 
 tools: check_lender · research_lender · lender_news · safety_alerts
-       compare_lenders · find_alternatives · gate_check</code></pre>
+       compare_lenders · find_alternatives · gate_check · india_rbi_data</code></pre>
       <p class="muted"><a href="/.well-known/side-effects.json">Agent descriptor</a></p>
     </div>
+  </div>
+  <div class="play" id="play">
+    <h3>Try the gate live</h3>
+    <p class="muted">Pick a lender and a situation, then send a real request to <code>POST /api/v1/check</code>. Each call is written to the BigQuery audit below when it is on.</p>
+    <div class="play-form">
+      <select id="playLender" aria-label="Lender">
+        <option value="Klarna|bnpl">Klarna (pay later)</option>
+        <option value="Apple Card|credit_card">Apple Card (Goldman Sachs)</option>
+        <option value="Synchrony|credit_card">Synchrony store card</option>
+        <option value="Affirm|bnpl">Affirm (pay later)</option>
+        <option value="Capital One|credit_card">Capital One</option>
+        <option value="AU Small Finance Bank|credit_card">AU Small Finance Bank (India)</option>
+      </select>
+      <div class="wi-row" id="playProfile" role="group" aria-label="Situation">
+        <button type="button" class="wi-pill" data-key="irregular_income" aria-pressed="true">Irregular income</button>
+        <button type="button" class="wi-pill" data-key="carries_balance" aria-pressed="false">Carries a balance</button>
+        <button type="button" class="wi-pill" data-key="other_bnpl" aria-pressed="false">Other pay-later plans</button>
+        <button type="button" class="wi-pill" data-key="new_to_credit" aria-pressed="false">New to credit</button>
+        <button type="button" class="wi-pill" data-key="big_purchase" aria-pressed="false">Big purchase</button>
+        <button type="button" class="wi-pill" data-key="travels" aria-pressed="false">Travels</button>
+      </div>
+      <button type="button" class="play-run" id="playRun">Run Live /api/v1/check Request</button>
+    </div>
+    <div class="play-meta" id="playMeta"></div>
+    <pre class="play-out" id="playOut">// The response appears here</pre>
   </div>
   <div class="audit" id="audit" hidden></div>
 </section>

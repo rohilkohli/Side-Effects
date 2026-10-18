@@ -424,7 +424,7 @@ def test_mcp_server_lists_and_calls_the_same_tools(monkeypatch, fake_gemini):
     assert init["result"]["protocolVersion"] == "2025-06-18" and "tools" in init["result"]["capabilities"]
     assert c.post("/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}).status_code == 202
     tools_ = {t["name"]: t for t in c.post("/mcp", json={"jsonrpc": "2.0", "id": 2, "method": "tools/list"}).json()["result"]["tools"]}
-    assert set(tools_) == {"check_lender", "research_lender", "lender_news", "safety_alerts", "compare_lenders", "find_alternatives", "gate_check"}
+    assert set(tools_) == {"check_lender", "research_lender", "lender_news", "safety_alerts", "compare_lenders", "find_alternatives", "gate_check", "india_rbi_data"}
     assert tools_["gate_check"]["inputSchema"]["properties"]["applicant_profile"]["type"] == "array"
     out = c.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {
         "name": "gate_check", "arguments": {"issuer": "Apple Card", "applicant_profile": ["big_purchase"]}}}).json()["result"]
@@ -551,3 +551,75 @@ def test_lender_outside_our_statistics_is_found_live_and_researched_on_the_web(m
     # No partial matches: a name that only shares a word with a company is not a match.
     live._cache.clear()
     assert live.find_in_cfpb("Upgrade Card Plus Zebra") is None
+
+
+def test_leaflet_carries_a_five_stage_agent_trace_with_real_values(fake_gemini):
+    inp = pipeline.Inputs(flyer_text=(SAMPLES / "fictional-bnpl-flyer.txt").read_text(),
+                          contract_text=(SAMPLES / "fictional-bnpl-agreement.txt").read_text(),
+                          profile=["irregular_income"])
+    lf = list(pipeline.run(inp))[-1]["leaflet"]
+    trace = lf["agent_trace"]
+    assert [t["stage"] for t in trace] == ["Intake", "Evidence (PRR)", "Clause verifier", "Composer", "Deterministic gate"]
+    assert all(t["ms"] >= 0 and t["summary"] for t in trace)
+    ev = trace[1]["output"]["signals"]
+    assert [s["reported_x"] for s in ev] == [l["reported_x"] for l in lf["side_effects"]]  # the leaflet's own numbers
+    cl = trace[2]["output"]
+    assert cl["verified_links"] == 1 and cl["rejected_quotes"] == 1 and cl["quotes"][0]["page"] == 2
+    assert trace[3]["output"]["unsourced_numbers"] == [] and lf["unsourced_numbers"] == 0
+    assert trace[4]["output"]["verdict"] == lf["gate"]["verdict"]
+    # A Composer that writes a statistic of its own is caught and counted.
+    from app.schemas import LeafletText
+    bad = LeafletText(what_it_is="A plan that 87% of users regret.", lines=[], contraindications=[], interactions=[], for_you="")
+    assert pipeline.unsourced_numbers(bad, lf["product"], lf["side_effects"]) == ["87"]
+
+
+def test_voice_turn_returns_structured_json_with_tools_and_gate(monkeypatch, fake_gemini):
+    from app import voice
+    from app.agents import assistant
+    _fake_live(monkeypatch)
+    monkeypatch.setattr(assistant, "_turn", fakes.fake_assistant_turn)
+    c = TestClient(app)
+    r = c.post("/api/v1/voice/turn", json={"transcript": "Is Klarna safe for a freelancer with irregular income?",
+                                            "context": {"active_lender": "Klarna", "applicant_profile": ["irregular_income"],
+                                                        "current_page": "leaflet"}})
+    assert r.status_code == 200
+    d = r.json()
+    assert set(d) >= {"transcript", "reply_text", "spoken_summary", "tools_called", "gate_verdict",
+                      "suggested_followups", "tts_audio_b64"}
+    assert d["transcript"].startswith("Is Klarna safe")
+    names = [t["name"] for t in d["tools_called"]]
+    assert "check_lender" in names and "gate_check" in names
+    assert all(t["status"] in ("ok", "error") and t["summary"] for t in d["tools_called"])
+    expected = __import__("app.gate", fromlist=["check"]).check("Klarna", "bnpl", ["irregular_income"])
+    assert d["gate_verdict"] == ("human_review" if expected["verdict"] == "human_review" else "pass")
+    assert d["gate_severity"] == expected["severity"]
+    assert d["tts_audio_b64"] is None  # no Google Cloud credentials here: the browser speaks
+    assert "**" not in d["spoken_summary"] and 1 <= len(d["suggested_followups"]) <= 3
+    # India question: answered from the RBI tool, numbers straight from apac.json.
+    d = c.post("/api/v1/voice/turn", json={"transcript": "How do Indian small finance banks compare in RBI data?"}).json()
+    assert [t["name"] for t in d["tools_called"]] == ["india_rbi_data"] and d["gate_verdict"] is None
+    sfb = evidence.apac()["IN"]["credit_card_groups"]["small_finance"]["x_vs_india"]
+    assert f"{sfb}x" in d["reply_text"]
+    # Audio in (multipart or base64): Gemini transcribes it first.
+    monkeypatch.setattr(voice, "transcribe", lambda audio, mime: "Is Klarna risky?")
+    d = c.post("/api/v1/voice/turn", files={"audio": ("q.webm", b"\x1aE\xdf\xa3fake", "audio/webm")},
+               data={"context": json.dumps({"applicant_profile": ["other_bnpl"]})}).json()
+    assert d["transcript"] == "Is Klarna risky?" and d["reply_text"]
+    import base64
+    d = c.post("/api/v1/voice/turn", json={"audio_b64": base64.b64encode(b"\x1aE\xdf\xa3").decode(), "audio_mime": "audio/webm"}).json()
+    assert d["transcript"] == "Is Klarna risky?"
+    assert c.post("/api/v1/voice/turn", json={"transcript": " "}).status_code == 400
+    assert c.post("/api/v1/voice/turn", json={"audio_b64": "!!notbase64", "audio_mime": "audio/webm"}).status_code == 400
+    assert c.post("/api/v1/voice", json={"text": "Is Apple Card risky?"}).status_code == 200  # old endpoint untouched
+    assert c.post("/api/v1/check", json={"issuer": "Klarna", "product_type": "bnpl"}).status_code == 200
+
+
+def test_india_rbi_tool_reads_apac_data():
+    from app import tools
+    d = tools.india_rbi_data("AU Small Finance Bank")
+    assert d["bank_group"] == "small_finance" and d["bank_disclosure"]["bank"] == "AU Small Finance Bank"
+    g = {x["group"]: x for x in d["groups"]}
+    assert g["small_finance"]["x_vs_india"] == evidence.apac()["IN"]["credit_card_groups"]["small_finance"]["x_vs_india"]
+    r = TestClient(app).get("/api/regions").json()
+    assert r["us"]["complaints"] == 136270  # 75,989 + 21,293 + 38,988, read from the dataset notes
+    assert r["in"]["credit_card_groups"]["small_finance"]["x_vs_india"] == g["small_finance"]["x_vs_india"]

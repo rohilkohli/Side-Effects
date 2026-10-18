@@ -1,4 +1,4 @@
-/* Voice agent: floating mic button, modal with a live wave for Listening / Thinking / Speaking. */
+/* Voice Mode: floating mic button, modal with the 4-step pipeline, a live mic waveform and a 16-bar equalizer. */
 .vx-fab { position: fixed; right: 20px; bottom: 84px; z-index: 41; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 18px 0 15px;
   border: 0; border-radius: 999px; cursor: pointer; font: 600 .95rem var(--sans, system-ui); color: #fff;
   background: linear-gradient(135deg, #6d5dfc, #4f46e5 55%, #9b72cb); box-shadow: 0 10px 28px rgba(79, 70, 229, .4); transition: transform .15s; }
@@ -59,11 +59,59 @@ body.sa-open .vx-fab, body.vx-open .vx-fab { display: none; }
 .vx-mic.on { background: #d92d20; box-shadow: 0 0 0 6px rgba(217, 45, 32, .18); animation: vx-pulse 1.2s ease-in-out infinite; }
 @keyframes vx-pulse { 50% { box-shadow: 0 0 0 12px rgba(217, 45, 32, .08); } }
 
+/* Pipeline: Listening (STT) > Intake & Tool Lookup > BigQuery PRR & Clause Check > Speaking (TTS) */
+.vx-hd { display: flex; gap: 8px; }
+.vx-mute { border: 0; background: var(--panel-2, #f2f4f7); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: .95rem; }
+.vx-pipe { list-style: none; margin: 0; padding: 10px 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; border-bottom: 1px solid var(--line, #e4e7ec); background: var(--panel-2, #f8f9fb); }
+.vx-pipe li { position: relative; display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 10px; font-size: .72rem; font-weight: 600; line-height: 1.25;
+  color: var(--muted, #667085); background: var(--panel, #fff); border: 1px solid var(--line, #e4e7ec); transition: all .25s cubic-bezier(.22, 1, .36, 1); }
+.vx-pipe li:not(:last-child)::after { content: "➔"; position: absolute; right: -9px; top: 50%; transform: translateY(-50%); font-size: .62rem; color: var(--line-2, #d0d5dd); z-index: 1; }
+.vx-pipe li i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--line-2, #d0d5dd); }
+.vx-pipe li.on { color: var(--ink, #101828); border-color: #9b8afb; box-shadow: 0 0 0 3px rgba(124, 108, 255, .14); }
+.vx-pipe li.on i { background: #7c6cff; animation: vx-blink 1s ease-in-out infinite; }
+.vx-pipe li.done { color: var(--ink, #101828); }
+.vx-pipe li.done i { background: #12b76a; }
+.vx-pipe li.skip { opacity: .55; } .vx-pipe li.err i { background: #d92d20; }
+@keyframes vx-blink { 50% { transform: scale(1.5); opacity: .6; } }
+
+.vx-viz { position: relative; width: 100%; height: 60px; display: grid; place-items: center; }
+.vx-scope { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .2s; }
+.vx-stage[data-s="listening"] .vx-scope { opacity: 1; }
+.vx-stage[data-s="listening"]:not(.sim) .vx-wave { opacity: .18; }
+.vx-eq { display: none; align-items: center; gap: 4px; height: 56px; }
+.vx-eq i { width: 5px; height: 10px; border-radius: 3px; background: linear-gradient(#7c6cff, #4f46e5); transition: height .06s linear; }
+.vx-stage[data-s="speaking"] .vx-eq { display: flex; }
+.vx-stage[data-s="speaking"] .vx-wave { display: none; }
+.vx-stage[data-s="speaking"]:not(.real-eq) .vx-eq i { animation: vx-eq .8s ease-in-out infinite; }
+.vx-eq i:nth-child(3n) { animation-duration: .62s !important; } .vx-eq i:nth-child(3n+1) { animation-duration: .95s !important; }
+.vx-eq i:nth-child(4n) { animation-delay: .15s; } .vx-eq i:nth-child(4n+2) { animation-delay: .3s; } .vx-eq i:nth-child(5n) { animation-delay: .45s; }
+@keyframes vx-eq { 0%, 100% { height: 8px; } 50% { height: 50px; } }
+.vx-stop { flex: none; border: 1px solid var(--line, #e4e7ec); background: var(--panel, #fff); color: var(--ink, #101828); border-radius: 999px; padding: 9px 12px; font: 600 .8rem var(--sans, system-ui); cursor: pointer; }
+.vx-stop[hidden] { display: none; }
+.vx-tag { display: block; margin-top: 3px; font-size: .7rem; opacity: .8; }
+.vx-ms { display: block; margin-top: 6px; font-size: .72rem; color: var(--muted, #667085); }
+.vx-msg.gate { align-self: flex-start; font-size: .8rem; padding: 6px 12px; border-radius: 999px; animation: vx-pop .35s cubic-bezier(.22, 1, .36, 1); }
+.vx-msg.gate.held { background: var(--red-soft, #fef3f2); color: var(--red-ink, #b42318); border: 1px solid #fda29b; }
+.vx-msg.gate.pass { background: #ecfdf3; color: #067647; border: 1px solid #abefc6; }
+.vx-msg.trace span { animation: vx-pop .3s cubic-bezier(.22, 1, .36, 1); }
+.vx-msg.trace span.bad::before { content: "! "; color: #d92d20; font-weight: 700; }
+.vx-msg.link-row { padding: 0; }
+@keyframes vx-pop { from { transform: translateY(4px); opacity: 0; } }
+.vx-follow { display: flex; flex-wrap: wrap; gap: 6px; }
+.vx-follow button, .vx-sugg button { border: 1px solid var(--line, #e4e7ec); background: var(--panel, #fff); color: var(--accent, #4f46e5); border-radius: 999px; padding: 6px 12px; font: 500 .8rem var(--sans, system-ui); cursor: pointer; text-align: left; }
+.vx-sugg > span { width: 100%; text-align: center; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted, #667085); }
+:root[data-theme="dark"] .vx-msg.gate.pass { background: rgba(18, 183, 106, .12); color: #75e0a7; border-color: rgba(117, 224, 167, .3); }
+:root[data-theme="dark"] .vx-msg.gate.held { background: rgba(217, 45, 32, .14); color: #fda29b; border-color: rgba(253, 162, 155, .3); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .vx-msg.gate.pass { background: rgba(18, 183, 106, .12); color: #75e0a7; border-color: rgba(117, 224, 167, .3); }
+  :root:not([data-theme="light"]) .vx-msg.gate.held { background: rgba(217, 45, 32, .14); color: #fda29b; border-color: rgba(253, 162, 155, .3); } }
+
 @media (max-width: 560px) {
+  .vx-pipe { grid-template-columns: repeat(2, 1fr); }
+  .vx-pipe li:nth-child(2)::after { display: none; }
   .vx { padding: 0; align-items: end; }
   .vx-card { width: 100%; max-height: 88dvh; border-radius: 20px 20px 0 0; }
   .vx-fab { right: 12px; bottom: 78px; width: 52px; padding: 0; justify-content: center; }
   .vx-fab .vx-fab-t { display: none; }
   body.app:has(#p-demo) .vx-fab { bottom: 78px; }
 }
-@media (prefers-reduced-motion: reduce) { .vx-fab::before, .vx-wave i, .vx-mic.on, .vx-card { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .vx-fab::before, .vx-wave i, .vx-eq i, .vx-pipe i, .vx-mic.on, .vx-card { animation: none !important; } }

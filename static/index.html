@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="/static/mobile.css">
 <link rel="stylesheet" href="/static/saas.css">
 <link rel="stylesheet" href="/static/voice.css">
+<link rel="stylesheet" href="/static/flows.css">
 <script src="/static/theme.js"></script>
 <script src="/static/shell.js"></script>
 </head>
@@ -78,15 +79,24 @@
   </section>
 
   <section class="sample-lf" id="samplePreview" aria-label="Sample leaflet">
-    <p class="sample-tag"><b>Sample preview</b> Klarna Pay in 4, for someone with irregular income who already uses other pay-later plans. Click <em>Show me the side effects</em> above to run a live analysis.</p>
+    <p class="sample-tag"><b>Sample preview</b> Klarna Pay in 4. Toggle <em>What if</em> to change the situation: the gate re-runs live through <code>/api/v1/check</code>. Click <em>Show me the side effects</em> above for a full analysis.</p>
     <div class="facts">
       <div class="facts-head"><b>Credit Facts &amp; Side Effects</b><span>Klarna &middot; Buy Now Pay Later</span></div>
-      <div class="facts-risk"><span class="risk-pill">Held for the person</span><div><b>High risk for this profile</b><small>Top signal 3.25&times; more often than other pay-later lenders &middot; gate verdict <code>human_review</code></small></div></div>
+      <div class="wi-row" id="sxWhatIf" role="group" aria-label="What if: your situation">
+        <span class="wi-l">What if&hellip;</span>
+        <button type="button" class="wi-pill" data-key="irregular_income" aria-pressed="true">Irregular income</button>
+        <button type="button" class="wi-pill" data-key="other_bnpl" aria-pressed="true">Uses other pay-later plans</button>
+        <button type="button" class="wi-pill" data-key="carries_balance" aria-pressed="false">Carries a balance</button>
+        <button type="button" class="wi-pill" data-key="new_to_credit" aria-pressed="false">New to credit</button>
+        <button type="button" class="wi-pill" data-key="big_purchase" aria-pressed="false">Big purchase</button>
+      </div>
+      <div class="wi-banner held" id="sxBanner" aria-live="polite"><b>HELD FOR THE PERSON</b><span>human_review triggered via /api/v1/check</span></div>
+      <div class="facts-risk"><span class="risk-pill" id="sxPill">Held for the person</span><div><b id="sxHead">Critical risk for this profile</b><small id="sxSub">Top signal 3.25&times; more often than other pay-later lenders &middot; gate verdict <code>human_review</code></small></div></div>
       <div class="facts-box">
-        <p class="facts-box-h">&#9888; Warnings that fit you</p>
-        <ol>
-          <li><b>Trouble making repayments go through <span class="prr">3.25&times;</span></b><span>364 complaints, &chi;&sup2; 614 vs other pay-later lenders (CFPB). Matches: irregular income, other pay-later plans. Payments are taken every two weeks whether or not your money has come in.</span></li>
-          <li><b>Unwanted add-ons <span class="prr">2.13&times;</span></b><span>134 complaints about extras people say they did not choose. Shown to everyone, not specific to your situation.</span></li>
+        <p class="facts-box-h">&#9888; Warnings, ordered by how well they fit you</p>
+        <ol id="sxList">
+          <li data-label="Trouble making repayments go through" class="fit"><b>Trouble making repayments go through <span class="prr" data-x="3.25">3.25&times;</span></b><span>364 complaints, &chi;&sup2; 614 vs other pay-later lenders (CFPB). Payments are taken every two weeks whether or not your money has come in.</span><em class="fit-b">Matches your situation</em></li>
+          <li data-label="Unwanted add-ons or protection products"><b>Unwanted add-ons <span class="prr" data-x="2.13">2.13&times;</span></b><span>134 complaints about extras people say they did not choose. Shown to everyone, not specific to your situation.</span><em class="fit-b">Matches your situation</em></li>
           <li><b>Contract quotes checked word for word</b><span>Late-fee and missed-payment clauses are quoted from the agreement only if the exact words are found in it. Anything else is thrown away.</span></li>
         </ol>
       </div>
@@ -114,6 +124,7 @@
   Built with Gemini on Google Cloud. <a href="/">See an AI agent get stopped</a> · <a href="/.well-known/side-effects.json">For AI agents</a> <span class="ver" id="ver"></span>
 </footer>
 <script src="/static/app.js"></script>
+<script src="/static/flows.js"></script>
 <script src="/static/assistant.js"></script>
 <script src="/static/voice.js"></script>
 </body>

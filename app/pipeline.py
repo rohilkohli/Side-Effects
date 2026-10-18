@@ -11,12 +11,14 @@
 from __future__ import annotations
 
 import io
+import json
 import re
+import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Iterator
 
-from . import evidence, gemini, profiles
+from . import evidence, gate, gemini, profiles
 from .agents import clauses, composer, intake
 from .schemas import Page
 
@@ -59,6 +61,8 @@ def pages_from_pdf(data: bytes) -> list[Page]:
 
 def run(inp: Inputs) -> Iterator[dict]:
     lid = uuid.uuid4().hex[:10]
+    t0 = time.perf_counter()
+    clock = lambda: int((time.perf_counter() - t0) * 1000)
 
     # 1. Contract text (if any) and Intake ------------------------------
     yield {"step": "read", "status": "running", "detail": "Reading what you gave us"}
@@ -81,6 +85,7 @@ def run(inp: Inputs) -> Iterator[dict]:
     if not parts:
         yield {"step": "read", "status": "error", "detail": "Add a photo or PDF of the offer, or type the card or lender's name."}
         return
+    t_intake = clock()
     card = intake.read_product(parts)
     product = card.model_dump(mode="json")
     if inp.product_type_override:
@@ -90,6 +95,7 @@ def run(inp: Inputs) -> Iterator[dict]:
     yield {"step": "read", "status": "done", "detail": f"Found {brand}{lender} ({product['product_type'].replace('_', ' ')})",
            "product": product}
 
+    t_evidence = clock()
     # 2. Match to complaint data ----------------------------------------
     yield {"step": "match", "status": "running", "detail": "Finding this lender in the complaint database"}
     company = (evidence.resolve_company(inp.issuer_override) or evidence.resolve_company(card.issuer_name)
@@ -109,14 +115,15 @@ def run(inp: Inputs) -> Iterator[dict]:
                      + (f" (from {sig['company_total']:,} complaints)" if sig["company_total"] else "")}
 
     # 4. Mechanism: pin to clauses --------------------------------------
-    contract_only, rejected = [], 0
+    t_clauses = clock()
+    contract_only, rejected, linked = [], 0, 0
     if pages:
         yield {"step": "clauses", "status": "running", "detail": f"Reading all {len(pages)} pages of the contract for the clause behind each one"}
         found = clauses.pin_clauses(pages, lines)
         for l in lines:
             if l["id"] in found["links"]:
                 l["clause"] = found["links"][l["id"]]
-        contract_only, rejected = found["contract_only"], found["rejected_quotes"]
+        contract_only, rejected, linked = found["contract_only"], found["rejected_quotes"], len(found["links"])
         yield {"step": "clauses", "status": "done",
                "detail": f"{len(found['links'])} linked to a clause, {len(contract_only)} more found only in the contract"
                          + (f", {rejected} unverifiable quote{'s' if rejected != 1 else ''} discarded" if rejected else "")}
@@ -131,6 +138,7 @@ def run(inp: Inputs) -> Iterator[dict]:
 
     # 5. Compose ---------------------------------------------------------
     yield {"step": "compose", "status": "running", "detail": "Writing your leaflet"}
+    t_compose = clock()
     all_lines = lines + [{"id": f"contract:{i}", "label": c["label"], "scope": "contract", "fae": c["fae"],
                           "cfpb_term": "", "clause": c} for i, c in enumerate(contract_only)]
     text = composer.compose(product, all_lines, inp.profile, inp.note)
@@ -141,7 +149,41 @@ def run(inp: Inputs) -> Iterator[dict]:
         l["plain_explanation"] = t.plain_explanation if t else ""
         l["how_to_reduce_risk"] = t.how_to_reduce_risk if t else ""
 
+    t_gate = clock()
     sensitive = profiles.sensitive_codes(inp.profile)
+    decision = gate.check(company or card.issuer_name or brand, product["product_type"], inp.profile) if (company or brand) else None
+    unsourced = unsourced_numbers(text, product, lines)
+    trace = [
+        {"stage": "Intake", "agent": "Intake agent", "kind": "gemini", "model": gemini.FAST_MODEL,
+         "started_ms": t_intake, "ms": t_evidence - t_intake, "status": "done",
+         "summary": f"Read {brand} ({product['product_type'].replace('_', ' ')})",
+         "output": {k: product.get(k) for k in ("issuer_name", "brand_name", "product_type", "jurisdiction",
+                                                 "headline_claims", "stated_terms", "left_unsaid")}},
+        {"stage": "Evidence (PRR)", "agent": "Evidence engine", "kind": "code", "model": None,
+         "started_ms": t_evidence, "ms": t_clauses - t_evidence, "status": "done" if company else "no_data",
+         "summary": (f"{company}: {len(lines)} side effect{'s' if len(lines) != 1 else ''} above peers"
+                     if company else "Lender not in the complaint statistics"),
+         "output": {"matched_company": company, "company_complaints": sig["company_total"],
+                    "signals": [{k: l.get(k) for k in ("label", "reported_x", "ci95", "n", "period", "scope", "fae")} for l in lines]}},
+        {"stage": "Clause verifier", "agent": "Clauses agent", "kind": "gemini+code", "model": gemini.DEEP_MODEL if pages else None,
+         "started_ms": t_clauses, "ms": t_compose - t_clauses, "status": "done" if pages else "skipped",
+         "summary": (f"{linked} clause{'s' if linked != 1 else ''} verified word for word, {rejected} rejected"
+                     if pages else "No contract given"),
+         "output": {"contract_pages": len(pages), "verified_links": linked, "contract_only": len(contract_only),
+                    "rejected_quotes": rejected,
+                    "quotes": [{"side_effect": l["label"], "page": l["clause"].get("page"), "quote": l["clause"].get("quote")}
+                               for l in lines if l.get("clause")]}},
+        {"stage": "Composer", "agent": "Composer agent", "kind": "gemini", "model": gemini.FAST_MODEL,
+         "started_ms": t_compose, "ms": t_gate - t_compose, "status": "done",
+         "summary": f"Wrote {len(text.lines)} explanations · {len(unsourced)} unsourced number{'s' if len(unsourced) != 1 else ''}",
+         "output": {"lines_written": len(text.lines), "contraindications": len(text.contraindications),
+                    "interactions": len(text.interactions), "unsourced_numbers": unsourced}},
+        {"stage": "Deterministic gate", "agent": "SIDE EFFECTS gate", "kind": "code", "model": None,
+         "started_ms": t_gate, "ms": clock() - t_gate, "status": "done" if decision else "skipped",
+         "summary": (f"{decision['verdict'].replace('_', ' ')} · severity {decision['severity']}" if decision else "No lender to check"),
+         "output": {k: decision[k] for k in ("issuer_matched", "verdict", "severity", "recommended_action", "top_signal",
+                                             "matches_applicant_situation")} if decision else None},
+    ]
     leaflet = {
         "id": lid,
         "product": product,
@@ -163,6 +205,9 @@ def run(inp: Inputs) -> Iterator[dict]:
         "evidence": evidence.dataset_notes(),
         "contract_pages": len(pages),
         "rejected_quotes": rejected,
+        "gate": {k: decision[k] for k in ("verdict", "severity", "recommended_action", "matches_applicant_situation")} if decision else None,
+        "agent_trace": trace,
+        "unsourced_numbers": len(unsourced),
     }
     LEAFLETS[lid] = leaflet
     CONTRACTS[lid] = [p.model_dump() for p in pages]
@@ -171,6 +216,23 @@ def run(inp: Inputs) -> Iterator[dict]:
         LEAFLETS.pop(old); CONTRACTS.pop(old, None)
     yield {"step": "compose", "status": "done", "detail": "Leaflet ready"}
     yield {"step": "leaflet", "leaflet": leaflet}
+
+
+_NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
+
+
+def _nums(text: str) -> set[str]:
+    return {m.replace(",", "").rstrip(".") for m in _NUM.findall(text)}
+
+
+def unsourced_numbers(text, product: dict, lines: list[dict]) -> list[str]:
+    """Numbers in the Composer's words that appear nowhere in its inputs (the product card or the statistics).
+    The Composer is told not to write numbers; this checks it did not, so the trace can show the count."""
+    allowed = _nums(json.dumps(product)) | _nums(json.dumps(lines, default=str))
+    written = " ".join([text.what_it_is, text.for_you] + [f"{t.plain_explanation} {t.how_to_reduce_risk}" for t in text.lines]
+                       + [f"{c.condition} {c.reason}" for c in text.contraindications]
+                       + [f"{i.with_what} {i.effect}" for i in text.interactions])
+    return sorted(n for n in _nums(written) if n not in allowed)
 
 
 def coverage_note(company: str | None, jurisdiction: str, has_contract: bool) -> str:

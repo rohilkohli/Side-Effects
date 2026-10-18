@@ -92,6 +92,29 @@ def safety_alerts(name: str = "", product_type: str = "credit_card") -> dict:
             "note": "Found by comparing the last 45 days of complaints with the 180 days before. Complaints are unverified."}
 
 
+def india_rbi_data(bank: str = "") -> dict:
+    """Indian credit-card complaint rates from the RBI Ombudsman annual report 2024-25: complaints per 1,000 cards for
+    each bank group (public sector, private sector, small finance, foreign) against the national rate, and a bank's
+    own published complaint breakdown when we have it. Pass an Indian bank name (e.g. 'AU Small Finance Bank',
+    'HDFC Bank') or leave it empty for all groups."""
+    india = evidence.apac().get("IN", {})
+    if not india:
+        return {"available": False, "reason": "No Indian data loaded."}
+    group = evidence.india_group(bank) if bank else None
+    out = {"source": india["source"], "india_per_1000_cards": india["india_per_1000_cards"],
+           "cards_in_force": india["cards_in_force"],
+           "groups": [{"group": k, **g} for k, g in india["credit_card_groups"].items()],
+           "note": "x_vs_india is the group's complaints per card divided by the national rate. Complaints are unverified."}
+    if bank:
+        out["bank"], out["bank_group"] = bank, group
+        if group == "nbfc":
+            out["nbfc_card_complaints"] = india["nbfc_card_complaints"]
+        disc = evidence.india_disclosure(bank)
+        if disc:
+            out["bank_disclosure"] = disc
+    return out
+
+
 def open_page(page: str, lender: str = "") -> dict:
     """Send the person to a page of the site. page is one of: leaflet (a full side-effects leaflet for a lender or
     offer; pass lender), agent_demo (two AI shopping agents, one protected), scam_arena (Gemini invents scams against
@@ -102,7 +125,8 @@ def open_page(page: str, lender: str = "") -> dict:
     return {"url": urls.get(page, "/"), "page": page}
 
 
-ALL = [check_lender, research_lender, lender_news, safety_alerts, compare_lenders, find_alternatives, gate_check, open_page]
+ALL = [check_lender, research_lender, lender_news, safety_alerts, compare_lenders, find_alternatives, gate_check,
+       india_rbi_data, open_page]
 BY_NAME = {f.__name__: f for f in ALL}
 # Tools the assistant may use; MCP clients get the same set minus navigation, which only makes sense on the site.
 MCP_TOOLS = [f for f in ALL if f is not open_page]

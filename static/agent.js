@@ -42,10 +42,8 @@
     });
     if (Recognition) {
       $("#youMic").hidden = false;
-      $("#youMic").addEventListener("click", (e) => {
-        e.stopPropagation(); $(".persona.you").click();
-        listen($("#youMic"), (said) => { $("#youText").value = said; });
-      });
+      $("#youMic").insertAdjacentHTML("afterend", '<div class="you-voice" hidden><canvas aria-hidden="true"></canvas><span>Listening…</span></div><div class="you-tags" aria-live="polite"></div>');
+      $("#youMic").addEventListener("click", (e) => { e.stopPropagation(); $(".persona.you").click(); sayItInstead(); });
     }
     $("#devView").addEventListener("change", (e) => document.body.classList.toggle("dev", e.target.checked));
     const hideBanner = () => { $("#banner").hidden = true; try { localStorage.setItem("se-banner", "arena"); } catch { /* private mode */ } };
@@ -65,7 +63,12 @@
     if ("speechSynthesis" in window) speechSynthesis.cancel();
     $("#runBtn").disabled = true;
     custom = persona === "you" ? custom : null;
-    if (persona === "you") {
+    if (persona === "you" && custom && custom._text === $("#youText").value.trim()) {
+      $("#readout").innerHTML = `<span class="who">Gemini read your situation</span><strong>${esc(custom.about)}</strong>
+        <div class="sits">${custom.situations.length ? custom.situations.map((x) => `<span>${esc(x)}</span>`).join("") : "<span>Nothing that changes the risk</span>"}</div>`;
+      $("#readout").hidden = false;
+    } else if (persona === "you") {
+      voiceRun = false;
       const text = $("#youText").value.trim();
       if (!text) { showErr("Write a sentence about your situation first."); $("#runBtn").disabled = false; return; }
       $("#runBtn").textContent = "Gemini is reading your situation…";
@@ -86,6 +89,11 @@
     setBusy(true);
     await Promise.allSettled([run($("#laneA"), false), run($("#laneB"), true)]);
     showOutcome();
+    // Asked by voice: say the gate's decision out loud when the run finishes.
+    const out = laneResult($("#laneB"));
+    if (voiceRun && persona === "you" && out && "speechSynthesis" in window) {
+      const u = new SpeechSynthesisUtterance(`SIDE EFFECTS gate decision: ${out.text}.`); u.rate = 1.02; speechSynthesis.speak(u);
+    }
     setBusy(false);
     $("#runBtn").disabled = false;
     $("#runBtn").textContent = "Run both agents live";
@@ -152,6 +160,40 @@
     rec.onend = () => { btn.classList.remove("on"); if (btn.textContent === "🎙 Listening…") btn.textContent = label; };
     rec.start();
   }
+  /* "Say it instead": the words stream into the box as you speak over a live waveform, then Gemini reads
+     the situation (POST /api/agent/read-person) and the gate's profile tags it found pop in. */
+  let voiceRun = false, youRec = null;
+  async function sayItInstead() {
+    const btn = $("#youMic"), wave = $(".you-voice"), tags = $(".you-tags"), box = $("#youText");
+    if (youRec) { youRec.stop(); return; }
+    const rec = youRec = new Recognition();
+    rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.continuous = false;
+    let said = "", stop = () => {}, stream = null;
+    btn.classList.add("on"); btn.textContent = "■ Stop"; wave.hidden = false; $("span", wave).textContent = "Listening…"; tags.innerHTML = "";
+    rec.onresult = (e) => { said = [...e.results].map((r) => r[0].transcript).join(""); box.value = said; };
+    rec.onerror = (e) => { if (e.error === "not-allowed") $("span", wave).textContent = "Microphone blocked"; };
+    rec.onend = async () => {
+      youRec = null; stop(); stream?.getTracks().forEach((t) => t.stop());
+      btn.classList.remove("on"); btn.textContent = "🎤 Say it instead";
+      const text = said.trim();
+      if (!text) { wave.hidden = true; return; }
+      $("span", wave).textContent = "Gemini is reading your situation…";
+      try {
+        const r = await fetch("/api/agent/read-person", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.detail || `The server answered ${r.status}`);
+        custom = { ...body, _text: text }; voiceRun = true;
+        tags.innerHTML = (body.situations.length ? body.situations.map((x, i) => `<span style="--i:${i}">✓ ${esc(x)}</span>`).join("")
+          : '<span class="none">Nothing that changes the risk</span>');
+        wave.hidden = true;
+      } catch (err) { $("span", wave).textContent = err.message; }
+    };
+    rec.start();
+    stream = await window.SEVoice?.micStream?.();
+    if (stream && youRec === rec) stop = window.SEVoice.scope(stream, $("canvas", wave), "#ff375f");
+    else stream?.getTracks().forEach((t) => t.stop());
+  }
+
   function matchOption(said, options) {
     const t = said.toLowerCase();
     const keys = { pay_now: ["debit", "pay now", "pay in full", "full", "own card", "cash"], affirm_12: ["affirm", "monthly"],
@@ -333,8 +375,13 @@
   // Pages instead of one long scroll: a tab per section, and the demo collapses its setup while running.
   const counted = new Set();
   function showPanel(name, fromHistory = false) {
-    document.querySelectorAll(".pager [data-p]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.p === name)));
-    document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.id !== "p-" + name; });
+    const swap = () => {
+      document.querySelectorAll(".pager [data-p]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.p === name)));
+      document.querySelectorAll(".panel").forEach((p) => { p.hidden = p.id !== "p-" + name; });
+    };
+    // View Transitions where the browser has them (a soft cross-fade); flows.css animates the panel otherwise.
+    if (document.startViewTransition && !fromHistory && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(swap);
+    else swap();
     if (name === "why" && !counted.has("why")) { counted.add("why"); document.querySelectorAll("#p-why .stat b").forEach((b) => { if (/^\d/.test(b.textContent) && b.textContent !== "0") countUp(b); }); }
     const url = name === "demo" ? location.pathname : "#" + name;
     if (!fromHistory && location.hash !== (name === "demo" ? "" : "#" + name)) history.pushState(null, "", url);
@@ -530,6 +577,79 @@
   fetch("/api/version").then((r) => r.ok ? r.json() : null).then((v) => { if (v?.version) $("#ver").textContent = "Version " + v.version; }).catch(() => {});
 
   init().catch((e) => showErr(e.message));
+
+/* ---- Evidence: explore regional regulatory data (US CFPB, India RBI Ombudsman), all from /api/regions ---- */
+let regions = null;
+const bar = (x, max, hot) => `<span class="bar ${hot ? "hot" : ""}"><i style="--w:${Math.min(100, (x / max) * 100)}%"></i><s style="left:${(1 / max) * 100}%" title="1.0× baseline"></s></span>`;
+async function initRegion() {
+  const box = document.getElementById("region"); if (!box) return;
+  try { regions = await (await fetch("/api/regions")).json(); } catch { return; }
+  const us = regions.us, india = regions.in;
+  box.insertAdjacentHTML("beforeend", `<div class="seg" role="tablist" aria-label="Region">
+      <button type="button" role="tab" data-rg="us" aria-selected="true">US <em>CFPB ${us.complaints.toLocaleString()} complaints</em></button>
+      ${india.credit_card_groups ? `<button type="button" role="tab" data-rg="in" aria-selected="false">India &amp; APAC <em>RBI Ombudsman ${esc(india.source.period)}</em></button>` : ""}</div>
+    <div class="reg-pills wi-row"></div><div class="reg-grid"></div><p class="reg-src"></p>`);
+  box.querySelector(".seg").addEventListener("click", (e) => { const b = e.target.closest("[data-rg]"); if (b) regionShow(b.dataset.rg); });
+  box.querySelector(".reg-pills").addEventListener("click", (e) => { const b = e.target.closest(".wi-pill"); if (b) regionShow(box.dataset.rg, b.dataset.f); });
+  regionShow("us");
+}
+function regionShow(rg, f) {
+  const box = document.getElementById("region"); box.dataset.rg = rg;
+  box.querySelectorAll("[data-rg]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.rg === rg)));
+  const us = regions.us, india = regions.in;
+  const pills = rg === "us"
+    ? Object.entries(us.datasets).map(([k, d]) => [k, `${d.product === "credit_card" ? "Credit cards" : "Pay later & loans"} · ${d.period}`])
+    : [["groups", "Card complaints per bank group"], ...Object.keys(india.bank_disclosures || {}).map((b) => [b, b])];
+  f = f || pills[0][0];
+  box.querySelector(".reg-pills").innerHTML = pills.map(([k, l]) => `<button type="button" class="wi-pill" data-f="${esc(k)}" aria-pressed="${k === f}">${esc(l)}</button>`).join("");
+  let rows = "", src = "";
+  if (rg === "us") {
+    const d = us.datasets[f];
+    const max = Math.max(4, ...d.top_signals.map((x) => x.reported_x));
+    rows = d.top_signals.map((x, i) => `<div class="reg-row" style="--i:${i}"><span><b>${esc(x.company)}</b><br><small class="muted">${esc(x.label)}</small></span>${bar(x.reported_x, max, true)}
+      <span class="v"><b>${x.reported_x}×</b><small>${x.n.toLocaleString()} complaints</small></span></div>`).join("");
+    src = `${esc(d.description)} Strongest signal per lender, at least 30 complaints, Evans rule. Bar marker = 1.0× (similar lenders).`;
+  } else if (f === "groups") {
+    const g = Object.values(india.credit_card_groups), max = Math.max(...g.map((x) => x.x_vs_india), 3.5);
+    rows = g.map((x, i) => `<div class="reg-row" style="--i:${i}"><span><b>${esc(x.label)}</b><br><small class="muted">${x.complaints.toLocaleString()} complaints · ${x.cards_in_force.toLocaleString()} cards</small></span>${bar(x.x_vs_india, max, x.x_vs_india >= 2)}
+      <span class="v"><b>${x.x_vs_india.toFixed(1)}×</b><small>${x.per_1000_cards} per 1,000 cards</small></span></div>`).join("");
+    src = `${esc(india.source.name)}, ${esc(india.source.period)}. National rate ${india.india_per_1000_cards} complaints per 1,000 cards across ${india.cards_in_force.toLocaleString()} cards; ×-values are each group's rate over the national rate (marker = 1.0×). Non-bank issuers (NBFCs) drew ${india.nbfc_card_complaints.toLocaleString()} card complaints with no per-card rate published. <a href="${esc(india.source.url)}" target="_blank" rel="noopener">Source</a>`;
+  } else {
+    const d = india.bank_disclosures[f];
+    rows = d.grounds.map((x, i) => `<div class="reg-row" style="--i:${i}"><span><b>${esc(x.ground)}</b></span>${bar(x.share, 1, false).replace(/<s[^>]*><\/s>/, "")}
+      <span class="v"><b>${(x.share * 100).toFixed(1)}%</b><small>${x.complaints.toLocaleString()} complaints</small></span></div>`).join("");
+    src = `${esc(f)}'s own published complaint analysis, ${esc(d.period)}: ${d.total.toLocaleString()} complaints in all; only its largest categories are published. <a href="${esc(d.url)}" target="_blank" rel="noopener">Source</a>`;
+  }
+  box.querySelector(".reg-grid").innerHTML = rows;
+  box.querySelector(".reg-src").innerHTML = src;
+  requestAnimationFrame(() => requestAnimationFrame(() => box.querySelectorAll(".reg-row .bar i").forEach((i) => (i.style.width = "var(--w)"))));
+}
+initRegion();
+
+/* ---- API playground: a real POST /api/v1/check, its JSON and latency, then the audit refreshes ---- */
+(() => {
+  const btn = document.getElementById("playRun"); if (!btn) return;
+  const pills = document.getElementById("playProfile");
+  pills.addEventListener("click", (e) => { const b = e.target.closest(".wi-pill"); if (b) b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); });
+  const json = (v) => esc(JSON.stringify(v, null, 2)).replace(/&quot;([^&]+?)&quot;:/g, '<i class="k">"$1"</i>:').replace(/: (-?\d+(\.\d+)?)/g, ': <i class="n">$1</i>');
+  btn.addEventListener("click", async () => {
+    const [issuer, product_type] = document.getElementById("playLender").value.split("|");
+    const applicant_profile = [...pills.querySelectorAll('[aria-pressed="true"]')].map((b) => b.dataset.key);
+    const body = { issuer, product_type, applicant_profile };
+    btn.disabled = true; btn.textContent = "Sending…";
+    const t0 = performance.now();
+    try {
+      const r = await fetch("/api/v1/check", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json(), took = Math.round(performance.now() - t0);
+      const held = d.verdict === "human_review";
+      document.getElementById("playMeta").innerHTML = `<span>HTTP ${r.status}</span><span>${took.toLocaleString()} ms</span>
+        <span class="${held ? "held" : "pass"}">${held ? "HELD FOR THE PERSON" : "PASS"} · ${esc(d.verdict)}</span><span>severity ${esc(d.severity)}</span>`;
+      document.getElementById("playOut").innerHTML = `<i class="k">POST</i> /api/v1/check\n${json(body)}\n\n<i class="k">→ ${r.status}</i>\n${json(d)}`;
+      loadAudit();
+    } catch (e) { document.getElementById("playOut").textContent = "Request failed: " + e.message; }
+    finally { btn.disabled = false; btn.textContent = "Run Live /api/v1/check Request"; }
+  });
+})();
 
 /* ---- BigQuery audit trail of gate decisions (hidden when BigQuery is off) ---- */
 async function loadAudit() {

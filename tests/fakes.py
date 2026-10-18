@@ -130,12 +130,25 @@ def fake_assistant_turn(contents, toolset):
 
     question = next(p.text for c in reversed(contents) if c.role == "user" for p in (c.parts or []) if p.text)
     done = [p.function_response for c in contents for p in (c.parts or []) if p.function_response]
-    lender = next((n for n in ("Apple Card", "Klarna", "Capital One", "Chase", "Affirm") if n.lower() in question.lower()), None)
+    q = question.lower()
+    lender = next((n for n in ("Apple Card", "Klarna", "Capital One", "Chase", "Affirm", "Synchrony") if n.lower() in q), None)
+    if "india" in q and not done:
+        return types.Content(role="model", parts=[types.Part.from_function_call(name="india_rbi_data", args={"bank": ""})])
+    if "india" in q:
+        g = {x["group"]: x for x in done[0].response["result"]["groups"]}
+        return types.Content(role="model", parts=[types.Part.from_text(text=(
+            f"Stand-in answer: **Small finance banks** draw {g['small_finance']['x_vs_india']}x the Indian average of "
+            f"complaints per card, public sector banks {g['public_sector']['x_vs_india']}x (RBI Ombudsman 2024-25)."))])
     if lender and not done:
-        return types.Content(role="model", parts=[
-            types.Part.from_function_call(name="check_lender", args={"name": lender}),
-            types.Part.from_function_call(name="lender_news", args={"name": lender}),
-            types.Part.from_function_call(name="open_page", args={"page": "leaflet", "lender": lender})])
+        calls = [types.Part.from_function_call(name="check_lender", args={"name": lender}),
+                 types.Part.from_function_call(name="lender_news", args={"name": lender}),
+                 types.Part.from_function_call(name="open_page", args={"page": "leaflet", "lender": lender})]
+        if any(w in q for w in ("safe", "risky", "flagged", "freelanc")):
+            ptype = "bnpl" if lender in ("Klarna", "Affirm") else "credit_card"
+            prof = ["irregular_income"] if ("freelanc" in q or "irregular" in q) else []
+            calls.append(types.Part.from_function_call(name="gate_check", args={
+                "issuer": lender, "product_type": ptype, "applicant_profile": prof}))
+        return types.Content(role="model", parts=calls)
     if done:
         found = done[0].response["result"]
         n = found.get("complaints_last_90_days")

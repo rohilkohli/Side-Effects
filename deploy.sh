@@ -10,7 +10,7 @@ MODEL="${GEMINI_MODEL:-gemini-3.8-flash}"
 SA="side-effects@${PROJECT_ID}.iam.gserviceaccount.com"
 
 gcloud config set project "$PROJECT_ID"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com bigquery.googleapis.com cloudscheduler.googleapis.com
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com texttospeech.googleapis.com bigquery.googleapis.com cloudscheduler.googleapis.com
 gcloud iam service-accounts describe "$SA" >/dev/null 2>&1 || \
   gcloud iam service-accounts create side-effects --display-name "SIDE EFFECTS app"
 gcloud projects add-iam-policy-binding "$PROJECT_ID" --member "serviceAccount:$SA" --role roles/aiplatform.user --condition=None >/dev/null
